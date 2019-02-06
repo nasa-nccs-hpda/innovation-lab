@@ -20,6 +20,7 @@ from model.ObservationFile import ObservationFile
 # -----------------------------------------------------------------------------
 class ObservationFileTestCase(unittest.TestCase):
 
+    _species = 'Cheat Grass'
     _testObsFile = None
 
     # -------------------------------------------------------------------------
@@ -53,14 +54,29 @@ class ObservationFileTestCase(unittest.TestCase):
         os.remove(ObservationFileTestCase._testObsFile)
 
     # -------------------------------------------------------------------------
-    # testCRS
+    # testAlternateFormat
     # -------------------------------------------------------------------------
-    def testCRS(self):
+    def testAlternateFormat(self):
 
-        testCRS = SpatialReference()
-        testCRS.ImportFromEPSG(32612)
-        obs = ObservationFile(ObservationFileTestCase._testObsFile)
-        self.assertTrue(obs.crs().IsSame(testCRS))
+        obsFile = tempfile.mkstemp(suffix='.csv')[1]
+        print '_testObsFile: ' + str(ObservationFileTestCase._testObsFile)
+
+        with open(obsFile, 'w') as csvFile:
+
+            fields = ['x', 'y', 'pres/abs', 'epsg:32612']
+            writer = csv.writer(csvFile, fields)
+            writer.writerow(fields)
+            writer.writerow((374187, 4124593, 1))
+            writer.writerow((393543, 4100640, 0))
+            writer.writerow((395099, 4130094, 0))
+            writer.writerow((486130, 4202663, 1))
+            writer.writerow((501598, 4142175, 0))
+
+        obs = ObservationFile(obsFile, ObservationFileTestCase._species)
+        testSRS = SpatialReference()
+        testSRS.ImportFromEPSG(32612)
+        os.remove(obsFile)
+        self.assertTrue(obs.srs().IsSame(testSRS))
 
     # -------------------------------------------------------------------------
     # testEnvelope
@@ -70,7 +86,10 @@ class ObservationFileTestCase(unittest.TestCase):
         testEnv = Envelope()
         testEnv.addPoint(374187, 4202663, 0, 32612)
         testEnv.addPoint(501598, 4100640, 0, 32612)
-        obs = ObservationFile(ObservationFileTestCase._testObsFile)
+
+        obs = ObservationFile(ObservationFileTestCase._testObsFile,
+                              ObservationFileTestCase._species)
+
         self.assertTrue(testEnv.equals(obs.envelope()))
 
     # -------------------------------------------------------------------------
@@ -79,14 +98,16 @@ class ObservationFileTestCase(unittest.TestCase):
     def testNotA_CSV_File(self):
 
         with self.assertRaises(RuntimeError):
-            ObservationFile('Common/tests/test_BaseFile.py')
+
+            ObservationFile('Common/tests/test_BaseFile.py',
+                            ObservationFileTestCase._species)
 
     # -------------------------------------------------------------------------
     # testInvalidFile
     # -------------------------------------------------------------------------
     def testInvalidFile(self):
 
-        # Create a file with multiple CRSs.
+        # Create a file with multiple SRSs.
         invalidFile = tempfile.mkstemp(suffix='.csv')[1]
         print 'invalidFile: ' + str(invalidFile)
 
@@ -98,17 +119,50 @@ class ObservationFileTestCase(unittest.TestCase):
             writer.writerow((374187, 4124593, 0, 32612, 1))
             writer.writerow((88.8, 21.12, 301, 4326, 0))
 
-        with self.assertRaisesRegexp(RuntimeError, 'same CRS'):
-            ObservationFile(invalidFile)
+        with self.assertRaisesRegexp(RuntimeError, 'same SRS'):
+            ObservationFile(invalidFile, ObservationFileTestCase._species)
 
         os.remove(invalidFile)
+
+    # -------------------------------------------------------------------------
+    # testNoSpecies
+    # -------------------------------------------------------------------------
+    def testNoSpecies(self):
+
+        with self.assertRaises(TypeError):
+            ObservationFile(ObservationFileTestCase._testObsFile)
+
+    # -------------------------------------------------------------------------
+    # testSpecies
+    # -------------------------------------------------------------------------
+    def testSpecies(self):
+
+        obs = ObservationFile(ObservationFileTestCase._testObsFile,
+                              ObservationFileTestCase._species)
+
+        self.assertEqual(obs.species(), ObservationFileTestCase._species)
+
+    # -------------------------------------------------------------------------
+    # testSRS
+    # -------------------------------------------------------------------------
+    def testSRS(self):
+
+        testSRS = SpatialReference()
+        testSRS.ImportFromEPSG(32612)
+
+        obs = ObservationFile(ObservationFileTestCase._testObsFile,
+                              ObservationFileTestCase._species)
+
+        self.assertTrue(obs.srs().IsSame(testSRS))
 
     # -------------------------------------------------------------------------
     # testValidFile
     # -------------------------------------------------------------------------
     def testValidFile(self):
 
-        obs = ObservationFile(ObservationFileTestCase._testObsFile)
+        obs = ObservationFile(ObservationFileTestCase._testObsFile,
+                              ObservationFileTestCase._species)
+
         self.assertEqual(obs.numObservations(), 5)
         self.assertEqual(obs.observation(0)[0].GetX(), 374187)
         self.assertEqual(obs.observation(1)[1], False)

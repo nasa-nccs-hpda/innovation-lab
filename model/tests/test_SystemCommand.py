@@ -32,7 +32,7 @@ class SystemCommandTestCase(unittest.TestCase):
         scmd = SystemCommand('ls abc.txt')
 
         self.assertEqual(scmd.msg,
-                         'ls: cannot access abc.txt: ' +
+                         'ls: cannot access \'abc.txt\': ' +
                          'No such file or directory\n')
 
         scmd = SystemCommand('gdal_merge.py abc.txt', logging.getLogger())

@@ -14,8 +14,11 @@ class SystemCommand(object):
     # causing returnCode to be None.  To detect this, check if msg contains
     # and error text.  These must be in lower case.
     # ---
-    ERROR_STRINGS_TO_TEST = ['traceback',
-                             'not found']
+    ERROR_STRINGS_TO_TEST = ['error',
+                             'exception',
+                             'not found',
+                             'not recognised',
+                             'traceback']
 
     # -------------------------------------------------------------------------
     # __init__
@@ -56,9 +59,25 @@ class SystemCommand(object):
                 hasErrorString = True
                 break
 
+        # Other times, the error is reported in stdout.  Detect this.
+        if not hasErrorString:
+
+            lcMsg = self.stdOut.lower()
+            hasErrorString = False
+
+            for eMsg in SystemCommand.ERROR_STRINGS_TO_TEST:
+
+                if lcMsg.find(eMsg) != -1:
+
+                    hasErrorString = True
+                    break
+
         if self.returnCode or hasErrorString:
 
             if raiseException:
 
-                msg = 'A system command error occurred.  ' + str(self.msg)
+                msg = 'A system command error occurred.  ' + \
+                      str(self.stdOut) + \
+                      str(self.msg)
+
                 raise RuntimeError(msg)

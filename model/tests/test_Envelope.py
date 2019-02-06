@@ -4,6 +4,7 @@
 import unittest
 
 from osgeo import ogr
+from osgeo.osr import SpatialReference
 
 from model.Envelope import Envelope
 
@@ -120,3 +121,22 @@ class EnvelopeTestCase(unittest.TestCase):
         self.assertEqual(uly, env.uly())
         self.assertEqual(lrx, env.lrx())
         self.assertEqual(lry, env.lry())
+
+    # -------------------------------------------------------------------------
+    # testSrs
+    # -------------------------------------------------------------------------
+    def testSrs(self):
+
+        ulx = 374187
+        uly = 4202663
+        lrx = 501598
+        lry = 4100640
+        epsg = 32612
+        env = Envelope()
+        env.addPoint(ulx, uly, 0, epsg)
+        env.addPoint(lrx, lry, 0, epsg)
+
+        srs = SpatialReference()
+        srs.ImportFromEPSG(epsg)
+
+        self.assertTrue(srs.IsSame(env.srs()))
