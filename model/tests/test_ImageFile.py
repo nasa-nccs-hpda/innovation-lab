@@ -40,10 +40,11 @@ class ImageFileTestCase(unittest.TestCase):
         uly = 4209230
         lrx = 509200
         lry = 4095100
-        epsg = 32612
+        srs = SpatialReference()
+        srs.ImportFromEPSG(32612)
         env = Envelope()
-        env.addPoint(ulx, uly, 0, epsg)
-        env.addPoint(lrx, lry, 0, epsg)
+        env.addPoint(ulx, uly, 0, srs)
+        env.addPoint(lrx, lry, 0, srs)
 
         # Reprojection parameter
         targetSRS = SpatialReference()
@@ -104,10 +105,11 @@ class ImageFileTestCase(unittest.TestCase):
         uly = 4209230
         lrx = 509200
         lry = 4095100
-        epsg = 32612
+        srs = SpatialReference()
+        srs.ImportFromEPSG(32612)
         env = Envelope()
-        env.addPoint(ulx, uly, 0, epsg)
-        env.addPoint(lrx, lry, 0, epsg)
+        env.addPoint(ulx, uly, 0, srs)
+        env.addPoint(lrx, lry, 0, srs)
         imageFile.clipReprojectResample(env)
 
         # Check the corners.

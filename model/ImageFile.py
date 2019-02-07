@@ -66,7 +66,7 @@ class ImageFile(BaseFile):
         if envelope:
 
             if not isinstance(envelope, Envelope):
-                raise RuntimeError('The first parameter must be an Envelope.')
+                raise TypeError('The first parameter must be an Envelope.')
 
             cmd += (' -te' +
                     ' ' + str(envelope.ulx()) +

@@ -28,11 +28,9 @@ class Envelope(object):
     # case.  A Point class would help, but could lead to extensive wrapping of
     # GDAL, which we should avoid--or at least strongly resist.
     # -------------------------------------------------------------------------
-    def addPoint(self, x, y, z, epsg):
+    def addPoint(self, x, y, z, srs):
 
         ogrPt = ogr.Geometry(ogr.wkbPoint)
-        srs = SpatialReference()
-        srs.ImportFromEPSG(epsg)
         ogrPt.AssignSpatialReference(srs)
 
         # ---
@@ -113,6 +111,33 @@ class Envelope(object):
     def lry(self):
 
         return self._getOrdinate(2)
+
+    # -------------------------------------------------------------------------
+    # transformTo
+    # -------------------------------------------------------------------------
+    def transformTo(self, targetSRS):
+
+        if not isinstance(targetSRS, SpatialReference):
+            raise TypeError('The first parameter must be a SpatialReference.')
+
+        if not self.srs().IsSame(targetSRS):
+
+            newUl = ogr.Geometry(ogr.wkbPoint)
+            newUl.AssignSpatialReference(self.srs())
+            newUl.AddPoint(self.ulx(), self.uly())
+            newUl.TransformTo(targetSRS)
+
+            newLr = ogr.Geometry(ogr.wkbPoint)
+            newLr.AssignSpatialReference(self.srs())
+            newLr.AddPoint(self.lrx(), self.lry())
+            newLr.TransformTo(targetSRS)
+
+            self._envelope = None
+            self._points = []
+            self._srs = None
+
+            self.addOgrPoint(newUl)
+            self.addOgrPoint(newLr)
 
     # -------------------------------------------------------------------------
     # srs

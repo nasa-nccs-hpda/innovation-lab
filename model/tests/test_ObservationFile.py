@@ -84,8 +84,10 @@ class ObservationFileTestCase(unittest.TestCase):
     def testEnvelope(self):
 
         testEnv = Envelope()
-        testEnv.addPoint(374187, 4202663, 0, 32612)
-        testEnv.addPoint(501598, 4100640, 0, 32612)
+        srs = SpatialReference()
+        srs.ImportFromEPSG(32612)
+        testEnv.addPoint(374187, 4202663, 0, srs)
+        testEnv.addPoint(501598, 4100640, 0, srs)
 
         obs = ObservationFile(ObservationFileTestCase._testObsFile,
                               ObservationFileTestCase._species)
