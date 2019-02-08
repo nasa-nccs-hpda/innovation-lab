@@ -70,22 +70,24 @@ class MaxEntRequest(object):
 
         path, name = os.path.split(self._observationFile.fileName())
         samplesFile = os.path.join(self._outputDirectory, name)
-        firstRow = True
 
-        fdReader = csv.reader(open(self._observationFile.fileName()),
-                              delimiter=',')
+        meWriter = csv.writer(open(samplesFile, 'w'), delimiter=',')
+        meWriter.writerow(['species', 'x', 'y'])
 
-        for row in fdReader:
+        for i in range(self._observationFile.numObservations()):
 
-            if firstRow:
+            obs = self._observationFile.observation(i)
 
-                firstRow = False
-                meWriter = csv.writer(open(samplesFile, 'w'), delimiter=',')
-                meWriter.writerow(['species', 'x', 'y'])
+            # Skip absence points.
+            if obs[1] > 0:
 
-            else:
+                speciesNoBlank = self._observationFile. \
+                                 species(). \
+                                 replace(' ', '_')
 
-                meWriter.writerow([self._species, row[0], row[1]])
+                meWriter.writerow([speciesNoBlank,
+                                   obs[0].GetX(),
+                                   obs[0].GetY()])
 
         return samplesFile
 
