@@ -167,8 +167,18 @@ class EnvelopeTestCase(unittest.TestCase):
         env = Envelope()
         env.addPoint(ulx, uly, 0, srs)
         env.addPoint(lrx, lry, 0, srs)
-
+        
         targetSRS = SpatialReference()
         targetSRS.ImportFromEPSG(4326)
         env.transformTo(targetSRS)
+
+        expectedUlx = -112.43223503554906
+        expectedUly = 37.962871687712536
+        expectedLrx = -110.98202787057967
+        expectedLry = 37.051990304130925
+        
+        self.assertAlmostEqual(expectedUlx, env.ulx(), 10)
+        self.assertAlmostEqual(expectedUly, env.uly(), 8)
+        self.assertAlmostEqual(expectedLrx, env.lrx(), 10)
+        self.assertAlmostEqual(expectedLry, env.lry(), 8)
         self.assertTrue(targetSRS.IsSame(env.srs()))
