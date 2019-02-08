@@ -18,33 +18,34 @@ from model.MaxEntRequest import MaxEntRequest
 # -----------------------------------------------------------------------------
 def main():
 
-    # Process command-line args. 
+    # Process command-line args.
     desc = 'This application runs Maximum Entropy.'
-    parser = argparse.ArgumentParser(description = desc)
-    
+    parser = argparse.ArgumentParser(description=desc)
+
     parser.add_argument('-f',
-                        required=True, 
+                        required=True,
                         help='Path to observation file')
-    
+
     parser.add_argument('-i',
                         default='.',
                         help='Path to directory of image files')
-    
+
     parser.add_argument('-o',
                         default='.',
                         help='Path to output directory')
-    
+
     parser.add_argument('-s',
                         required=True,
                         help='Name of species in observation file')
-    
+
     args = parser.parse_args()
     images = glob.glob(args.i + '/*.tif')
     maxEntReq = MaxEntRequest(args.f, args.s, images, args.o)
     maxEntReq.run()
-    
-#-------------------------------------------------------------------------------
+
+
+# ------------------------------------------------------------------------------
 # Invoke the main
-#-------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 if __name__ == "__main__":
     sys.exit(main())
