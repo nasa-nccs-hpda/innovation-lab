@@ -5,6 +5,7 @@ import csv
 import fileinput
 import os
 import shutil
+import sys
 
 from model.ImageFile import ImageFile
 from model.ObservationFile import ObservationFile
@@ -32,11 +33,25 @@ class MaxEntRequest(object):
                                ' does not exist.')
 
         self._images = listOfImages
+        self._imagesToProcess = self._images
         self._outputDirectory = outputDirectory
         self._species = species
 
         self._observationFile = ObservationFile(observationFilePath,
                                                 self._species)
+
+        self._maxEntSpeciesFile = self._formatObservations()
+
+        # Create a directory for the ASC files.
+        self._ascDir = os.path.join(self._outputDirectory, 'asc')
+
+        try:
+            os.mkdir(self._ascDir)
+
+        except OSError:
+
+            # Do not complain, if the directory exists.
+            pass
 
     # -------------------------------------------------------------------------
     # _fixNaNs
@@ -75,9 +90,9 @@ class MaxEntRequest(object):
         return samplesFile
 
     # -------------------------------------------------------------------------
-    # run
+    # prepareNextImage
     # -------------------------------------------------------------------------
-    def run(self):
+    def prepareNextImage(self):
 
         # ---
         # Clip the images to the AoI of the observations, resample the images
@@ -88,62 +103,75 @@ class MaxEntRequest(object):
         # input images to ASCII Grid format.  Also, replace NaNs with a float
         # and copy the ASC to a working directory.
         # ---
-        obsEnvelope = self._observationFile.envelope()
-        ascDir = os.path.join(self._outputDirectory, 'asc')
-
         try:
-            os.mkdir(ascDir)
+            image = self._imagesToProcess.pop()
 
-        except OSError:
+        except IndexError:
+            return 0
 
-            # Do not complain, if the directory exists.
-            pass
+        # ---
+        # First, to preserve the original files, copy the input file to the
+        # output directory.
+        # ---
+        baseName = os.path.basename(image)
+        copyPath = os.path.join(self._ascDir, baseName)
+        print 'Processing ' + copyPath
+        shutil.copy(image, copyPath)
+        imageCopy = ImageFile(copyPath)
+        squareScale = imageCopy.getSquareScale()
 
-        for image in self._images:
+        imageCopy.clipReprojectResample(self._observationFile.envelope(),
+                                        self._observationFile.srs(),
+                                        (squareScale, squareScale))
 
-            # ---
-            # First, to preserve the original files, copy the input file to the
-            # output directory.
-            # ---
-            baseName = os.path.basename(image)
-            copyPath = os.path.join(ascDir, baseName)
-            print 'Processing ' + copyPath
-            shutil.copy(image, copyPath)
-            imageCopy = ImageFile(copyPath)
-            squareScale = imageCopy.getSquareScale()
+        # Convert to ASCII Grid.
+        nameNoExtension = os.path.splitext(baseName)[0]
+        ascImagePath = os.path.join(self._ascDir, nameNoExtension + '.asc')
 
-            imageCopy.clipReprojectResample(obsEnvelope,
-                                            self._observationFile.srs(),
-                                            (squareScale, squareScale))
+        cmd = 'gdal_translate -ot Float32 -of AAIGrid -a_nodata -9999.0' +\
+              ' "' + imageCopy.fileName() + '"' + \
+              ' "' + ascImagePath + '"'
 
-            # Convert to ASCII Grid.
-            nameNoExtension = os.path.splitext(baseName)[0]
-            ascImagePath = os.path.join(ascDir, nameNoExtension + '.asc')
+        SystemCommand(cmd, None, True)
+        self._fixNaNs(ascImagePath)
 
-            cmd = 'gdal_translate -ot Float32 -of AAIGrid -a_nodata -9999.0' +\
-                  ' "' + imageCopy.fileName() + '"' + \
-                  ' "' + ascImagePath + '"'
+        return len(self._imagesToProcess)
 
-            SystemCommand(cmd, None, True)
-            self._fixNaNs(ascImagePath)
+    # -------------------------------------------------------------------------
+    # run
+    # -------------------------------------------------------------------------
+    def run(self):
 
-        # Reformat the observations for MaxEnt.
-        speciesFile = self._formatObservations()
+        imagesLeft = sys.maxint
+
+        while imagesLeft > 0:
+
+            imagesLeft = self.prepareNextImage()
+            print str(imagesLeft) + ' images remaining to process.'
+
+        self.runMaxEntJar()
+
+    # -------------------------------------------------------------------------
+    # runMaxEntJar
+    # -------------------------------------------------------------------------
+    def runMaxEntJar(self):
+
+        print 'Running MaxEnt.'
 
         # Invoke maxent.jar.
-        maxentJar = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                 'libraries',
-                                 'maxent.jar')
+        MAX_ENT_JAR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                   'libraries',
+                                   'maxent.jar')
 
         baseCmd = 'java -Xmx1024m -jar ' + \
-                  maxentJar + \
+                  MAX_ENT_JAR + \
                   ' visible=false autorun -P -J writeplotdata ' + \
                   '"applythresholdrule=Equal training sensitivity and ' + \
                   'specificity" removeduplicates=false '
 
         cmd = baseCmd + \
-            '-s "' + speciesFile + '" ' + \
-            '-e "' + ascDir + '" ' + \
+            '-s "' + self._maxEntSpeciesFile + '" ' + \
+            '-e "' + self._ascDir + '" ' + \
             '-o "' + self._outputDirectory + '"'
 
         SystemCommand(cmd, None, True)
