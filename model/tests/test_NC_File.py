@@ -22,5 +22,5 @@ class NC_FileTestCase(unittest.TestCase):
 
         notNC_File = tempfile.mkstemp(suffix='.csv')[1]
 
-        with self.assertRaisesRegexp(RuntimeError, 'not in Net CDF format'):
+        with self.assertRaisesRegexp(RuntimeError, 'not in .nc format'):
             NC_File(notNC_File)

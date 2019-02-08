@@ -36,33 +36,6 @@ class ObservationFileTestCase(unittest.TestCase):
 
         with open(ObservationFileTestCase._testObsFile, 'w') as csvFile:
 
-            fields = ['x', 'y', 'z', 'epsg', 'pres/abs']
-            writer = csv.writer(csvFile, fields)
-            writer.writerow(fields)
-            writer.writerow((374187, 4124593, 0, 32612, 1))
-            writer.writerow((393543, 4100640, 0, 32612, 0))
-            writer.writerow((395099, 4130094, 0, 32612, 0))
-            writer.writerow((486130, 4202663, 0, 32612, 1))
-            writer.writerow((501598, 4142175, 0, 32612, 0))
-
-    # -------------------------------------------------------------------------
-    # tearDownClass
-    # -------------------------------------------------------------------------
-    @classmethod
-    def tearDownClass(cls):
-
-        os.remove(ObservationFileTestCase._testObsFile)
-
-    # -------------------------------------------------------------------------
-    # testAlternateFormat
-    # -------------------------------------------------------------------------
-    def testAlternateFormat(self):
-
-        obsFile = tempfile.mkstemp(suffix='.csv')[1]
-        print '_testObsFile: ' + str(ObservationFileTestCase._testObsFile)
-
-        with open(obsFile, 'w') as csvFile:
-
             fields = ['x', 'y', 'pres/abs', 'epsg:32612']
             writer = csv.writer(csvFile, fields)
             writer.writerow(fields)
@@ -72,11 +45,13 @@ class ObservationFileTestCase(unittest.TestCase):
             writer.writerow((486130, 4202663, 1))
             writer.writerow((501598, 4142175, 0))
 
-        obs = ObservationFile(obsFile, ObservationFileTestCase._species)
-        testSRS = SpatialReference()
-        testSRS.ImportFromEPSG(32612)
-        os.remove(obsFile)
-        self.assertTrue(obs.srs().IsSame(testSRS))
+    # -------------------------------------------------------------------------
+    # tearDownClass
+    # -------------------------------------------------------------------------
+    @classmethod
+    def tearDownClass(cls):
+
+        os.remove(ObservationFileTestCase._testObsFile)
 
     # -------------------------------------------------------------------------
     # testEnvelope
@@ -115,13 +90,12 @@ class ObservationFileTestCase(unittest.TestCase):
 
         with open(invalidFile, 'w') as csvFile:
 
-            fields = ['x', 'y', 'z', 'epsg', 'pres/abs']
+            fields = ['x', 'y', 'pres/abs', 'epsg']
             writer = csv.writer(csvFile, fields)
             writer.writerow(fields)
-            writer.writerow((374187, 4124593, 0, 32612, 1))
-            writer.writerow((88.8, 21.12, 301, 4326, 0))
+            writer.writerow((374187, 4124593, 1))
 
-        with self.assertRaisesRegexp(RuntimeError, 'same SRS'):
+        with self.assertRaisesRegexp(RuntimeError, 'must contain a colon'):
             ObservationFile(invalidFile, ObservationFileTestCase._species)
 
         os.remove(invalidFile)

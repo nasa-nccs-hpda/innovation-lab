@@ -33,7 +33,7 @@ class ImageFileTestCase(unittest.TestCase):
         # Build the test file.
         workingCopy = tempfile.mkstemp(suffix='.tif')[1]
         shutil.copyfile(ImageFileTestCase.TEST_FILE, workingCopy)
-        imageFile = ImageFile(workingCopy)
+        imageFile = ImageFile(workingCopy, '.tif')
 
         # Build the envelope.
         ulx = 367080

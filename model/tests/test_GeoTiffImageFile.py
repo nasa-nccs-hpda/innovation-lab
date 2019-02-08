@@ -27,7 +27,5 @@ class GeoTiffImageFileTestCase(unittest.TestCase):
 
         notGeoTiffImageFile = tempfile.mkstemp(suffix='.csv')[1]
 
-        with self.assertRaisesRegexp(RuntimeError,
-                                     'not in GeoTiff image format'):
-
+        with self.assertRaisesRegexp(RuntimeError, 'not in .tif format'):
             GeoTiffImageFile(notGeoTiffImageFile)

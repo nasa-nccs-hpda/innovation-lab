@@ -29,10 +29,10 @@ class ImageFile(BaseFile):
     # -------------------------------------------------------------------------
     # __init__
     # -------------------------------------------------------------------------
-    def __init__(self, pathToFile):
+    def __init__(self, pathToFile, expectedExtension=None):
 
         # Initialize the base class.
-        super(ImageFile, self).__init__(pathToFile)
+        super(ImageFile, self).__init__(pathToFile, expectedExtension)
         self._dataset = None
 
     # -------------------------------------------------------------------------

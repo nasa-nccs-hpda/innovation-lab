@@ -15,15 +15,14 @@ from model.BaseFile import BaseFile
 class BaseFileTestCase(unittest.TestCase):
 
     # -------------------------------------------------------------------------
-    # testNoFileSpecified
+    # testExpectedExtension
     # -------------------------------------------------------------------------
-    def testNoFileSpecified(self):
+    def testExpectedExtension(self):
 
-        with self.assertRaises(TypeError):
-            BaseFile()
+        BaseFile('model/tests/test_BaseFile.py', '.py')
 
         with self.assertRaises(RuntimeError):
-            BaseFile(None)
+            BaseFile('model/tests/test_BaseFile.py', '.yyz')
 
     # -------------------------------------------------------------------------
     # testFileDoesNotExist
@@ -39,3 +38,14 @@ class BaseFileTestCase(unittest.TestCase):
     def testFileExists(self):
 
         BaseFile('model/tests/test_BaseFile.py')
+
+    # -------------------------------------------------------------------------
+    # testNoFileSpecified
+    # -------------------------------------------------------------------------
+    def testNoFileSpecified(self):
+
+        with self.assertRaises(TypeError):
+            BaseFile()
+
+        with self.assertRaises(RuntimeError):
+            BaseFile(None)
