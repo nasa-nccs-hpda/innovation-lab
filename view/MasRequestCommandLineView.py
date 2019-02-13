@@ -13,8 +13,8 @@ from model.MasRequest import MasRequest
 # cd innovation-lab
 # export PYTHONPATH=`pwd`
 # mkdir ~/SystemTesting/testMaxEnt
-# view/MasRequestCommandLineView.py -f ~/SystemTesting/MaxEntData/GSENM_cheat_pres_abs_2001.csv -s "Cheat Grass"
-# --startDate "20030205" --endDate "20030211" -c tavg1_2d_lnd_Nx --vars "TSURF,BASEFLOW,ECHANGE" --opr "avg"
+# view/MasRequestCommandLineView.py -e Envelope_obj -d Pandas_date_range_obj
+# -c tavg1_2d_lnd_Nx --vars "TSURF,BASEFLOW,ECHANGE" --opr "avg"
 # -o ~/SystemTesting/testMaxEnt/
 # -----------------------------------------------------------------------------
 def main():
@@ -23,25 +23,13 @@ def main():
     desc = 'This application runs MAS Request for MMX.'
     parser = argparse.ArgumentParser(description=desc)
 
-    parser.add_argument('-f',
+    parser.add_argument('-e',
                         required=True,
-                        help='Path to observation file')
+                        help='Envelope object')
 
-    parser.add_argument('-o',
-                        default='.',
-                        help='Path to output directory')
-
-    parser.add_argument('-s',
+    parser.add_argument('-d',
                         required=True,
-                        help='Name of species in observation file')
-
-    parser.add_argument('--startDate',
-                        required=True,
-                        help = 'YYYYMMDD')
-
-    parser.add_argument('--endDate',
-                        required=True,
-                        help = 'YYYYMMDD')
+                        help = 'Pandas date_range object')
 
     parser.add_argument('-c',
                         required=True,
@@ -55,9 +43,12 @@ def main():
                         required=True,
                         help = 'Type of analysis')
 
+    parser.add_argument('-o',
+                        default='.',
+                        help='Path to output directory')
+
     args = parser.parse_args()
-    masReq = MasRequest(args.f, args.s, args.startDate, args.endDate,
-                        args.c, args.vars, args.opr, args.o)
+    masReq = MasRequest(args.e, args.d, args.c, args.vars, args.opr, args.o)
     masReq.run()
 
 # ------------------------------------------------------------------------------
