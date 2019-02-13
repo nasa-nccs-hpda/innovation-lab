@@ -4,7 +4,9 @@ import pandas as pd
 from multiprocessing import Process
 from osgeo.osr import SpatialReference
 from CDSLibrary import CDSApi
+
 cds_lib = CDSApi()
+
 
 # -----------------------------------------------------------------------------
 # class MasRequest
@@ -22,16 +24,19 @@ class MasRequest(object):
         self._operation = operation
         self._outDir = outDir
         self._ds = dict({})
+
     # -------------------------------------------------------------------------
     # retrieve analytic results
     # -------------------------------------------------------------------------
-    def _getResult(self, service, sessionId, filename, outDir):
+    @staticmethod
+    def _getResult(service, sessionId, filename, outDir):
         response = cds_lib.poll(service, sessionId, filename,
                                 cds_lib.cds_ws.config)
         sessionStatus = cds_lib.getElement(response, "sessionStatus")
         if sessionStatus == "Completed":
             cds_lib.downloadResult(sessionStatus, service, sessionId,
                                    outDir, filename)
+
     # -------------------------------------------------------------------------
     # set date range for MAS operation
     # -------------------------------------------------------------------------
@@ -67,6 +72,7 @@ class MasRequest(object):
         self._ds['max_lon'] = env.lrx()
         self._ds['min_lat'] = env.lry()
         self._ds['max_lat'] = env.uly()
+
     # -------------------------------------------------------------------------
     # set parameters for MAS operation
     # -------------------------------------------------------------------------
@@ -83,6 +89,7 @@ class MasRequest(object):
         self._setDateRange(self._dateRange)
 
         self._setDomain(self._envelope)
+
     # -------------------------------------------------------------------------
     # run MAS operation
     # -------------------------------------------------------------------------
