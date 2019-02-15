@@ -2,15 +2,11 @@
 
 import argparse
 import sys
-
-from osgeo.osr import SpatialReference
-
 import pandas as pd
+from osgeo.osr import SpatialReference
 
 from model.Envelope import Envelope
 from model.MasRequest import MasRequest
-
-
 
 # -----------------------------------------------------------------------------
 # main
