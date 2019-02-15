@@ -79,7 +79,7 @@ class Envelope(ogr.Geometry):
                self.lry() == otherEnvelope.lry() and \
                self.GetSpatialReference().IsSame( \
                    otherEnvelope.GetSpatialReference())
-        
+
     # -------------------------------------------------------------------------
     # _getOrdinate
     # -------------------------------------------------------------------------
@@ -104,7 +104,6 @@ class Envelope(ogr.Geometry):
 
         return self._getOrdinate(2)
 
-    # -------------------------------------------------------------------------
     # ulx
     # -------------------------------------------------------------------------
     def ulx(self):
