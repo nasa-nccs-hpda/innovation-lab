@@ -19,7 +19,8 @@ from model.MasRequest import MasRequest
 # export PYTHONPATH=`pwd`
 # mkdir ~/SystemTesting/testMasReq
 #
-# view/MasRequestCommandLineView.py -e -125 50 -66 24
+# view/MasRequestCommandLineView.py
+# -e -125 50 -66 24
 # --epsg 4326
 # --start_date 2013-02-03
 # --end_date 2013-03-12
