@@ -38,13 +38,13 @@ class MasRequest(object):
     # -------------------------------------------------------------------------
     # retrieve analytic results
     # -------------------------------------------------------------------------
-    def _getResult(self, service, sessionId, filename):
-        response = cds_lib.poll(service, sessionId, filename,
+    def _getResult(self, sessionId, filename):
+        response = cds_lib.poll(self._ds['service'], sessionId, filename,
                                 cds_lib.cds_ws.config)
         sessionStatus = cds_lib.getElement(response, "sessionStatus")
-        if sessionStatus == "Completed":
-            cds_lib.downloadResult(sessionStatus, service, sessionId,
-                                   self._outDir, filename)
+        if sessionStatus == 'Completed':
+            cds_lib.downloadResult(sessionStatus, self._ds['service'],
+                                   sessionId, self._outDir, filename)
 
     # -------------------------------------------------------------------------
     # set date range for MAS operation
@@ -100,7 +100,7 @@ class MasRequest(object):
         for key in keylist:
             filename = key + '.nc'
             p = Process(target=self._getResult,
-                      args=(self._ds['service'], sessionCatalog[key],filename))
+                      args=(sessionCatalog[key],filename))
             p.start()
             threadCatalog[sessionCatalog[key]] = p
 
