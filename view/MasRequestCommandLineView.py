@@ -8,6 +8,7 @@ from osgeo.osr import SpatialReference
 from model.Envelope import Envelope
 from model.MasRequest import MasRequest
 
+
 # -----------------------------------------------------------------------------
 # main
 #
@@ -26,7 +27,6 @@ from model.MasRequest import MasRequest
 # -o ~/SystemTesting/testMasReq/
 # -----------------------------------------------------------------------------
 def main():
-
     # Process command-line args.
     desc = 'This application runs MAS Request for MMX.'
     parser = argparse.ArgumentParser(description=desc)
@@ -43,24 +43,24 @@ def main():
 
     parser.add_argument('--start_date',
                         required=True,
-                        help = 'YYYY-MM-DD')
+                        help='YYYY-MM-DD')
 
     parser.add_argument('--end_date',
                         required=True,
-                        help = 'YYYY-MM-DD')
+                        help='YYYY-MM-DD')
 
     parser.add_argument('-c',
                         required=True,
-                        help = 'Name of collection of MERRA2')
+                        help='Name of collection of MERRA2')
 
     parser.add_argument('--vars',
                         required=True,
                         nargs='+',
-                        help = 'List of variables in M2 collection')
+                        help='List of variables in M2 collection')
 
     parser.add_argument('--opr',
                         required=True,
-                        help = 'Type of analysis')
+                        help='Type of analysis')
 
     parser.add_argument('-o',
                         default='.',
@@ -68,21 +68,21 @@ def main():
 
     args = parser.parse_args()
 
-    #Build envelope object
+    # Build envelope object
     srs = SpatialReference()
-    srs.ImportFromEPSG(int(args.epsg))
-
+    srs.ImportFromEPSG(args.epsg)
     env = Envelope()
     p = args.e
     env.addPoint(float(p[0]), float(p[1]), 0, srs)
     env.addPoint(float(p[2]), float(p[3]), 0, srs)
 
-    #Build dateRange object
+    # Build dateRange object
     date_range = pd.date_range(args.start_date, args.end_date)
 
-    #Mas Request
+    # Mas Request
     masReq = MasRequest(env, date_range, args.c, args.vars, args.opr, args.o)
     masReq.run()
+
 
 # ------------------------------------------------------------------------------
 # Invoke the main
