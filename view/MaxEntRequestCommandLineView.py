@@ -39,7 +39,7 @@ def main():
                         help='Name of species in observation file')
 
     args = parser.parse_args()
-    images = glob.glob(args.i + '/*.tif')
+    images = glob.glob(args.i + '/*')
     maxEntReq = MaxEntRequest(args.f, args.s, images, args.o)
     maxEntReq.run()
 
