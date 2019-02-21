@@ -3,8 +3,9 @@
 import pandas as pd
 from multiprocessing import Process
 from osgeo.osr import SpatialReference
-from CDSLibrary import CDSApi
 
+from CDSLibrary import CDSApi
+from model.Envelope import Envelope
 cds_lib = CDSApi()
 
 
@@ -15,7 +16,7 @@ class MasRequest(object):
     # -------------------------------------------------------------------------
     # __init__
     # -------------------------------------------------------------------------
-    def __init__(self, envelope, dateRange,
+    def __init__(self, aoi, epsg, startDate, endDate,
                  collection, listOfVariables, operation, outDir):
 
         self._ds = {
@@ -29,8 +30,8 @@ class MasRequest(object):
             'collection': collection,
         }
 
-        self._setDateRange(dateRange)
-        self._setDomain(envelope)
+        self._setDateRange(startDate, endDate)
+        self._setDomain(aoi, epsg)
 
         self._listOfVars = listOfVariables
         self._outDir = outDir
@@ -49,7 +50,9 @@ class MasRequest(object):
     # -------------------------------------------------------------------------
     # set date range for MAS operation
     # -------------------------------------------------------------------------
-    def _setDateRange(self, dateRange):
+    def _setDateRange(self, startDate, endDate):
+        dateRange = pd.date_range(startDate, endDate)
+
         fmt = '%Y%m%d'
         m2DateRange = pd.date_range('1980-1-1', '2018-11-27')
 
@@ -67,10 +70,16 @@ class MasRequest(object):
     # -------------------------------------------------------------------------
     # set spatial domain for MAS operation
     # -------------------------------------------------------------------------
-    def _setDomain(self, env):
+    def _setDomain(self, points, epsg):
+
+        srs = SpatialReference()
+        srs.ImportFromEPSG(epsg)
+        env = Envelope()
+        env.addPoint(float(points[0]), float(points[1]), 0, srs)
+        env.addPoint(float(points[2]), float(points[3]), 0, srs)
+
         tgt_srs = SpatialReference()
         tgt_srs.ImportFromEPSG(4326)
-
         env.transformTo(tgt_srs)
 
         self._ds['min_lon'] = env.ulx()

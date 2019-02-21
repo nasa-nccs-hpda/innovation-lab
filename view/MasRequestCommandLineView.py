@@ -1,11 +1,7 @@
 #!/usr/bin/python
-
 import argparse
 import sys
-import pandas as pd
-from osgeo.osr import SpatialReference
 
-from model.Envelope import Envelope
 from model.MasRequest import MasRequest
 
 
@@ -68,19 +64,9 @@ def main():
 
     args = parser.parse_args()
 
-    # Build envelope object
-    srs = SpatialReference()
-    srs.ImportFromEPSG(args.epsg)
-    env = Envelope()
-    p = args.e
-    env.addPoint(float(p[0]), float(p[1]), 0, srs)
-    env.addPoint(float(p[2]), float(p[3]), 0, srs)
-
-    # Build dateRange object
-    date_range = pd.date_range(args.start_date, args.end_date)
-
     # Mas Request
-    masReq = MasRequest(env, date_range, args.c, args.vars, args.opr, args.o)
+    masReq = MasRequest(args.e, args.epsg, args.start_date, args.end_date,
+                        args.c, args.vars, args.opr, args.o)
     masReq.run()
 
 
