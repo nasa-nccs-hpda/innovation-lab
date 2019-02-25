@@ -120,11 +120,12 @@ class MaxEntRequest(object):
         print 'Processing ' + copyPath
         shutil.copy(image, copyPath)
         imageCopy = ImageFile(copyPath)
-        squareScale = imageCopy.getSquareScale()
 
-        imageCopy.clipReprojectResample(self._observationFile.envelope(),
-                                        self._observationFile.srs(),
-                                        (squareScale, squareScale))
+        imageCopy.clipReproject(self._observationFile.envelope(),
+                                self._observationFile.srs())
+
+        squareScale = imageCopy.getSquareScale()
+        imageCopy.resample(squareScale, squareScale)
 
         # Convert to ASCII Grid.
         nameNoExtension = os.path.splitext(baseName)[0]

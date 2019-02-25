@@ -26,6 +26,8 @@ class ImageFile(BaseFile):
 
     __metaclass__ = ABCMeta
 
+    BASE_GDAL_CMD = 'gdalwarp '
+    
     # -------------------------------------------------------------------------
     # __init__
     # -------------------------------------------------------------------------
@@ -33,34 +35,30 @@ class ImageFile(BaseFile):
 
         # Initialize the base class.
         super(ImageFile, self).__init__(pathToFile, expectedExtension)
-        self._dataset = None
 
     # -------------------------------------------------------------------------
-    # clipReprojectResample
+    # clipReproject
     #
     # These three operations, clipping, reprojection and resampling can be
     # combined into a single GDAL call.  This must be more efficient than
     # invoking them individually.
     #
-    # ScaleTuple is of the form (xScale, yScale).
-    #
     # OutputFormat is the GDAL image format name, which defaults to GeoTiff.
     # See https://gdal.org/formats_list.html.
     # -------------------------------------------------------------------------
-    def clipReprojectResample(self, envelope=None, outputSRS=None,
-                              scaleTuple=None):
+    def clipReproject(self, envelope=None, outputSRS=None):
 
         # At least one operation must be configured.
-        if not envelope and not outputSRS and not scaleTuple:
+        if not envelope and not outputSRS:
 
-            raise RuntimeError('A clip envelope, output SRS or ' +
-                               'scale tuple must be specified.')
+            raise RuntimeError('Clip envelope or output SRS must be ' +
+                               'specified.')
 
         # ---
         # Configure the base command.  Specify the output format.  Otherwise,
         # gdalwarp automatically converts to GeoTiff.
         # ---
-        cmd = 'gdalwarp -of ' + self.getFormatName()
+        cmd = ImageFile.BASE_GDAL_CMD + ' -of ' + self.getFormatName()
 
         # Clip?
         if envelope:
@@ -80,10 +78,6 @@ class ImageFile(BaseFile):
         if outputSRS:
             cmd += ' -t_srs "' + outputSRS.ExportToProj4() + '"'
 
-        # Resample?
-        if scaleTuple:
-            cmd += ' -tr ' + str(scaleTuple[0]) + ' ' + str(scaleTuple[1])
-
         # Finish the command.
         outFile = tempfile.mkstemp()[1]
         cmd += ' ' + self._filePath + ' ' + outFile
@@ -95,14 +89,12 @@ class ImageFile(BaseFile):
     # -------------------------------------------------------------------------
     def _getDataset(self):
 
-        if not self._dataset:
+        dataset = gdal.Open(self._filePath, gdalconst.GA_ReadOnly)
 
-            self._dataset = gdal.Open(self._filePath, gdalconst.GA_ReadOnly)
+        if not dataset:
+            raise RuntimeError('Unable to read ' + self._filePath + '.')
 
-            if not self._dataset:
-                raise RuntimeError('Unable to read ' + self._filePath + '.')
-
-        return self._dataset
+        return dataset
 
     # -------------------------------------------------------------------------
     # getFormatName
@@ -127,10 +119,24 @@ class ImageFile(BaseFile):
         yScale = self.scale()[1]
 
         if math.fabs(xScale) > math.fabs(yScale):
-            return xScale * -1  # xScale is bigger, so increase yScale
+            return math.fabs(xScale * -1)  # xScale bigger, so increase yScale
 
-        return yScale * -1
+        return math.fabs(yScale * -1)
 
+    # -------------------------------------------------------------------------
+    # resample
+    # -------------------------------------------------------------------------
+    def resample(self, xScale, yScale):
+        
+        cmd = ImageFile.BASE_GDAL_CMD + ' -tr ' + str(xScale) + ' ' + \
+              str(yScale)
+
+        # Finish the command.
+        outFile = tempfile.mkstemp()[1]
+        cmd += ' ' + self._filePath + ' ' + outFile
+        SystemCommand(cmd, None, True)
+        shutil.move(outFile, self._filePath)
+        
     # -------------------------------------------------------------------------
     # scale
     # -------------------------------------------------------------------------

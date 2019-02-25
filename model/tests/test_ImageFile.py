@@ -26,9 +26,9 @@ class ImageFileTestCase(unittest.TestCase):
                              'gsenm_250m_eucl_dist_streams.tif')
 
     # -------------------------------------------------------------------------
-    # testClipReprojectResample
+    # testClipReproject
     # -------------------------------------------------------------------------
-    def testClipReprojectResample(self):
+    def testClipReproject(self):
 
         # Build the test file.
         workingCopy = tempfile.mkstemp(suffix='.tif')[1]
@@ -50,14 +50,8 @@ class ImageFileTestCase(unittest.TestCase):
         targetSRS = SpatialReference()
         targetSRS.ImportFromEPSG(4326)
 
-        # Resample parameter
-        targetX_Scale = 0.002
-        targetY_Scale = -0.002
-
         # Clip, reproject and resample.
-        imageFile.clipReprojectResample(env,
-                                        targetSRS,
-                                        (targetX_Scale, targetY_Scale))
+        imageFile.clipReproject(env, targetSRS,)
 
         # Check the results.
         dataset = gdal.Open(workingCopy, gdalconst.GA_ReadOnly)
@@ -77,15 +71,12 @@ class ImageFileTestCase(unittest.TestCase):
 
         self.assertAlmostEqual(clippedUlx, -112.49369402670872, places=12)
         self.assertAlmostEqual(clippedUly, 38.03073206024332, places=11)
-        self.assertAlmostEqual(clippedLrx, -110.89569402670872, places=12)
-        self.assertAlmostEqual(clippedLry, 36.99273206024332, places=11)
+        self.assertAlmostEqual(clippedLrx, -110.89516946364738, places=12)
+        self.assertAlmostEqual(clippedLry, 36.99265291293727, places=11)
 
         outSRS = SpatialReference()
         outSRS.ImportFromWkt(dataset.GetProjection())
         self.assertTrue(outSRS.IsSame(targetSRS))
-
-        self.assertEqual(xform[1], targetX_Scale)
-        self.assertEqual(xform[5], targetY_Scale)
 
         # Delete the test file.
         os.remove(workingCopy)
@@ -110,7 +101,7 @@ class ImageFileTestCase(unittest.TestCase):
         env = Envelope()
         env.addPoint(ulx, uly, 0, srs)
         env.addPoint(lrx, lry, 0, srs)
-        imageFile.clipReprojectResample(env)
+        imageFile.clipReproject(env)
 
         # Check the corners.
         dataset = gdal.Open(workingCopy, gdalconst.GA_ReadOnly)
@@ -187,8 +178,8 @@ class ImageFileTestCase(unittest.TestCase):
         imageFile = ImageFile(workingCopy)
 
         # Test with no operation specified.
-        with self.assertRaisesRegexp(RuntimeError, 'output SRS or scale'):
-            imageFile.clipReprojectResample()
+        with self.assertRaisesRegexp(RuntimeError, 'envelope or output SRS'):
+            imageFile.clipReproject()
 
         # Delete the test file.
         os.remove(workingCopy)
@@ -206,7 +197,7 @@ class ImageFileTestCase(unittest.TestCase):
         # Reproject.
         targetSRS = SpatialReference()
         targetSRS.ImportFromEPSG(4326)
-        imageFile.clipReprojectResample(outputSRS=targetSRS)
+        imageFile.clipReproject(outputSRS=targetSRS)
 
         # Check the SRS.
         dataset = gdal.Open(workingCopy, gdalconst.GA_ReadOnly)
@@ -235,8 +226,7 @@ class ImageFileTestCase(unittest.TestCase):
         targetX_Scale = 100
         targetY_Scale = -150
 
-        imageFile.clipReprojectResample(scaleTuple=(targetX_Scale,
-                                                    targetY_Scale))
+        imageFile.resample(targetX_Scale, targetY_Scale)
 
         # Check the scale.
         dataset = gdal.Open(workingCopy, gdalconst.GA_ReadOnly)

@@ -14,7 +14,7 @@ from model.MaxEntRequest import MaxEntRequest
 # cd innovation-lab
 # export PYTHONPATH=`pwd`
 # mkdir ~/SystemTesting/testMaxEnt
-# view/MaxEntRequestCommandLineView.py -f ~/SystemTesting/MaxEntData/GSENM_cheat_pres_abs_2001.csv -s "Cheat Grass" -i ~/SystemTesting/MaxEntData/ -o ~/SystemTesting/testMaxEnt/
+# view/MaxEntRequestCommandLineView.py -f ~/SystemTesting/MaxEntData/GSENM_cheat_pres_abs_2001.csv -s "Cheat Grass" -i ~/SystemTesting/MaxEntData/images/ -o ~/SystemTesting/testMaxEnt/
 # -----------------------------------------------------------------------------
 def main():
 
