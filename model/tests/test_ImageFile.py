@@ -128,6 +128,30 @@ class ImageFileTestCase(unittest.TestCase):
         os.remove(workingCopy)
 
     # -------------------------------------------------------------------------
+    # testEnvelope
+    # -------------------------------------------------------------------------
+    def testEnvelope(self):
+        
+        # Create a test image.
+        workingCopy = tempfile.mkstemp(suffix='.tif')[1]
+        shutil.copyfile(ImageFileTestCase.TEST_FILE, workingCopy)
+        imageFile = ImageFile(workingCopy)
+
+        # Test envelope.
+        srs = SpatialReference()
+        srs.ImportFromEPSG(32612)
+        expectedEnvelope = Envelope()
+        expectedEnvelope.addPoint(367073.627681211, 4209234.221027355, 0, srs)
+        expectedEnvelope.addPoint(509261.627681211, 4095090.2210273547, 0, srs)
+        
+        envelope = imageFile.envelope()
+        self.assertTrue(imageFile.envelope().Equals(expectedEnvelope))
+
+        # Delete the test file.
+        os.remove(workingCopy)
+        
+        
+    # -------------------------------------------------------------------------
     # testGetFormatName
     # -------------------------------------------------------------------------
     def testGetFormatName(self):

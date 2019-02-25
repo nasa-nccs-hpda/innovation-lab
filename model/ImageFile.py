@@ -66,13 +66,19 @@ class ImageFile(BaseFile):
             if not isinstance(envelope, Envelope):
                 raise TypeError('The first parameter must be an Envelope.')
 
+            if not self.envelope().Intersection(envelope):
+
+                raise RuntimeError('The clip envelope does not intersect ' +
+                                   'the image.')
+                                   
             cmd += (' -te' +
                     ' ' + str(envelope.ulx()) +
                     ' ' + str(envelope.lry()) +
                     ' ' + str(envelope.lrx()) +
                     ' ' + str(envelope.uly()) +
                     ' -te_srs' +
-                    ' "' + envelope.srs().ExportToProj4() + '"')
+                    ' "' + envelope.GetSpatialReference().ExportToProj4() + 
+                    '"')
 
         # Reproject?
         if outputSRS:
@@ -84,6 +90,29 @@ class ImageFile(BaseFile):
         SystemCommand(cmd, None, True)
         shutil.move(outFile, self._filePath)
 
+    # -------------------------------------------------------------------------
+    # envelope
+    # -------------------------------------------------------------------------
+    def envelope(self):
+        
+        dataset = self._getDataset()
+        xform = dataset.GetGeoTransform()
+    	xScale = xform[1]
+    	yScale = xform[5]
+    	width  = dataset.RasterXSize
+    	height = dataset.RasterYSize
+    	ulx = xform[0]
+    	uly = xform[3]	
+    	lrx = ulx + width  * xScale
+    	lry = uly + height * yScale
+
+        srs = self.srs()
+        envelope = Envelope()
+        envelope.addPoint(ulx, uly, 0, srs)
+        envelope.addPoint(lrx, lry, 0, srs)
+
+        return envelope
+        
     # -------------------------------------------------------------------------
     # _getDataset
     # -------------------------------------------------------------------------

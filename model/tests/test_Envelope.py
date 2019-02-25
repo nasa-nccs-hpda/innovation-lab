@@ -82,30 +82,6 @@ class EnvelopeTestCase(unittest.TestCase):
             env.addOgrPoint(ogr.Geometry(ogr.wkbPolygon))
 
     # -------------------------------------------------------------------------
-    # testEquals
-    # -------------------------------------------------------------------------
-    def testEquals(self):
-
-        ulx = 374187
-        uly = 4202663
-        lrx = 501598
-        lry = 4100640
-        srs = SpatialReference()
-        srs.ImportFromEPSG(32612)
-        env = Envelope()
-        env.addPoint(ulx, uly, 0, srs)
-        env.addPoint(lrx, lry, 0, srs)
-
-        unequalEnv = Envelope()
-        unequalEnv.addPoint(ulx+1, uly, 0, srs)
-        self.assertFalse(env.equals(unequalEnv))
-
-        equalEnv = Envelope()
-        equalEnv.addPoint(ulx, uly, 0, srs)
-        equalEnv.addPoint(lrx, lry, 0, srs)
-        self.assertTrue(env.equals(equalEnv))
-
-    # -------------------------------------------------------------------------
     # testExpansion
     # -------------------------------------------------------------------------
     def testExpansion(self):
@@ -132,53 +108,3 @@ class EnvelopeTestCase(unittest.TestCase):
         self.assertEqual(uly, env.uly())
         self.assertEqual(lrx, env.lrx())
         self.assertEqual(lry, env.lry())
-
-    # -------------------------------------------------------------------------
-    # testSrs
-    # -------------------------------------------------------------------------
-    def testSrs(self):
-
-        ulx = 374187
-        uly = 4202663
-        lrx = 501598
-        lry = 4100640
-        srs = SpatialReference()
-        srs.ImportFromEPSG(32612)
-        env = Envelope()
-        env.addPoint(ulx, uly, 0, srs)
-        env.addPoint(lrx, lry, 0, srs)
-
-        srs = SpatialReference()
-        srs.ImportFromEPSG(32612)
-
-        self.assertTrue(srs.IsSame(env.srs()))
-
-    # -------------------------------------------------------------------------
-    # testTransformTo
-    # -------------------------------------------------------------------------
-    def testTransformTo(self):
-
-        ulx = 374187
-        uly = 4202663
-        lrx = 501598
-        lry = 4100640
-        srs = SpatialReference()
-        srs.ImportFromEPSG(32612)
-        env = Envelope()
-        env.addPoint(ulx, uly, 0, srs)
-        env.addPoint(lrx, lry, 0, srs)
-
-        targetSRS = SpatialReference()
-        targetSRS.ImportFromEPSG(4326)
-        env.transformTo(targetSRS)
-
-        expectedUlx = -112.43223503554906
-        expectedUly = 37.962871687712536
-        expectedLrx = -110.98202787057967
-        expectedLry = 37.051990304130925
-
-        self.assertAlmostEqual(expectedUlx, env.ulx(), 10)
-        self.assertAlmostEqual(expectedUly, env.uly(), 8)
-        self.assertAlmostEqual(expectedLrx, env.lrx(), 10)
-        self.assertAlmostEqual(expectedLry, env.lry(), 8)
-        self.assertTrue(targetSRS.IsSame(env.srs()))

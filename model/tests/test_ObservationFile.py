@@ -67,7 +67,7 @@ class ObservationFileTestCase(unittest.TestCase):
         obs = ObservationFile(ObservationFileTestCase._testObsFile,
                               ObservationFileTestCase._species)
 
-        self.assertTrue(testEnv.equals(obs.envelope()))
+        self.assertTrue(testEnv.Equals(obs.envelope()))
 
     # -------------------------------------------------------------------------
     # testNotA_CSV_File
