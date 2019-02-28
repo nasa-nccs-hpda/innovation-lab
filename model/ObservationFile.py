@@ -136,6 +136,13 @@ class ObservationFile(BaseFile):
         if newSRS.IsSame(self._srs):
             return
             
-        newObs = [(obs[0].TransformTo(newSRS), obs[1]) \
-                  for obs in self._observations]
+        self._envelope = Envelope()
+        self._srs = newSRS
+        newObs = []
+        
+        for obs in self._observations:
+            
+            pt = obs[0].TransformTo(newSRS)
+            newObs.append((pt, obs[1])
+            self._envelope.addOgrPoint(pt)
         
