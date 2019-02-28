@@ -132,6 +132,21 @@ class ObservationFileTestCase(unittest.TestCase):
         self.assertTrue(obs.srs().IsSame(testSRS))
 
     # -------------------------------------------------------------------------
+    # testTransformTo
+    # -------------------------------------------------------------------------
+    def testTransformTo(self):
+        
+        obs = ObservationFile(ObservationFileTestCase._testObsFile,
+                              ObservationFileTestCase._species)
+
+        srs = obs.srs()
+        newSRS = SpatialReference()
+        newSRS.ImportFromEPSG(4326)
+        obs.transformTo(newSRS)
+        
+        self.assertFalse(srs.IsSame(obs.srs()))
+        
+    # -------------------------------------------------------------------------
     # testValidFile
     # -------------------------------------------------------------------------
     def testValidFile(self):

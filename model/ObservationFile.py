@@ -127,3 +127,15 @@ class ObservationFile(BaseFile):
     def srs(self):
 
         return self._srs
+
+    # -------------------------------------------------------------------------
+    # transformTo
+    # -------------------------------------------------------------------------
+    def transformTo(self, newSRS):
+        
+        if newSRS.IsSame(self._srs):
+            return
+            
+        newObs = [(obs[0].TransformTo(newSRS), obs[1]) \
+                  for obs in self._observations]
+        
