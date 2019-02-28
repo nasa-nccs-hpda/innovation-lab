@@ -6,6 +6,7 @@ import os
 import tempfile
 import unittest
 
+from osgeo import ogr
 from osgeo.osr import SpatialReference
 
 from model.Envelope import Envelope
@@ -142,9 +143,19 @@ class ObservationFileTestCase(unittest.TestCase):
         srs = obs.srs()
         newSRS = SpatialReference()
         newSRS.ImportFromEPSG(4326)
+
+        obs1 = obs.observation(0)
         obs.transformTo(newSRS)
         
         self.assertFalse(srs.IsSame(obs.srs()))
+        
+        self.assertAlmostEqual(obs.observation(0)[0].GetX(), 
+                               -112.41880490511376, 
+                               places=9)
+                         
+        self.assertAlmostEqual(obs.observation(0)[0].GetY(), 
+                               37.259406381055626,
+                               places=7)
         
     # -------------------------------------------------------------------------
     # testValidFile

@@ -36,9 +36,16 @@ class MaxEntRequest(object):
         self._imagesToProcess = self._images
         self._outputDirectory = outputDirectory
         self._species = species
+        self._imageSRS = ImageFile(self._images[0]).srs()
 
+        # ---
+        # Instantiate the ObservationFile and transform the points to match
+        # the imagery.
+        # ---
         self._observationFile = ObservationFile(observationFilePath,
                                                 self._species)
+                                                
+        self._observationFile.transformTo(self._imageSRS)
 
         self._maxEntSpeciesFile = self._formatObservations()
 
@@ -122,7 +129,7 @@ class MaxEntRequest(object):
         imageCopy = ImageFile(copyPath)
 
         imageCopy.clipReproject(self._observationFile.envelope(),
-                                self._observationFile.srs())
+                                self._imageSRS)
 
         squareScale = imageCopy.getSquareScale()
         imageCopy.resample(squareScale, squareScale)

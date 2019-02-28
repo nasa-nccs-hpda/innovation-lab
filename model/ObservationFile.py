@@ -138,13 +138,7 @@ class ObservationFile(BaseFile):
             
         self._envelope = Envelope()
         self._srs = newSRS
-        newObs = []
         
         for obs in self._observations:
-            
-            import pdb
-            pdb.set_trace()
-            pt = obs[0].TransformTo(newSRS)
-            newObs.append((pt, obs[1]))
-            self._envelope.addOgrPoint(pt)
+            obs[0].TransformTo(newSRS)
         
