@@ -142,6 +142,8 @@ class ObservationFile(BaseFile):
         
         for obs in self._observations:
             
+            import pdb
+            pdb.set_trace()
             pt = obs[0].TransformTo(newSRS)
             newObs.append((pt, obs[1]))
             self._envelope.addOgrPoint(pt)
