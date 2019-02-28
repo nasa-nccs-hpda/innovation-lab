@@ -143,6 +143,6 @@ class ObservationFile(BaseFile):
         for obs in self._observations:
             
             pt = obs[0].TransformTo(newSRS)
-            newObs.append((pt, obs[1])
+            newObs.append((pt, obs[1]))
             self._envelope.addOgrPoint(pt)
         
