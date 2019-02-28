@@ -81,7 +81,7 @@ class ImageFile(BaseFile):
                     '"')
 
         # Reproject?
-        if outputSRS:
+        if outputSRS and not self.srs().IsSame(outputSRS):
             cmd += ' -t_srs "' + outputSRS.ExportToProj4() + '"'
 
         # Finish the command.
