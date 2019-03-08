@@ -5,10 +5,6 @@ import math
 import shutil
 import tempfile
 
-from osgeo import gdal
-from osgeo import gdalconst
-from osgeo.osr import SpatialReference
-
 from model.Envelope import Envelope
 from model.ImageFile import ImageFile
 from model.SystemCommand import SystemCommand
@@ -28,22 +24,22 @@ class GeospatialImageFile(ImageFile):
         super(GeospatialImageFile, self).__init__(pathToFile)
 
         if spatialReference.Validate() != 0:
-            
+
             raise RuntimeError('Spatial reference for ' +
                                pathToFile,
                                ' is invalid.')
-                               
+
         self._srs = spatialReference
-        
+
         self._BASE_GDAL_CMD = 'gdalwarp ' + \
                               ' -of netCDF' + \
-                              ' -s_srs "' + self.srs().ExportToProj4() + '"' 
+                              ' -s_srs "' + self.srs().ExportToProj4() + '"'
 
     # -------------------------------------------------------------------------
     # clipReproject
     #
     # These  operations, clipping and reprojection can be combined into a
-    # single GDAL call.  This must be more efficient than invoking them 
+    # single GDAL call.  This must be more efficient than invoking them
     # individually.
     # -------------------------------------------------------------------------
     def clipReproject(self, envelope=None, outputSRS=None):
@@ -70,14 +66,14 @@ class GeospatialImageFile(ImageFile):
 
                 raise RuntimeError('The clip envelope does not intersect ' +
                                    'the image.')
-                                   
+
             cmd += (' -te' +
                     ' ' + str(envelope.ulx()) +
                     ' ' + str(envelope.lry()) +
                     ' ' + str(envelope.lrx()) +
                     ' ' + str(envelope.uly()) +
                     ' -te_srs' +
-                    ' "' + envelope.GetSpatialReference().ExportToProj4() + 
+                    ' "' + envelope.GetSpatialReference().ExportToProj4() +
                     '"')
 
         # Reproject?
@@ -86,13 +82,12 @@ class GeospatialImageFile(ImageFile):
             cmd += ' -t_srs "' + outputSRS.ExportToProj4() + '"'
             self._srs = outputSRS
 
-
         # Finish the command.
         outFile = tempfile.mkstemp()[1]
         cmd += ' ' + self._filePath + ' ' + outFile
         SystemCommand(cmd, None, True)
         shutil.move(outFile, self._filePath)
-        
+
         # Update the dataset.
         self._getDataset()
 
@@ -100,24 +95,24 @@ class GeospatialImageFile(ImageFile):
     # envelope
     # -------------------------------------------------------------------------
     def envelope(self):
-        
+
         dataset = self._getDataset()
         xform = dataset.GetGeoTransform()
-    	xScale = xform[1]
-    	yScale = xform[5]
-    	width  = dataset.RasterXSize
-    	height = dataset.RasterYSize
-    	ulx = xform[0]
-    	uly = xform[3]	
-    	lrx = ulx + width  * xScale
-    	lry = uly + height * yScale
+        xScale = xform[1]
+        yScale = xform[5]
+        width = dataset.RasterXSize
+        height = dataset.RasterYSize
+        ulx = xform[0]
+        uly = xform[3]
+        lrx = ulx + width * xScale
+        lry = uly + height * yScale
 
         envelope = Envelope()
         envelope.addPoint(ulx, uly, 0, self.srs())
         envelope.addPoint(lrx, lry, 0, self.srs())
 
         return envelope
-        
+
     # -------------------------------------------------------------------------
     # getSquareScale
     #
@@ -141,7 +136,7 @@ class GeospatialImageFile(ImageFile):
     # resample
     # -------------------------------------------------------------------------
     def resample(self, xScale, yScale):
-        
+
         cmd = self._BASE_GDAL_CMD + ' -tr ' + str(xScale) + ' ' + \
               str(yScale)
 
@@ -150,10 +145,10 @@ class GeospatialImageFile(ImageFile):
         cmd += ' ' + self._filePath + ' ' + outFile
         SystemCommand(cmd, None, True)
         shutil.move(outFile, self._filePath)
-        
+
         # Update the dataset.
         self._getDataset()
-        
+
     # -------------------------------------------------------------------------
     # scale
     # -------------------------------------------------------------------------
@@ -166,5 +161,5 @@ class GeospatialImageFile(ImageFile):
     # srs
     # -------------------------------------------------------------------------
     def srs(self):
-        
+
         return self._srs

@@ -26,7 +26,7 @@ class GeospatialImageFileTestCase(unittest.TestCase):
     # createTestFile
     # -------------------------------------------------------------------------
     def _createTestFile(self):
-        
+
         testFile = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                 'TSURF.nc')
 
@@ -149,7 +149,6 @@ class GeospatialImageFileTestCase(unittest.TestCase):
         expectedEnvelope.addPoint(-125.3125000,  50.25, 0, srs)
         expectedEnvelope.addPoint(-65.9375000,  23.75, 0, srs)
 
-        envelope = imageFile.envelope()
         self.assertTrue(imageFile.envelope().Equals(expectedEnvelope))
 
         # Delete the test file.

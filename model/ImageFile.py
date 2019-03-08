@@ -15,7 +15,7 @@ from model.BaseFile import BaseFile
 class ImageFile(BaseFile):
 
     EXTENSION = '.nc'
-    
+
     # -------------------------------------------------------------------------
     # __init__
     # -------------------------------------------------------------------------
@@ -23,16 +23,16 @@ class ImageFile(BaseFile):
 
         # Initialize the base class.
         super(ImageFile, self).__init__(pathToFile, ImageFile.EXTENSION)
-        
+
         self._dataset = None
-        
+
     # -------------------------------------------------------------------------
     # _getDataset
     # -------------------------------------------------------------------------
     def _getDataset(self):
 
         if not self._dataset:
-            
+
             self._dataset = gdal.Open(self._filePath, gdalconst.GA_ReadOnly)
 
             if not self._dataset:

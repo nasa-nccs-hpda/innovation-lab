@@ -17,7 +17,7 @@ class ImageFileTestCase(unittest.TestCase):
 
     TEST_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                              'TSURF.nc')
-    
+
     # -------------------------------------------------------------------------
     # test_getDataset
     # -------------------------------------------------------------------------
@@ -29,17 +29,13 @@ class ImageFileTestCase(unittest.TestCase):
         # Test _getDataset.
         self.assertIsNotNone(imageFile._getDataset())
 
-        # Delete the test file.
-        os.remove(imageFile.fileName())
-
     # -------------------------------------------------------------------------
     # testInvalidImageType
     # -------------------------------------------------------------------------
     def testInvalidImageType(self):
-        
+
         testFile = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                 'invalid.tif')
-        
-        with self.assertRaisesRegexp(RuntimeError, 'is not in \.nc'):
+
+        with self.assertRaisesRegexp(RuntimeError, 'is not in .nc'):
             ImageFile(testFile)
-    
