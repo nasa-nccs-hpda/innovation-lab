@@ -85,7 +85,7 @@ class MasRequest(object):
         env.addPoint(float(points[0]), float(points[1]), 0, srs)
         env.addPoint(float(points[2]), float(points[3]), 0, srs)
 
-        env.transformTo(self._tgt_srs)
+        env.TransformTo(self._tgt_srs)
 
         self._ds['min_lon'] = env.ulx()
         self._ds['max_lon'] = env.lrx()
