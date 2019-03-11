@@ -8,16 +8,15 @@ from osgeo.osr import SpatialReference
 # -----------------------------------------------------------------------------
 # class Envelope
 # -----------------------------------------------------------------------------
-class Envelope(object):
+class Envelope(ogr.Geometry):
 
     # -------------------------------------------------------------------------
     # __init__
     # -------------------------------------------------------------------------
     def __init__(self):
 
-        self._envelope = None
-        self._points = []
-        self._srs = None
+        # Initialize the base class.
+        super(Envelope, self).__init__(ogr.wkbMultiPoint)
 
     # -------------------------------------------------------------------------
     # addPoint
@@ -52,51 +51,44 @@ class Envelope(object):
 
             raise RuntimeError('Added points must be of type wkbPoint.')
 
-        if not self._srs:
-            self._srs = ogrPoint.GetSpatialReference().Clone()
+        if not self.GetSpatialReference():
+            
+            self.AssignSpatialReference( \
+                ogrPoint.GetSpatialReference().Clone())
 
-        if not ogrPoint.GetSpatialReference().IsSame(self._srs):
+        if not ogrPoint.GetSpatialReference(). \
+            IsSame(self.GetSpatialReference()):
 
             raise RuntimeError('Added points must be in the SRS: ' +
-                               str(self._srs.ExportToPrettyWkt()))
+                               str(self.GetSpatialReference(). \
+                                   ExportToPrettyWkt()))
 
-        self._points.append(ogrPoint)
-        self._computeEnvelope()
-
-    # -------------------------------------------------------------------------
-    # _computeEnvelope
-    # -------------------------------------------------------------------------
-    def _computeEnvelope(self):
-
-        self._envelope = None
-
-        multipoint = ogr.Geometry(ogr.wkbMultiPoint)
-        multipoint.AssignSpatialReference(self._srs)
-
-        for point in self._points:
-            multipoint.AddGeometry(point)
-
-        self._envelope = multipoint.GetEnvelope()
+        self.AddGeometry(ogrPoint)
 
     # -------------------------------------------------------------------------
-    # equals
+    # Equals
+    #
+    # NOTE:  Overriding Geometry's Equals method to specialize its behavior
+    # for envelopes.
     # -------------------------------------------------------------------------
-    def equals(self, otherEnvelope):
-
-        return self._envelope == otherEnvelope._envelope
-
+    def Equals(self, otherEnvelope):
+        
+        return self.ulx() == otherEnvelope.ulx() and \
+               self.uly() == otherEnvelope.uly() and \
+               self.lrx() == otherEnvelope.lrx() and \
+               self.lry() == otherEnvelope.lry() and \
+               self.GetSpatialReference().IsSame( \
+                   otherEnvelope.GetSpatialReference())
+        
     # -------------------------------------------------------------------------
     # _getOrdinate
     # -------------------------------------------------------------------------
     def _getOrdinate(self, index):
 
-        if not self._envelope:
-            raise RuntimeError('Envelope was not computed.')
-
         if index < 0 or index > 3:
             raise RuntimeError('Index must be between 0 and 3.')
 
-        return self._envelope[index]
+        return self.GetEnvelope()[index]
 
     # -------------------------------------------------------------------------
     # lrx
@@ -111,40 +103,6 @@ class Envelope(object):
     def lry(self):
 
         return self._getOrdinate(2)
-
-    # -------------------------------------------------------------------------
-    # transformTo
-    # -------------------------------------------------------------------------
-    def transformTo(self, targetSRS):
-
-        if not isinstance(targetSRS, SpatialReference):
-            raise TypeError('The first parameter must be a SpatialReference.')
-
-        if not self.srs().IsSame(targetSRS):
-
-            newUl = ogr.Geometry(ogr.wkbPoint)
-            newUl.AssignSpatialReference(self.srs())
-            newUl.AddPoint(self.ulx(), self.uly())
-            newUl.TransformTo(targetSRS)
-
-            newLr = ogr.Geometry(ogr.wkbPoint)
-            newLr.AssignSpatialReference(self.srs())
-            newLr.AddPoint(self.lrx(), self.lry())
-            newLr.TransformTo(targetSRS)
-
-            self._envelope = None
-            self._points = []
-            self._srs = None
-
-            self.addOgrPoint(newUl)
-            self.addOgrPoint(newLr)
-
-    # -------------------------------------------------------------------------
-    # srs
-    # -------------------------------------------------------------------------
-    def srs(self):
-
-        return self._srs
 
     # -------------------------------------------------------------------------
     # ulx

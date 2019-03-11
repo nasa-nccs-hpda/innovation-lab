@@ -29,16 +29,9 @@ class BaseFile(object):
                                ' format.')
 
         self._filePath = pathToFile
-        self._extension = expectedExtension
 
     # -------------------------------------------------------------------------
     # fileName
     # -------------------------------------------------------------------------
     def fileName(self):
         return self._filePath
-
-    # -------------------------------------------------------------------------
-    # file extension
-    # -------------------------------------------------------------------------
-    def extension(self):
-        raise NotImplementedError
