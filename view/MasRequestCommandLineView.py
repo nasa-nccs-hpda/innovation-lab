@@ -69,6 +69,8 @@ def main():
                         args.c, args.vars, args.opr, args.o)
     masReq.run()
 
+    ncImages = masReq.getListOfImages()
+
 
 # ------------------------------------------------------------------------------
 # Invoke the main

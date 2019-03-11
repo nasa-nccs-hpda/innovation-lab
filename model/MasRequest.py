@@ -1,11 +1,12 @@
 #!/usr/bin/python
-
+import os
 import pandas as pd
 from multiprocessing import Process
 from osgeo.osr import SpatialReference
 
 from CDSLibrary import CDSApi
 from model.Envelope import Envelope
+from model.GeospatialImageFile import GeospatialImageFile
 cds_lib = CDSApi()
 
 
@@ -31,10 +32,16 @@ class MasRequest(object):
         }
 
         self._setDateRange(startDate, endDate)
+
+        self._tgt_srs = SpatialReference()
+        self._tgt_srs.ImportFromEPSG(4326)
         self._setDomain(aoi, epsg)
 
         self._listOfVars = listOfVariables
         self._outDir = outDir
+        self._ncImages = list()
+
+
 
     # -------------------------------------------------------------------------
     # retrieve analytic results
@@ -78,9 +85,7 @@ class MasRequest(object):
         env.addPoint(float(points[0]), float(points[1]), 0, srs)
         env.addPoint(float(points[2]), float(points[3]), 0, srs)
 
-        tgt_srs = SpatialReference()
-        tgt_srs.ImportFromEPSG(4326)
-        env.transformTo(tgt_srs)
+        env.transformTo(self._tgt_srs)
 
         self._ds['min_lon'] = env.ulx()
         self._ds['max_lon'] = env.lrx()
@@ -92,7 +97,6 @@ class MasRequest(object):
     # -------------------------------------------------------------------------
     def run(self):
         sessionCatalog = {}
-        threadCatalog = {}
 
         for var in self._listOfVars:
             self._ds['variable_list'] = var
@@ -111,10 +115,25 @@ class MasRequest(object):
             p = Process(target=self._getResult,
                       args=(sessionCatalog[key],filename))
             p.start()
-            threadCatalog[sessionCatalog[key]] = p
 
-        keylist = threadCatalog.keys()
-        keylist.sort()
-        for key in keylist:
-            p = threadCatalog[key]
             p.join()
+            self._ncImages.append(
+                GeospatialImageFile(os.path.join(self._outDir, filename),
+                                    self._tgt_srs))
+
+
+    # -------------------------------------------------------------------------
+    # SRS for output NC files
+    # -------------------------------------------------------------------------
+    def getSRS(self):
+        return self._tgt_srs
+
+    # -------------------------------------------------------------------------
+    # list of output NC images
+    # -------------------------------------------------------------------------
+    def getListOfImages(self):
+        if not self._ncImages:
+            raise RuntimeError('NC Image does not exist')
+        else:
+            return self._ncImages
+
