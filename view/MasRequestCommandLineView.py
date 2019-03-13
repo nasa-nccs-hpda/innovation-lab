@@ -1,7 +1,9 @@
 #!/usr/bin/python
 import argparse
 import sys
-
+import pandas
+from osgeo.osr import SpatialReference
+from model.Envelope import Envelope
 from model.MasRequest import MasRequest
 
 
@@ -64,12 +66,21 @@ def main():
 
     args = parser.parse_args()
 
+    # Envelope
+    srs = SpatialReference()
+    srs.ImportFromEPSG(args.epsg)
+    env = Envelope()
+    env.addPoint(float(args.e[0]), float(args.e[1]), 0, srs)
+    env.addPoint(float(args.e[2]), float(args.e[3]), 0, srs)
+
+    # Date Range
+    dateRange = pandas.date_range(args.start_date, args.end_date)
+
     # Mas Request
-    masReq = MasRequest(args.e, args.epsg, args.start_date, args.end_date,
+    masReq = MasRequest(env, dateRange,
                         args.c, args.vars, args.opr, args.o)
     masReq.run()
 
-    ncImages = masReq.getListOfImages()
 
 # ------------------------------------------------------------------------------
 # Invoke the main
