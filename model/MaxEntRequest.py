@@ -7,7 +7,7 @@ import os
 import shutil
 import sys
 
-from model.ImageFile import ImageFile
+from model.GeospatialImageFile import GeospatialImageFile
 from model.ObservationFile import ObservationFile
 from model.SystemCommand import SystemCommand
 
@@ -20,11 +20,7 @@ class MaxEntRequest(object):
     # -------------------------------------------------------------------------
     # __init__
     # -------------------------------------------------------------------------
-    def __init__(self, observationFilePath, species, listOfImages,
-                 outputDirectory):
-
-        if not species:
-            raise RuntimeError('A species must be specified.')
+    def __init__(self, observationFile, listOfImages, outputDirectory):
 
         if not os.path.exists(outputDirectory):
 
@@ -32,21 +28,23 @@ class MaxEntRequest(object):
                                str(outputDirectory) +
                                ' does not exist.')
 
+        # Ensure all the images are in the same SRS.
         self._images = listOfImages
+        self._imageSRS = self._images[0].srs()
+        
+        for image in self._images:
+            
+            if not self._imageSRS.IsSame(image.srs()):
+                
+                raise RuntimeError('Image ' + \
+                                   image.fileName() + \
+                                   ' is not in the same SRS as the others.')
+
         self._imagesToProcess = self._images
         self._outputDirectory = outputDirectory
-        self._species = species
-        self._imageSRS = ImageFile(self._images[0]).srs()
 
-        # ---
-        # Instantiate the ObservationFile and transform the points to match
-        # the imagery.
-        # ---
-        self._observationFile = ObservationFile(observationFilePath,
-                                                self._species)
-                                                
+        self._observationFile = observationFile
         self._observationFile.transformTo(self._imageSRS)
-
         self._maxEntSpeciesFile = self._formatObservations()
 
         # Create a directory for the ASC files.
@@ -122,14 +120,12 @@ class MaxEntRequest(object):
         # First, to preserve the original files, copy the input file to the
         # output directory.
         # ---
-        baseName = os.path.basename(image)
+        baseName = os.path.basename(image.fileName())
         copyPath = os.path.join(self._ascDir, baseName)
         print 'Processing ' + copyPath
-        shutil.copy(image, copyPath)
-        imageCopy = ImageFile(copyPath)
-
-        imageCopy.clipReproject(self._observationFile.envelope(),
-                                self._imageSRS)
+        shutil.copy(image.fileName(), copyPath)
+        imageCopy = GeospatialImageFile(copyPath, self._imageSRS)
+        imageCopy.clipReproject(self._observationFile.envelope())
 
         squareScale = imageCopy.getSquareScale()
         imageCopy.resample(squareScale, squareScale)
