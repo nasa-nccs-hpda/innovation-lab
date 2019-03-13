@@ -5,8 +5,8 @@ from multiprocessing import Process
 from osgeo.osr import SpatialReference
 
 from CDSLibrary import CDSApi
-from model.Envelope import Envelope
 from model.GeospatialImageFile import GeospatialImageFile
+
 cds_lib = CDSApi()
 
 
@@ -17,13 +17,13 @@ class MasRequest(object):
     # -------------------------------------------------------------------------
     # __init__
     # -------------------------------------------------------------------------
-    def __init__(self, aoi, epsg, startDate, endDate,
+    def __init__(self, envelope, dateRange,
                  collection, listOfVariables, operation, outDir):
 
         self._ds = {
             'job_name': 'MMX_MasRequest',
             'service': 'M2AS',
-            'service_request': 'GetVariableByCollection_Operation_TimeRange_'+
+            'service_request': 'GetVariableByCollection_Operation_TimeRange_' +
                                'SpatialExtent_VerticalExtent',
             'start_level': 1,
             'end_level': 1,
@@ -31,17 +31,15 @@ class MasRequest(object):
             'collection': collection,
         }
 
-        self._setDateRange(startDate, endDate)
+        self._setDateRange(dateRange)
 
         self._tgt_srs = SpatialReference()
         self._tgt_srs.ImportFromEPSG(4326)
-        self._setDomain(aoi, epsg)
+        self._setDomain(envelope)
 
         self._listOfVars = listOfVariables
         self._outDir = outDir
         self._ncImages = list()
-
-
 
     # -------------------------------------------------------------------------
     # retrieve analytic results
@@ -57,9 +55,7 @@ class MasRequest(object):
     # -------------------------------------------------------------------------
     # set date range for MAS operation
     # -------------------------------------------------------------------------
-    def _setDateRange(self, startDate, endDate):
-        dateRange = pd.date_range(startDate, endDate)
-
+    def _setDateRange(self, dateRange):
         fmt = '%Y%m%d'
         m2DateRange = pd.date_range('1980-1-1', '2018-11-27')
 
@@ -77,13 +73,7 @@ class MasRequest(object):
     # -------------------------------------------------------------------------
     # set spatial domain for MAS operation
     # -------------------------------------------------------------------------
-    def _setDomain(self, points, epsg):
-
-        srs = SpatialReference()
-        srs.ImportFromEPSG(epsg)
-        env = Envelope()
-        env.addPoint(float(points[0]), float(points[1]), 0, srs)
-        env.addPoint(float(points[2]), float(points[3]), 0, srs)
+    def _setDomain(self, env):
 
         env.TransformTo(self._tgt_srs)
 
@@ -113,14 +103,12 @@ class MasRequest(object):
         for key in keylist:
             filename = key + '.nc'
             p = Process(target=self._getResult,
-                      args=(sessionCatalog[key],filename))
+                        args=(sessionCatalog[key], filename))
             p.start()
-
             p.join()
             self._ncImages.append(
                 GeospatialImageFile(os.path.join(self._outDir, filename),
                                     self._tgt_srs))
-
 
     # -------------------------------------------------------------------------
     # SRS for output NC files
@@ -133,7 +121,6 @@ class MasRequest(object):
     # -------------------------------------------------------------------------
     def getListOfImages(self):
         if not self._ncImages:
-            raise RuntimeError('NC Image does not exist')
+            raise RuntimeError('No images exist')
         else:
             return self._ncImages
-
