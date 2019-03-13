@@ -18,7 +18,10 @@ from model.ObservationFile import ObservationFile
 # cd innovation-lab
 # export PYTHONPATH=`pwd`
 # mkdir ~/SystemTesting/testMaxEnt
-# view/MaxEntRequestCommandLineView.py -e 32612 -f ~/SystemTesting/MaxEntData/GSENM_cheat_pres_abs_2001.csv -s "Cheat Grass" -i ~/SystemTesting/MaxEntData/images/ -o ~/SystemTesting/testMaxEnt/
+# view/MaxEntRequestCommandLineView.py -e 32612
+# -f ~/SystemTesting/MaxEntData/GSENM_cheat_pres_abs_2001.csv
+# -s "Cheat Grass" -i ~/SystemTesting/MaxEntData/images/
+# -o ~/SystemTesting/testMaxEnt/
 # -----------------------------------------------------------------------------
 def main():
 
@@ -29,7 +32,7 @@ def main():
     parser.add_argument('-e',
                         required=True,
                         type=int,
-                        help='Integer EPSG code representing the spatial ' + \
+                        help='Integer EPSG code representing the spatial ' +
                              'reference system of the input images.')
 
     parser.add_argument('-f',
@@ -49,10 +52,10 @@ def main():
                         help='Name of species in observation file')
 
     args = parser.parse_args()
-    
+
     srs = SpatialReference()
     srs.ImportFromEPSG(args.e)
-    
+
     imageFiles = glob.glob(args.i + '/*')
     geoImages = [GeospatialImageFile(i, srs) for i in imageFiles]
     observationFile = ObservationFile(args.f, args.s)

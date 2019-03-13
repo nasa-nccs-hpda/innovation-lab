@@ -8,7 +8,6 @@ import shutil
 import sys
 
 from model.GeospatialImageFile import GeospatialImageFile
-from model.ObservationFile import ObservationFile
 from model.SystemCommand import SystemCommand
 
 
@@ -31,13 +30,13 @@ class MaxEntRequest(object):
         # Ensure all the images are in the same SRS.
         self._images = listOfImages
         self._imageSRS = self._images[0].srs()
-        
+
         for image in self._images:
-            
+
             if not self._imageSRS.IsSame(image.srs()):
-                
-                raise RuntimeError('Image ' + \
-                                   image.fileName() + \
+
+                raise RuntimeError('Image ' +
+                                   image.fileName() +
                                    ' is not in the same SRS as the others.')
 
         self._imagesToProcess = self._images
