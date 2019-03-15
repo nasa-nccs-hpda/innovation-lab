@@ -37,7 +37,7 @@ class ObservationFile(BaseFile):
         # Initialize the data members.
         self._species = species
         self._srs = None
-        self._envelope = Envelope()
+        self._envelope = None
         self._observations = []
 
         self._parse()
@@ -46,6 +46,13 @@ class ObservationFile(BaseFile):
     # envelope
     # -------------------------------------------------------------------------
     def envelope(self):
+
+        if not self._envelope:
+
+            self._envelope = Envelope()
+
+            for obs in self._observations:
+                self._envelope.addOgrPoint(obs[0].Clone())
 
         return self._envelope
 
@@ -111,7 +118,7 @@ class ObservationFile(BaseFile):
                     ogrPt = ogr.Geometry(ogr.wkbPoint)
                     ogrPt.AddPoint(float(row[0]), float(row[1]), 0)
                     ogrPt.AssignSpatialReference(self._srs)
-                    self._envelope.addOgrPoint(ogrPt)
+                    # self._envelope.addOgrPoint(ogrPt)
                     self._observations.append((ogrPt, float(row[2])))
 
     # -------------------------------------------------------------------------
@@ -132,13 +139,12 @@ class ObservationFile(BaseFile):
     # transformTo
     # -------------------------------------------------------------------------
     def transformTo(self, newSRS):
-        
+
         if newSRS.IsSame(self._srs):
             return
-            
-        self._envelope = Envelope()
+
+        self._envelope = None
         self._srs = newSRS
-        
+
         for obs in self._observations:
             obs[0].TransformTo(newSRS)
-        

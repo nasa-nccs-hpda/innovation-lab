@@ -81,6 +81,16 @@ class EnvelopeTestCase(unittest.TestCase):
         with self.assertRaisesRegexp(RuntimeError, 'must be of type wkbPoint'):
             env.addOgrPoint(ogr.Geometry(ogr.wkbPolygon))
 
+        srs = SpatialReference()
+        srs.ImportFromEPSG(4326)
+        ogrPt = ogr.Geometry(ogr.wkbPoint)
+        ogrPt.AddPoint(20.0, 30.0, 40)
+        ogrPt.AssignSpatialReference(srs)
+        env.addOgrPoint(ogrPt)
+
+        self.assertEqual(env.ulx(), 20.0)
+        self.assertEqual(env.uly(), 30.0)
+
     # -------------------------------------------------------------------------
     # testExpansion
     # -------------------------------------------------------------------------
