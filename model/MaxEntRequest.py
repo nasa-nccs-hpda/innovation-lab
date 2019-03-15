@@ -58,16 +58,6 @@ class MaxEntRequest(object):
             pass
 
     # -------------------------------------------------------------------------
-    # _fixNaNs
-    # -------------------------------------------------------------------------
-    def _fixNaNs(self, ascFile, noData=-9999.0):
-
-        for line in fileinput.FileInput(ascFile, inplace=1):
-
-            line = line.replace('nan', str(noData))
-            print line,
-
-    # -------------------------------------------------------------------------
     # _formatObservations
     # -------------------------------------------------------------------------
     def _formatObservations(self):
@@ -97,50 +87,66 @@ class MaxEntRequest(object):
 
     # -------------------------------------------------------------------------
     # prepareNextImage
+    #
+    # This method is used to prepare all images in this request.
     # -------------------------------------------------------------------------
     def prepareNextImage(self):
 
-        # ---
-        # Clip the images to the AoI of the observations, resample the images
-        # to the SRS of the observations, and resample the pixels so that they
-        # are square.  The ASCII image format the maxent.jar uses represents
-        # pixel in one dimension.  Unless the pixels are square, the results
-        # will be shifted on the ground.  Once this is complete, convert the
-        # input images to ASCII Grid format.  Also, replace NaNs with a float
-        # and copy the ASC to a working directory.
-        # ---
         try:
             image = self._imagesToProcess.pop()
 
+            self.prepareImage(image,
+                              self._imageSRS,
+                              self._observationFile.envelope(),
+                              self._ascDir)
+
         except IndexError:
             return 0
+
+        return len(self._imagesToProcess)
+
+    # -------------------------------------------------------------------------
+    # prepareImage
+    #
+    # This method prepares one image for use with maxent.jar.  Clients can use
+    # this to control the preparation of a batch of images outside a single
+    # MaxEntRequest.  MmxRequest will use this to prepare all images once,
+    # instead of preparing a new set for each trial.
+    # -------------------------------------------------------------------------
+    @staticmethod
+    def prepareImage(image, srs, envelope, ascDir):
 
         # ---
         # First, to preserve the original files, copy the input file to the
         # output directory.
         # ---
         baseName = os.path.basename(image.fileName())
-        copyPath = os.path.join(self._ascDir, baseName)
+        copyPath = os.path.join(ascDir, baseName)
         print 'Processing ' + copyPath
         shutil.copy(image.fileName(), copyPath)
-        imageCopy = GeospatialImageFile(copyPath, self._imageSRS)
-        imageCopy.clipReproject(self._observationFile.envelope())
+        imageCopy = GeospatialImageFile(copyPath, srs)
+        imageCopy.clipReproject(envelope)
 
         squareScale = imageCopy.getSquareScale()
         imageCopy.resample(squareScale, squareScale)
 
         # Convert to ASCII Grid.
         nameNoExtension = os.path.splitext(baseName)[0]
-        ascImagePath = os.path.join(self._ascDir, nameNoExtension + '.asc')
+        ascImagePath = os.path.join(ascDir, nameNoExtension + '.asc')
 
         cmd = 'gdal_translate -ot Float32 -of AAIGrid -a_nodata -9999.0' +\
               ' "' + imageCopy.fileName() + '"' + \
               ' "' + ascImagePath + '"'
 
         SystemCommand(cmd, None, True)
-        self._fixNaNs(ascImagePath)
 
-        return len(self._imagesToProcess)
+        # Fix NaNs.
+        for line in fileinput.FileInput(ascImagePath, inplace=1):
+
+            line = line.replace('nan', '-9999')
+            print line,
+
+        return ascImagePath
 
     # -------------------------------------------------------------------------
     # run
