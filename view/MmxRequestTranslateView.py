@@ -8,6 +8,8 @@ import pandas
 from model.MmxRequest import MmxRequest
 from model.ObservationFile import ObservationFile
 
+# TBD - Placeholder for translation view
+
 # -----------------------------------------------------------------------------
 # main
 #
