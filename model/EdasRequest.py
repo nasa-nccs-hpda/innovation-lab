@@ -31,12 +31,12 @@ class EdasRequest(object):
 
         self._outDir = outDir
         self._ncImages = list()
-        self.client = self.setClient()
+        self.client = self._setClient()
 
     # -------------------------------------------------------------------------
     # initialize Edas Client
     # -------------------------------------------------------------------------
-    def setClient(self):
+    def _setClient(self):
         settings = dict(
             stratus=dict(type="rest",
                          API="wps",
@@ -70,7 +70,7 @@ class EdasRequest(object):
         return dict(name=f"xarray.{opr}", axes=f"{axes}", input=f"{varname}")
 
     # -------------------------------------------------------------------------
-    # run Edas request
+    # execute Edas request
     # -------------------------------------------------------------------------
     def runEdas(self, edas_request):
         task: TaskHandle = self.client.request(edas_request)
@@ -78,7 +78,7 @@ class EdasRequest(object):
         return result.header.get('file')
 
     # -------------------------------------------------------------------------
-    # data retrieval for MMX
+    # run
     # -------------------------------------------------------------------------
     def run(self):
         domain = [self.addDomain("d0", self.envelop, self.dateRange)]
