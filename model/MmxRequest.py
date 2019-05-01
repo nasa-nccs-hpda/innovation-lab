@@ -1,15 +1,17 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
+import csv
 from collections import namedtuple
-import glob
 import os
 import shutil
+import random
+from osgeo.osr import SpatialReference
 
 from model.MasRequest import MasRequest
 from model.MaxEntRequest import MaxEntRequest
 from model.ObservationFile import ObservationFile
-
+from model.GeospatialImageFile import GeospatialImageFile
 
 # -----------------------------------------------------------------------------
 # class MmxRequest
@@ -21,9 +23,12 @@ class MmxRequest(object):
     # -------------------------------------------------------------------------
     # __init__
     # -------------------------------------------------------------------------
-    def __init__(self, observationFile, dateRange, numTrials=10, 
-                 outputDirectory):
-                 
+    #    def __init__(self, observationFile, dateRange, numTrials=10,
+    #                 outputDirectory):
+
+    def __init__(self, observationFile, dateRange, collection, variables, operation,
+                 numTrials, outputDirectory):
+
         if not os.path.exists(outputDirectory):
             raise RuntimeError(str(outputDirectory)) + ' does not exist.'
             
@@ -44,7 +49,10 @@ class MmxRequest(object):
         self._numTrials = numTrials
         self._observationFile = observationFile
         self._dateRange = dateRange
-        
+        self._collection = collection
+        self._variables = variables
+        self._operation = operation
+
     # -------------------------------------------------------------------------
     # compileContributions
     # -------------------------------------------------------------------------
@@ -186,9 +194,12 @@ class MmxRequest(object):
     # -------------------------------------------------------------------------
     # requestMerra
     # -------------------------------------------------------------------------
-    def requestMerra(self):
+    def requestMerraTest(self):
 
-        variables = ['BASEFLOW', 'ECHANGE', 'EVLAND', 'EVPINTR', 'EVPSBLN',
+        #variables = ['TSURF']
+
+        variables = ['TSURF', 'BASEFLOW', 'ECHANGE']
+        variablesY = ['BASEFLOW', 'ECHANGE', 'EVLAND', 'EVPINTR', 'EVPSBLN',
                      'EVPSOIL', 'FRSAT', 'FRSNO', 'FRUNST', 'FRWLT', 'GHLAND',
                      'GRN', 'GWETPROF', 'GWETROOT', 'GWETTOP', 'LAI',
                      'LHLAND', 'LWLAND', 'PARDFLAND', 'PARDRLAND', 
@@ -198,17 +209,31 @@ class MmxRequest(object):
                      'TPSNOW', 'TSAT', 'TSOIL1', 'TSOIL2', 'TSOIL3', 'TSOIL4',
                      'TSOIL5', 'TSOIL6', 'TSURF', 'TUNST', 'TWLAND', 'TWLT',
                      'WCHANGE']
-        
-        masRequest.run()
-        
+
         masRequest = MasRequest(self._observationFile.envelope(), 
                                 self._dateRange,
                                 'tavg1_2d_lnd_Nx',
                                 variables,
                                 'avg',
-                                self._merraDirectory)
-                                      
-        return masRequest.getListOfImages()
+                                self._merraDir)
+
+        masRequest.run()
+    # -------------------------------------------------------------------------
+    # requestMerra
+    # -------------------------------------------------------------------------
+    def requestMerra(self):
+
+        masRequest = MasRequest(self._observationFile.envelope(),
+                                self._dateRange,
+                                self._collection,
+                                self._variables,
+                                self._operation,
+                                self._merraDir)
+
+        masRequest.run()
+
+#        return masRequest.getListOfImages()
+        return masRequest
 
     # -------------------------------------------------------------------------
     # run
@@ -221,7 +246,8 @@ class MmxRequest(object):
         # - outputDirectory
         #   - merra
         # ---
-        images = self.requestMerra()
+        masRequest = self.requestMerra()
+        images = masRequest.getListOfImages()
 
         # ---
         # Prepare all the images once, instead of redundantly when each trial
@@ -231,11 +257,12 @@ class MmxRequest(object):
         #   - asc
         # ---
         preparedImages = []
-        srs = images.srs()
-        
+#        srs = images.srs()
+        srs = masRequest.getSRS()
+
         for image in images:
-            
-            ascImagePath = MaxEntRequest.prepareImage(i, self._ascDir)
+
+            ascImagePath = MaxEntRequest.prepareImage(image, srs, self._observationFile.envelope(), self._ascDir)
             preparedImages.append(GeospatialImageFile(ascImagePath, srs))
 
         # Get the random lists of indexes into preparedImages for each trial.
@@ -256,13 +283,13 @@ class MmxRequest(object):
         #     ...
         # ---
         trialNum = 0
-        trial = []
+        trials = []
         
         for trialImageIndexes in listOfIndexesInEachTrial:
 
-            trial.append(self.prepareOneTrial(preparedImages, 
+            trials.append(self.prepareOneTrial(preparedImages,
                                               trialImageIndexes, 
-                                              trialNum++))
+                                              trialNum+1))
             
         # Run the trials.
         for trial in trials:
@@ -274,6 +301,85 @@ class MmxRequest(object):
         topTen = self.getTopTen(trials)
         
         # Run the final model.
-        final = self.prepareOneTriel(topTen range[0:len(topTen)], 'final')
+        final = self.prepareOneTrial(topTen, range[0:len(topTen)], 'final')
         finalMer = MaxEntRequest(final.obsFile, final.images, final.directory)
-        
+    # -------------------------------------------------------------------------
+    # runBatch
+    #
+    #  This method executes a batch of images - Quick test while we sort out run() granularity
+    # -------------------------------------------------------------------------
+    def runBatch(self):
+
+        # ---
+        # Get MERRA images.
+        #
+        # - outputDirectory
+        #   - merra
+        # ---
+#        masRequest = self.requestMerra()
+#        images = masRequest.getListOfImages()
+
+        # simulate masRequest call for now
+        self._tgt_srs = SpatialReference()
+        self._tgt_srs.ImportFromEPSG(4326)
+        srs = self._tgt_srs
+
+        self._ncImages = list()
+        self._ncImages.append(
+            GeospatialImageFile(os.path.join(self._outputDirectory, '/home/jli/SystemTesting/testMasRequest/TSURF.nc'),
+                                         srs))
+        #self._ncImages.append(
+        #    GeospatialImageFile(os.path.join(self._outputDirectory, '/home/jli/SystemTesting/testMasRequest/BASEFLOW.nc'),
+        #                        srs))
+        preparedImages = self._ncImages
+
+        # GT - quick test to exercise batch of images
+        #maxEntReq = MaxEntRequest(self._observationFile, self._ncImages, self._outputDirectory)
+        #maxEntReq.run()
+        #exit()
+
+        for image in preparedImages:
+
+            ascImagePath = MaxEntRequest.prepareImage(image, srs, self._observationFile.envelope(), self._ascDir)
+            preparedImages.append(GeospatialImageFile(ascImagePath, srs))
+#            preparedImages.append(GeospatialImageFile(image, srs))
+
+        # Get the random lists of indexes into preparedImages for each trial.
+        listOfIndexesInEachTrial = self.getTrialImagesIndexes(preparedImages)
+    # -------------------------------------------------------------------------
+    # runBatch
+    #
+    #  This method executes a batch of images - Quick test while we sort out run() granularity
+    # -------------------------------------------------------------------------
+    def runSimple(self):
+
+        # ---
+        # Get MERRA images.
+        #
+        # - outputDirectory
+        #   - merra
+        # ---
+        masRequest = self.requestMerra()
+        images = masRequest.getListOfImages()
+
+        # simulate masRequest call for now
+        #self._tgt_srs = SpatialReference()
+        #self._tgt_srs.ImportFromEPSG(4326)
+        #srs = self._tgt_srs
+
+        #self._ncImages = list()
+        #self._ncImages.append(
+        #    GeospatialImageFile(os.path.join(self._outputDirectory, '/home/jli/SystemTesting/testMasRequest/TSURF.nc'),
+        #                        srs))
+        #self._ncImages.append(
+        #    GeospatialImageFile(os.path.join(self._outputDirectory, '/home/jli/SystemTesting/testMasRequest/BASEFLOW.nc'),
+        #                        srs))
+
+        #preparedImages = self._ncImages
+        preparedImages = images
+
+        # GT - quick test to exercise batch of images
+        maxEntReq = MaxEntRequest(self._observationFile, preparedImages, self._outputDirectory)
+        maxEntReq.run()
+
+

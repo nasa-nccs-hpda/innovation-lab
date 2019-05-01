@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-
+import sys
 import pandas
 
 from model.MmxRequest import MmxRequest
@@ -14,12 +14,17 @@ from model.ObservationFile import ObservationFile
 # cd innovation-lab
 # export PYTHONPATH=`pwd`
 # mkdir ~/SystemTesting/testMmx
-# view/MmxRequestCommandLineView.py 
+# mkdir ~/SystemTesting/testMaxEnt/merra
+# view/MmxRequestCommandLineView.py
 # -f ~/SystemTesting/MaxEntData/GSENM_cheat_pres_abs_2001.csv
 # -s "Cheat Grass" --start_date 2013-02-03 --end_date 2013-03-12
 # -o ~/SystemTesting/testMaxEnt/
 # -----------------------------------------------------------------------------
 def main():
+
+    # Process command-line args.
+    desc = 'This application runs MMX.'
+    parser = argparse.ArgumentParser(description=desc)
 
     parser.add_argument('-f',
                         required=True,
@@ -37,6 +42,19 @@ def main():
                         required=True,
                         help='YYYY-MM-DD')
 
+    parser.add_argument('-c',
+                        required=True,
+                        help='Name of collection of MERRA2')
+
+    parser.add_argument('--vars',
+                        required=True,
+                        nargs='+',
+                        help='List of variables in M2 collection')
+
+    parser.add_argument('--opr',
+                        required=True,
+                        help='Type of analysis')
+
     parser.add_argument('-n',
                         default=10,
                         help='Number of trials to run')
@@ -50,5 +68,13 @@ def main():
     observationFile = ObservationFile(args.f, args.s)
     dateRange = pandas.date_range(args.start_date, args.end_date)
 
-    mmxr = MmxRequest(observationFile, dateRange, args.n, args.o)
-    
+    mmxr = MmxRequest(observationFile, dateRange, args.c, args.vars, args.opr, args.n, args.o)
+#    mmxr.runBatch()
+    mmxr.runSimple()
+#    mmxr.run()
+# ------------------------------------------------------------------------------
+# Invoke the main
+# ------------------------------------------------------------------------------
+if __name__ == "__main__":
+    sys.exit(main())
+
