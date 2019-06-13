@@ -382,4 +382,40 @@ class MmxRequest(object):
         maxEntReq = MaxEntRequest(self._observationFile, preparedImages, self._outputDirectory)
         maxEntReq.run()
 
+    # -------------------------------------------------------------------------
+    # runBatch
+    #
+    #  This method executes a batch of images - Quick test while we sort out run() granularity
+    # -------------------------------------------------------------------------
+    def runEdas(self):
+
+        # ---
+        # Get MERRA images.
+        #
+        # - outputDirectory
+        #   - merra
+        # ---
+        masRequest = self.requestMerra()
+        images = masRequest.getListOfImages()
+
+        # simulate masRequest call for now
+        #self._tgt_srs = SpatialReference()
+        #self._tgt_srs.ImportFromEPSG(4326)
+        #srs = self._tgt_srs
+
+        #self._ncImages = list()
+        #self._ncImages.append(
+        #    GeospatialImageFile(os.path.join(self._outputDirectory, '/home/jli/SystemTesting/testMasRequest/TSURF.nc'),
+        #                        srs))
+        #self._ncImages.append(
+        #    GeospatialImageFile(os.path.join(self._outputDirectory, '/home/jli/SystemTesting/testMasRequest/BASEFLOW.nc'),
+        #                        srs))
+
+        #preparedImages = self._ncImages
+        preparedImages = images
+
+        # GT - quick test to exercise batch of images
+        maxEntReq = MaxEntRequest(self._observationFile, preparedImages, self._outputDirectory)
+        maxEntReq.run()
+
 
