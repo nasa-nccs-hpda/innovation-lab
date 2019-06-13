@@ -122,7 +122,7 @@ class MaxEntRequest(object):
         # ---
         baseName = os.path.basename(image.fileName())
         copyPath = os.path.join(ascDir, baseName)
-        print 'Processing ' + copyPath
+        print ('Processing ' + copyPath)
         shutil.copy(image.fileName(), copyPath)
         imageCopy = GeospatialImageFile(copyPath, srs)
         imageCopy.clipReproject(envelope)
@@ -144,7 +144,7 @@ class MaxEntRequest(object):
         for line in fileinput.FileInput(ascImagePath, inplace=1):
 
             line = line.replace('nan', '-9999')
-            print line,
+            print(line),
 
         return ascImagePath
 
@@ -153,12 +153,12 @@ class MaxEntRequest(object):
     # -------------------------------------------------------------------------
     def run(self):
 
-        imagesLeft = sys.maxint
-
+#        imagesLeft = sys.maxint  (Python 2x, replaced in 3x by maxsize)
+        imagesLeft = sys.maxsize
         while imagesLeft > 0:
 
             imagesLeft = self.prepareNextImage()
-            print str(imagesLeft) + ' images remaining to process.'
+            print (str(imagesLeft) + ' images remaining to process.')
 
         self.runMaxEntJar()
 
@@ -167,7 +167,7 @@ class MaxEntRequest(object):
     # -------------------------------------------------------------------------
     def runMaxEntJar(self):
 
-        print 'Running MaxEnt.'
+        print ('Running MaxEnt.')
 
         # Invoke maxent.jar.
         MAX_ENT_JAR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
