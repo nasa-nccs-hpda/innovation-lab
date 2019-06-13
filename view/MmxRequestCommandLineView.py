@@ -71,6 +71,7 @@ def main():
     mmxr = MmxRequest(observationFile, dateRange, args.c, args.vars, args.opr, args.n, args.o)
 #    mmxr.runBatch()
     mmxr.runSimple()
+#    mmxr.runEdas()
 #    mmxr.run()
 # ------------------------------------------------------------------------------
 # Invoke the main
