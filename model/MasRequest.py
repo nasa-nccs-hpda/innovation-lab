@@ -100,27 +100,13 @@ class MasRequest(object):
 
         keylist = sessionCatalog.keys()
         keylist.sort()
+        jobs = []
         for key in keylist:
             filename = key + '.nc'
             p = Process(target=self._getResult,
                         args=(sessionCatalog[key], filename))
             p.start()
-            p.join()
-            self._ncImages.append(
-                GeospatialImageFile(os.path.join(self._outDir, filename),
-                                    self._tgt_srs))
+            jobs.append(p)
 
-    # -------------------------------------------------------------------------
-    # SRS for output NC files
-    # -------------------------------------------------------------------------
-    def getSRS(self):
-        return self._tgt_srs
-
-    # -------------------------------------------------------------------------
-    # list of output NC images
-    # -------------------------------------------------------------------------
-    def getListOfImages(self):
-        if not self._ncImages:
-            raise RuntimeError('No images exist')
-        else:
-            return self._ncImages
+        for j in jobs:
+            j.join()

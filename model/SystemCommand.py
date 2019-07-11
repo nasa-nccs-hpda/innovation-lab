@@ -49,7 +49,7 @@ class SystemCommand(object):
         # causing returnCode to be None.  To detect this, check if msg contains
         # and error text.
         # ---
-        lcMsg = self.msg.lower()
+        lcMsg = str(self.msg.lower())
         hasErrorString = False
 
         for eMsg in SystemCommand.ERROR_STRINGS_TO_TEST:
@@ -62,7 +62,7 @@ class SystemCommand(object):
         # Other times, the error is reported in stdout.  Detect this.
         if not hasErrorString:
 
-            lcMsg = self.stdOut.lower()
+            lcMsg = str(self.stdOut.lower())
             hasErrorString = False
 
             for eMsg in SystemCommand.ERROR_STRINGS_TO_TEST:

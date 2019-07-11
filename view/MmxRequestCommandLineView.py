@@ -68,11 +68,13 @@ def main():
     observationFile = ObservationFile(args.f, args.s)
     dateRange = pandas.date_range(args.start_date, args.end_date)
 
-    mmxr = MmxRequest(observationFile, dateRange, args.c, args.vars, args.opr, args.n, args.o)
+    mmxr = MmxRequest(observationFile, dateRange,
+                      args.c, args.vars, args.opr, args.n, args.o)
 #    mmxr.runBatch()
-    mmxr.runSimple()
+#    mmxr.runSimple()
 #    mmxr.runEdas()
-#    mmxr.run()
+    mmxr.run()
+
 # ------------------------------------------------------------------------------
 # Invoke the main
 # ------------------------------------------------------------------------------

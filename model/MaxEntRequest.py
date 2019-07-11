@@ -144,7 +144,7 @@ class MaxEntRequest(object):
         for line in fileinput.FileInput(ascImagePath, inplace=1):
 
             line = line.replace('nan', '-9999')
-            print(line),
+            sys.stdout.write(line)
 
         return ascImagePath
 
