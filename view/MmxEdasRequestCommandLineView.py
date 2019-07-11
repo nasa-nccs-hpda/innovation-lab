@@ -4,8 +4,6 @@
 import argparse
 import sys
 import pandas
-from osgeo.osr import SpatialReference
-from model.Envelope import Envelope
 
 from model.MmxEdasRequest import MmxEdasRequest
 from model.ObservationFile import ObservationFile
@@ -27,11 +25,6 @@ def main():
     # Process command-line args.
     desc = 'This application runs MMX.'
     parser = argparse.ArgumentParser(description=desc)
-
-    parser.add_argument('-e',
-                        required=True,
-                        nargs='+',
-                        help='ulx uly lrx lry')
 
     parser.add_argument('-f',
                         required=True,
@@ -75,20 +68,10 @@ def main():
     observationFile = ObservationFile(args.f, args.s)
     dateRange = pandas.date_range(args.start_date, args.end_date)
 
-    # Envelope
-    srs = SpatialReference()
-#    srs.ImportFromEPSG(args.epsg)
-    srs.ImportFromEPSG(4326)
-    env = Envelope()
-    env.addPoint(float(args.e[0]), float(args.e[1]), 0, srs)
-    env.addPoint(float(args.e[2]), float(args.e[3]), 0, srs)
-    observationFile._envelope = env
+    mmxr = MmxEdasRequest(observationFile, dateRange,
+                      args.c, args.vars, args.opr, args.n, args.o)
+    mmxr.run()
 
-    mmxr = MmxEdasRequest(observationFile, dateRange, args.c, args.vars, args.opr, args.n, args.o)
-#    mmxr.runBatch()
-#    mmxr.runSimple()
-    mmxr.runEdas()
-#    mmxr.run()
 # ------------------------------------------------------------------------------
 # Invoke the main
 # ------------------------------------------------------------------------------

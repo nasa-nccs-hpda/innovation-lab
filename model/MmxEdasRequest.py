@@ -8,12 +8,10 @@ import shutil
 import random
 from osgeo.osr import SpatialReference
 
-#from model.MasRequest import MasRequest
+from model.EdasRequest import EdasRequest
 from model.MaxEntRequest import MaxEntRequest
 from model.ObservationFile import ObservationFile
 from model.GeospatialImageFile import GeospatialImageFile
-
-from model.EdasRequest import EdasRequest
 
 # -----------------------------------------------------------------------------
 # class MmxRequest
@@ -28,8 +26,8 @@ class MmxEdasRequest(object):
     #    def __init__(self, observationFile, dateRange, numTrials=10,
     #                 outputDirectory):
 
-    def __init__(self, observationFile, dateRange, collection, variables, operation,
-                 numTrials, outputDirectory):
+    def __init__(self, observationFile, dateRange, collection, variables,
+                 operation, numTrials, outputDirectory):
 
         if not os.path.exists(outputDirectory):
             raise RuntimeError(str(outputDirectory)) + ' does not exist.'
@@ -46,7 +44,7 @@ class MmxEdasRequest(object):
         # ---
         self._outputDirectory = outputDirectory
         self._merraDir = os.path.join(self._outputDirectory, 'merra')
-        self._ascDir = os.path.join(self._outputDirectory, 'asc')
+        #self._ascDir = os.path.join(self._outputDirectory, 'asc')
         self._trialsDir = os.path.join(self._outputDirectory, 'trials')
         self._numTrials = numTrials
         self._observationFile = observationFile
@@ -54,6 +52,13 @@ class MmxEdasRequest(object):
         self._collection = collection
         self._variables = variables
         self._operation = operation
+
+        if not os.path.exists(self._merraDir):
+            os.mkdir(self._merraDir)
+        #if not os.path.exists(self._ascDir):
+        #    os.mkdir(self._ascDir)
+        if not os.path.exists(self._trialsDir):
+            os.mkdir(self._trialsDir)
 
     # -------------------------------------------------------------------------
     # compileContributions
@@ -71,13 +76,13 @@ class MmxEdasRequest(object):
         for trial in trials:
             
             resultsFile = os.path.join(trial.directory, 
-                                       'results/maxentResults.csv')
+                                       'maxentResults.csv')
                                        
             results = csv.reader(open(resultsFile))
             header = None
             
             try:
-                header = results.next()
+                header = results.__next__()
 
             except:
                 raise RuntimeError('Error reading ' + str(resultsFile))
@@ -85,8 +90,8 @@ class MmxEdasRequest(object):
             for row in results:
 
                 rowDict = dict(zip(header, row))
-                
-                for key in rowDict.iterkeys():
+
+                for key in rowDict.keys():
                     
                     if CONTRIB_KWD in key:
                         
@@ -96,7 +101,23 @@ class MmxEdasRequest(object):
                             contributions[newKey] = []
 
                         contributions[newKey].append(float(rowDict[key]))
-            
+
+            return contributions
+
+    # -------------------------------------------------------------------------
+    # getListofMerraImages
+    # -------------------------------------------------------------------------
+    def getListofMerraImages(self, files):
+
+        # Convert the list of NetCDF files to GeospatialImageFiles
+        list = []
+        tgt_srs = SpatialReference()
+        tgt_srs.ImportFromEPSG(4326)
+        for file in files:
+            list.append(GeospatialImageFile
+                        (os.path.join(self._merraDir, file),tgt_srs))
+        return list
+
     # -------------------------------------------------------------------------
     # getTopTen
     # -------------------------------------------------------------------------
@@ -108,7 +129,7 @@ class MmxEdasRequest(object):
         # Compute the average contribution of each predictor over all trials.
         averages = {}
         
-        for key in contributions.iterkeys():
+        for key in contributions.keys():
             
             samples = contributions[key]
             averages[key] = float(sum(samples) / max(len(samples), 1))
@@ -124,11 +145,11 @@ class MmxEdasRequest(object):
         topTen = []
         
         for k, v in sortedAvgs:
-            
-            pred = os.path.join(self._ascDir, k + '.asc')
+            pred = k+'.nc'
             topTen.append(pred)
 
-        return topTen
+        list = self.getListofMerraImages(topTen)
+        return list
         
     # -------------------------------------------------------------------------
     # getTrialImageIndexes
@@ -138,13 +159,14 @@ class MmxEdasRequest(object):
     #
     # [[1, 3, 8, 4, ...], [31, 4, 99, ...], ...]
     # -------------------------------------------------------------------------
-    def getTrialImageIndexess(self, images):
+    def getTrialImagesIndexes(self, images):
         
         # Generate lists of random indexes in the files.
         indexesInEachTrial = []
-        PREDICTORS_PER_TRIAL = 10
+        PREDICTORS_PER_TRIAL = 10  #10
         
-        for i in range(1, self.config.numTrials + 1):
+#        for i in range(1, self.config.numTrials + 1):
+        for i in range(1, int(self._numTrials) + 1):
             
             indexesInEachTrial.append(random.sample(range(0, len(images) - 1),
                                                     PREDICTORS_PER_TRIAL))
@@ -167,7 +189,7 @@ class MmxEdasRequest(object):
         trialPredictors = [images[i] for i in trialImageIndexes]
         
         # Copy the samples file to the trial.
-        obsBaseName = os.path.basename(self._observationFile)
+        obsBaseName = os.path.basename(self._observationFile._filePath)
         trialObsPath = os.path.join(TRIAL_DIR, obsBaseName)
         shutil.copyfile(self._observationFile.fileName(), trialObsPath)
 
@@ -175,56 +197,21 @@ class MmxEdasRequest(object):
                                    self._observationFile.species())
         
         # Copy the images to the trial.
-        ascDir = os.path.join(TRIAL_DIR, 'asc')
-        trialImages = []
-        
-        for image in trialPredictors:
-            
-            imageBaseName = os.path.basename(image.fileName())
-            trialImagePath = os.path.join(ascDir, imageBaseName)
-            
-            trialImages.append(GeospatialImageFile(trialImagePath,
-                                                   image.srs()))
-        
+        trailAscDir = os.path.join(TRIAL_DIR, 'asc')
+        if not os.path.exists(trailAscDir):
+           os.mkdir(trailAscDir)
+
         # Build the Trial structure to use later.
-        trial = MmxRequest.Trial(directory=TRIAL_DIR,
-                                 images=trialImages,
+        trial = MmxEdasRequest.Trial(directory=TRIAL_DIR,
+                                 images=trialPredictors,
                                  obsFile=trialObs)
 
         return trial
-        
+
     # -------------------------------------------------------------------------
     # requestMerra
     # -------------------------------------------------------------------------
-    def requestMerraTest(self):
-
-        #variables = ['TSURF']
-
-        variables = ['TSURF', 'BASEFLOW', 'ECHANGE']
-        variablesY = ['BASEFLOW', 'ECHANGE', 'EVLAND', 'EVPINTR', 'EVPSBLN',
-                     'EVPSOIL', 'FRSAT', 'FRSNO', 'FRUNST', 'FRWLT', 'GHLAND',
-                     'GRN', 'GWETPROF', 'GWETROOT', 'GWETTOP', 'LAI',
-                     'LHLAND', 'LWLAND', 'PARDFLAND', 'PARDRLAND', 
-                     'PRECSNOLAND', 'PRECTOTLAND', 'PRMC', 'QINFIL', 'RUNOFF',
-                     'RZMC', 'SFMC', 'SHLAND', 'SMLAND', 'SNODP', 'SNOMAS',
-                     'SPLAND', 'SPSNOW', 'SPWATR', 'SWLAND', 'TELAND', 
-                     'TPSNOW', 'TSAT', 'TSOIL1', 'TSOIL2', 'TSOIL3', 'TSOIL4',
-                     'TSOIL5', 'TSOIL6', 'TSURF', 'TUNST', 'TWLAND', 'TWLT',
-                     'WCHANGE']
-
-        masRequest = MasRequest(self._observationFile.envelope(), 
-                                self._dateRange,
-                                'tavg1_2d_lnd_Nx',
-                                variables,
-                                'avg',
-                                self._merraDir)
-
-        masRequest.run()
-
-    # -------------------------------------------------------------------------
-    # requestEdas
-    # -------------------------------------------------------------------------
-    def requestEdas(self):
+    def requestMerra(self):
 
         edasRequest = EdasRequest(self._observationFile.envelope(),
                                 self._dateRange,
@@ -235,40 +222,27 @@ class MmxEdasRequest(object):
 
         edasRequest.run()
 
-        #        return masRequest.getListOfImages()
-        return edasRequest
     # -------------------------------------------------------------------------
     # run
     # -------------------------------------------------------------------------
     def run(self):
-        
         # ---
         # Get MERRA images.
-        # 
+        #
         # - outputDirectory
         #   - merra
         # ---
-        masRequest = self.requestMerra()
-        images = masRequest.getListOfImages()
+        # Check if required NetCDFs already existing,
+        #       then skip data preparation
+        existedVars = os.listdir(self._merraDir)
+        requiredVars = [v+'.nc' for v in self._variables]
+        if not all(elem in existedVars for elem in requiredVars):
+            self.requestMerra()
 
-        # ---
-        # Prepare all the images once, instead of redundantly when each trial
-        # is processed.
-        #
-        # - outputDirectory
-        #   - asc
-        # ---
-        preparedImages = []
-#        srs = images.srs()
-        srs = masRequest.getSRS()
+        images = self.getListofMerraImages(requiredVars)
 
-        for image in images:
-
-            ascImagePath = MaxEntRequest.prepareImage(image, srs, self._observationFile.envelope(), self._ascDir)
-            preparedImages.append(GeospatialImageFile(ascImagePath, srs))
-
-        # Get the random lists of indexes into preparedImages for each trial.
-        listOfIndexesInEachTrial = self.getTrialImagesIndexes(preparedImages)
+        # Get the random lists of indexes into Images for each trial.
+        listOfIndexesInEachTrial = self.getTrialImagesIndexes(images)
 
         # ---
         # Prepare the trials.
@@ -286,25 +260,61 @@ class MmxEdasRequest(object):
         # ---
         trialNum = 0
         trials = []
-        
-        for trialImageIndexes in listOfIndexesInEachTrial:
 
-            trials.append(self.prepareOneTrial(preparedImages,
-                                              trialImageIndexes, 
-                                              trialNum+1))
-            
+        for trialImageIndexes in listOfIndexesInEachTrial:
+            trials.append(self.prepareOneTrial(images,
+                                               trialImageIndexes,
+                                               trialNum+1))
+            trialNum += 1
+
         # Run the trials.
         for trial in trials:
 
             mer = MaxEntRequest(trial.obsFile, trial.images, trial.directory)
-            mer.runMaxEntJar()
-        
+            mer.run()
+
         # Compile trial statistics and select the top-ten predictors.
         topTen = self.getTopTen(trials)
-        
+
         # Run the final model.
-        final = self.prepareOneTrial(topTen, range[0:len(topTen)], 'final')
+        final = self.prepareOneTrial(topTen, range(0, len(topTen)-1), 'final')
         finalMer = MaxEntRequest(final.obsFile, final.images, final.directory)
+        finalMer.run()
+
+
+
+###############################################################################
+###############################################################################
+#       FUNCTIONS TO BE TESTED & INTEGRATED
+###############################################################################
+###############################################################################
+
+    # -------------------------------------------------------------------------
+    # requestMerra
+    # -------------------------------------------------------------------------
+    def requestMerraTest(self):
+        variables = ['TSURF', 'BASEFLOW', 'ECHANGE']
+        variablesY = ['BASEFLOW', 'ECHANGE', 'EVLAND', 'EVPINTR', 'EVPSBLN',
+                      'EVPSOIL', 'FRSAT', 'FRSNO', 'FRUNST', 'FRWLT', 'GHLAND',
+                      'GRN', 'GWETPROF', 'GWETROOT', 'GWETTOP', 'LAI',
+                      'LHLAND', 'LWLAND', 'PARDFLAND', 'PARDRLAND',
+                      'PRECSNOLAND', 'PRECTOTLAND', 'PRMC', 'QINFIL', 'RUNOFF',
+                      'RZMC', 'SFMC', 'SHLAND', 'SMLAND', 'SNODP', 'SNOMAS',
+                      'SPLAND', 'SPSNOW', 'SPWATR', 'SWLAND', 'TELAND',
+                      'TPSNOW', 'TSAT', 'TSOIL1', 'TSOIL2', 'TSOIL3', 'TSOIL4',
+                      'TSOIL5', 'TSOIL6', 'TSURF', 'TUNST', 'TWLAND', 'TWLT',
+                      'WCHANGE']
+
+        masRequest = MasRequest(self._observationFile.envelope(),
+                                self._dateRange,
+                                'tavg1_2d_lnd_Nx',
+                                variablesY,
+                                'avg',
+                                self._merraDir)
+
+        masRequest.run()
+        return masRequest
+
     # -------------------------------------------------------------------------
     # runBatch
     #
@@ -348,6 +358,7 @@ class MmxEdasRequest(object):
 
         # Get the random lists of indexes into preparedImages for each trial.
         listOfIndexesInEachTrial = self.getTrialImagesIndexes(preparedImages)
+
     # -------------------------------------------------------------------------
     # runBatch
     #
@@ -397,8 +408,8 @@ class MmxEdasRequest(object):
         # - outputDirectory
         #   - merra
         # ---
-        edasRequest = self.requestEdas()
-        images = edasRequest.getListOfImages()
+        masRequest = self.requestMerra()
+        images = masRequest.getListOfImages()
 
         # simulate masRequest call for now
         #self._tgt_srs = SpatialReference()
@@ -417,12 +428,9 @@ class MmxEdasRequest(object):
         preparedImages = images
 
         # GT - quick test to exercise batch of images
-        # save env that gets reset to None in ObservationFile.transformTo
-        env = self._observationFile._envelope
         maxEntReq = MaxEntRequest(self._observationFile, preparedImages, self._outputDirectory)
-
-        # restore saved env
-        self._observationFile._envelope = env
         maxEntReq.run()
+
+
 
 
