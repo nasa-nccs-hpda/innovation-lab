@@ -52,11 +52,9 @@ class EdasRequest(object):
         env.TransformTo(self._tgt_srs)
 
         return dict(name=domainname,
-                    lat=dict(start=env.lry()-0.5, end=env.uly()+0.5, system="values"),
-                    lon=dict(start=env.ulx()-0.5, end=env.lrx()+0.5, system="values"),
-                    time=dict(start=f"{date[0]}", end=f"{date[-1]}",
-                              crs="timestamps"),
-                    )
+            lat=dict(start=env.lry()-0.5, end=env.uly()+0.5, system="values"),
+            lon=dict(start=env.ulx()-0.5, end=env.lrx()+0.5, system="values"),
+            time=dict(start=f"{date[0]}", end=f"{date[-1]}",crs="timestamps"),)
 
     # -------------------------------------------------------------------------
     # set target variable
