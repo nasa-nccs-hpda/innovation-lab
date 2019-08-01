@@ -174,7 +174,7 @@ class MaxEntRequest(object):
                                    'libraries',
                                    'maxent.jar')
 
-        baseCmd = 'java -Xmx1024m -jar ' + \
+        baseCmd = '/att/nobackup/jli30/bin/jre1.8.0_221/bin/java -Xmx1024m -jar ' + \
                   MAX_ENT_JAR + \
                   ' visible=false autorun -P -J writeplotdata ' + \
                   '"applythresholdrule=Equal training sensitivity and ' + \
