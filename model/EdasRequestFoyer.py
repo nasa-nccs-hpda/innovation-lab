@@ -39,9 +39,11 @@ class EdasRequest(object):
     def _setClient(self):
         settings = dict(
             stratus=dict(type="zeromq",
-                         client_address = "foyer101",
+                         client_address = "127.0.0.1",
                          request_port = "4556",
-                         response_port = "4557")
+                         response_port = "4557",
+                         certificate_path= "/att/nobackup/tpmaxwel/.stratus/zmq/"
+                         )
         )
         core = StratusCore(settings)
         return core.getClient()
