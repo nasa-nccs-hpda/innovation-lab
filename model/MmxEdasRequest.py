@@ -13,6 +13,16 @@ from model.MaxEntRequest import MaxEntRequest
 from model.ObservationFile import ObservationFile
 from model.GeospatialImageFile import GeospatialImageFile
 
+from multiprocessing import Process
+
+threadCatalog = dict({})
+
+# Aggregate process to prepare for and run a trial using MaxEnt
+def runTrial(observationFile, listOfImages, outputDirectory):
+
+    mer = MaxEntRequest(observationFile, listOfImages, outputDirectory)
+    mer.run()
+
 # -----------------------------------------------------------------------------
 # class MmxRequest
 # -----------------------------------------------------------------------------
@@ -164,8 +174,9 @@ class MmxEdasRequest(object):
         # Generate lists of random indexes in the files.
         indexesInEachTrial = []
         PREDICTORS_PER_TRIAL = 10  #10
-        
-#        for i in range(1, self.config.numTrials + 1):
+        #PREDICTORS_PER_TRIAL = 5  #10
+
+    #        for i in range(1, self.config.numTrials + 1):
         for i in range(1, int(self._numTrials) + 1):
             
             indexesInEachTrial.append(random.sample(range(0, len(images) - 1),
@@ -267,17 +278,25 @@ class MmxEdasRequest(object):
                                                trialNum+1))
             trialNum += 1
 
-        # Run the trials.
+        # Run the trials in parallel using process multi-threading
+        trialNum = 0
         for trial in trials:
+            p = Process(target=runTrial, args=(trial.obsFile, trial.images, trial.directory))
+            p.start()
+            trialNum += 1
+            threadCatalog[trialNum] = p
 
-            mer = MaxEntRequest(trial.obsFile, trial.images, trial.directory)
-            mer.run()
+        # wait for the threads to complete
+        keylist = threadCatalog.keys()
+        for key in keylist:
+            p = threadCatalog[key]
+            p.join()
 
         # Compile trial statistics and select the top-ten predictors.
         topTen = self.getTopTen(trials)
 
-        # Run the final model.
-        final = self.prepareOneTrial(topTen, range(0, len(topTen)-1), 'final')
+        # Run the final model.  In order to include all plots in html summary using full len.
+        final = self.prepareOneTrial(topTen, range(0, len(topTen)), 'final')
         finalMer = MaxEntRequest(final.obsFile, final.images, final.directory)
         finalMer.run()
 
