@@ -12,7 +12,13 @@ from model.EdasRequest import EdasRequest
 from model.MaxEntRequest import MaxEntRequest
 from model.ObservationFile import ObservationFile
 from model.GeospatialImageFile import GeospatialImageFile
+from model.MultiThreader import MultiThreader
 
+# Aggregate process to prepare for and run a trial using MaxEnt
+def runTrial(observationFile, listOfImages, outputDirectory):
+
+    mer = MaxEntRequest(observationFile, listOfImages, outputDirectory)
+    mer.run()
 
 # -----------------------------------------------------------------------------
 # class MmxRequest
@@ -260,10 +266,8 @@ class MmxEdasRequest(object):
                                                trialNum + 1))
             trialNum += 1
 
-        # Run the trials.
-        for trial in trials:
-            mer = MaxEntRequest(trial.obsFile, trial.images, trial.directory)
-            mer.run()
+        # Run the trials concurrently
+        MultiThreader().runTrials(runTrial, trials)
 
         # Compile trial statistics and select the top-ten predictors.
         topTen = self.getTopTen(trials)
