@@ -17,10 +17,10 @@ class RetrieverInterface(object):
     @abc.abstractmethod
     def retrieve(self, context):
         """The Retrieve method provides a generic way of providing submission information packages (SIP) to a service provider."""
-        return
+        raise NotImplementedError("Must override 'RetrieverInterface.retrieve()'")
 
     @abc.abstractmethod
     def validate(self, context):
         """The Retrieve method provides a generic way of providing submission information packages (SIP) to a service provider."""
-        return
+        raise NotImplementedError("Must override 'RetrieverInterface.validate()'")
     
