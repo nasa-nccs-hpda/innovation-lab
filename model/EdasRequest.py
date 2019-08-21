@@ -1,35 +1,46 @@
 #!/usr/bin/python
 import os
 import shutil
+import pandas
 from osgeo.osr import SpatialReference
 
 from model.GeospatialImageFile import GeospatialImageFile
+from model.ObservationFile import ObservationFile
 
 from stratus.app.core import StratusCore
 from stratus_endpoint.handler.base import TaskHandle
 
+from model.RetrieverInterface import RetrieverInterface
 
 # -----------------------------------------------------------------------------
 # class EdasRequest
 # -----------------------------------------------------------------------------
-class EdasRequest(object):
+class EdasRequest(RetrieverInterface):
+
     # -------------------------------------------------------------------------
     # __init__
     # -------------------------------------------------------------------------
-    def __init__(self, envelope, dateRange,
-                 collection, listOfVariables, operation, outDir):
+    def __init__(self, context):
 
-        self.envelop = envelope
+        self._outDir = context['outDir']
+        self.numTrials = context['numTrials']
+        self.observationFilePath = context['observationFilePath']
+        self.species = context['species']
+        self.startDate = context['startDate']
+        self.endDate = context['endDate']
+        self.collection = context['collection']
+        self.listOfVariables = context['listOfVariables']
+        self.operation = context['operation']
+
+        self.observationFile = ObservationFile(self.observationFilePath, context['species'])
+        dateRange = pandas.date_range(context['startDate'], context['startDate'])
+
+        self.envelop = self.observationFile.envelope()
         self.dateRange = dateRange
-
-        self.collection = collection
-        self.listOfVariables = listOfVariables
-        self.operation = operation
 
         self._tgt_srs = SpatialReference()
         self._tgt_srs.ImportFromEPSG(4326)
 
-        self._outDir = outDir
         self._ncImages = list()
         self.client = self._setClient()
 
@@ -113,3 +124,9 @@ class EdasRequest(object):
             raise RuntimeError('No images exist')
         else:
             return self._ncImages
+
+    # -------------------------------------------------------------------------
+    # perform retrieval
+    # -------------------------------------------------------------------------
+    def retrieve(self, context):
+        self.run()
