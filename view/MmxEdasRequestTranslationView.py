@@ -33,6 +33,9 @@ def main():
     json_data = args.json_string
     context = json.loads(json_data)
 
+    # convert space-delimited string to list for consistency with CLI view
+    context['listOfVariables'] =  str(context['listOfVariables']).split()
+
     # Process json args.
     mmxr = MmxEdasRequest(context)
     mmxr.run()

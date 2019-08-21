@@ -3,10 +3,8 @@
 
 import argparse
 import sys
-import pandas
 
 from model.MmxEdasRequest import MmxEdasRequest
-from model.ObservationFile import ObservationFile
 
 # -----------------------------------------------------------------------------
 # main
@@ -64,13 +62,23 @@ def main():
                         help='Path to output directory')
     
     args = parser.parse_args()
-    
-    observationFile = ObservationFile(args.f, args.s)
-    dateRange = pandas.date_range(args.start_date, args.end_date)
 
-    mmxr = MmxEdasRequest(observationFile, dateRange,
-                      args.c, args.vars, args.opr, args.n, args.o)
+    # prepare context - convert CLI parameters to context-sensitive dictionary
+    context = {}
+    context['outDir'] = args.o
+    context['numTrials'] = args.n
+    context['observationFilePath'] = args.f
+    context['species'] = args.s
+    context['startDate'] = args.start_date
+    context['endDate'] = args.end_date
+    context['collection'] = args.c
+    context['listOfVariables'] = args.vars
+    context['operation'] = args.opr
+
+    # initiate MMX (Note )
+    mmxr = MmxEdasRequest(context)
     mmxr.run()
+
 
 # ------------------------------------------------------------------------------
 # Invoke the main
