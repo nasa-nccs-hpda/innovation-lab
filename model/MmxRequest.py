@@ -7,12 +7,23 @@ import os
 import shutil
 import random
 from osgeo.osr import SpatialReference
+import pandas
 
-from model.MasRequest import MasRequest
 from model.MaxEntRequest import MaxEntRequest
 from model.ObservationFile import ObservationFile
 from model.GeospatialImageFile import GeospatialImageFile
 
+from model.MultiThreader import MultiThreader
+from model.RetrieverFactory import RetrieverFactory
+
+# -------------------------------------------------------------------------
+# runMaxEnt
+# -------------------------------------------------------------------------
+# Aggregate process to prepare for and run a trial using MaxEnt
+def runMaxEnt(observationFile, listOfImages, outputDirectory):
+
+    mer = MaxEntRequest(observationFile, listOfImages, outputDirectory)
+    mer.run()
 
 # -----------------------------------------------------------------------------
 # class MmxRequest
@@ -20,42 +31,52 @@ from model.GeospatialImageFile import GeospatialImageFile
 class MmxRequest(object):
     Trial = namedtuple('Trial', ['directory', 'obsFile', 'images'])
 
-    # -------------------------------------------------------------------------
-    # __init__
-    # -------------------------------------------------------------------------
-    #    def __init__(self, observationFile, dateRange, numTrials=10,
-    #                 outputDirectory):
+    def __init__(self, context, source = "Edas"):
 
-    def __init__(self, observationFile, dateRange, collection, variables,
-                 operation, numTrials, outputDirectory):
+        # save source and context
+        self._source = source
+        self._context = context
 
-        if not os.path.exists(outputDirectory):
-            raise RuntimeError(str(outputDirectory)) + ' does not exist.'
+        # validate incoming parameters
+        self._validate(context)
 
-        if not os.path.isdir(outputDirectory):
-            raise RuntimeError(str(outputDirectory) + ' must be a directory.')
-
-        # ---
-        # The top-level directory structure.
-        # - outputDirectory
-        #   - merra: raw merra files from requestMerra()
-        #   - asc: merra files prepared for maxent.jar
-        #   - trials: contains trial-n directories, one for each trial.
-        # ---
-        self._outputDirectory = outputDirectory
+        self._outputDirectory = context['outDir']
         self._merraDir = os.path.join(self._outputDirectory, 'merra')
         self._trialsDir = os.path.join(self._outputDirectory, 'trials')
-        self._numTrials = numTrials
-        self._observationFile = observationFile
-        self._dateRange = dateRange
-        self._collection = collection
-        self._variables = variables
-        self._operation = operation
+        self._numTrials = context['numTrials']
+        self._observationFilePath = context['observationFilePath']
+        self._species = context['species']
+        self._startDate = context['startDate']
+        self._endDate = context['endDate']
+        self._collection = context['collection']
+        self._variables = context['listOfVariables']
+        self._operation = context['operation']
+
+        self._observationFile = ObservationFile(self._observationFilePath, self._species)
+        self._dateRange = pandas.date_range(self._startDate, self._endDate)
+
+        if not os.path.exists(self._outputDirectory):
+            raise RuntimeError(str(self._outputDirectory)) + ' does not exist.'
+
+        if not os.path.isdir(self._outputDirectory):
+            raise RuntimeError(str(self._outputDirectory) + ' must be a directory.')
 
         if not os.path.exists(self._merraDir):
             os.mkdir(self._merraDir)
         if not os.path.exists(self._trialsDir):
             os.mkdir(self._trialsDir)
+
+    # -------------------------------------------------------------------------
+    # validate incoming parameters
+    # -------------------------------------------------------------------------
+    def _validate(self, context):
+        requiredParms = {
+            "observationFilePath", "species", "startDate", "endDate", "collection", \
+            "listOfVariables", "operation", "numTrials", "startDate", "outDir"
+        }
+        for key in requiredParms:
+            if not key in context.keys():
+                raise RuntimeError(str(key)) + ' parameter does not exist.'
 
     # -------------------------------------------------------------------------
     # compileContributions
@@ -65,7 +86,7 @@ class MmxRequest(object):
         # ---
         # Loop through the trials creating a dictionary like:
         # {predictor: [contribution, contribution, ...],
-        #  predictor: [contribution, contribution, ...]} 
+        #  predictor: [contribution, contribution, ...]}
         # ---
         contributions = {}
         CONTRIB_KWD = 'permutation'
@@ -78,7 +99,7 @@ class MmxRequest(object):
             results = csv.reader(open(resultsFile))
 
             try:
-                header = results.next()
+                header = results.__next__()
 
             except:
                 raise RuntimeError('Error reading ' + str(resultsFile))
@@ -87,7 +108,7 @@ class MmxRequest(object):
 
                 rowDict = dict(zip(header, row))
 
-                for key in rowDict.iterkeys():
+                for key in rowDict.keys():
 
                     if CONTRIB_KWD in key:
 
@@ -125,7 +146,7 @@ class MmxRequest(object):
         # Compute the average contribution of each predictor over all trials.
         averages = {}
 
-        for key in contributions.iterkeys():
+        for key in contributions.keys():
             samples = contributions[key]
             averages[key] = float(sum(samples) / max(len(samples), 1))
 
@@ -195,30 +216,16 @@ class MmxRequest(object):
             os.mkdir(trailAscDir)
 
         # Build the Trial structure to use later.
-        trial = MmxRequest.Trial(directory=TRIAL_DIR,
-                                 images=trialPredictors,
-                                 obsFile=trialObs)
+        trial = self.Trial(directory=TRIAL_DIR,
+                                     images=trialPredictors,
+                                     obsFile=trialObs)
 
         return trial
 
     # -------------------------------------------------------------------------
-    # requestMerra
+    # determineRequiredImages
     # -------------------------------------------------------------------------
-    def requestMerra(self):
-
-        masRequest = MasRequest(self._observationFile.envelope(),
-                                self._dateRange,
-                                self._collection,
-                                self._variables,
-                                self._operation,
-                                self._merraDir)
-
-        masRequest.run()
-
-    # -------------------------------------------------------------------------
-    # run
-    # -------------------------------------------------------------------------
-    def run(self):
+    def selectRequiredImages(self):
         # ---
         # Get MERRA images.
         #
@@ -231,12 +238,13 @@ class MmxRequest(object):
         requiredVars = [v + '.nc' for v in self._variables]
         if not all(elem in existedVars for elem in requiredVars):
             self.requestMerra()
-
         images = self.getListofMerraImages(requiredVars)
+        return images
 
-        # Get the random lists of indexes into Images for each trial.
-        listOfIndexesInEachTrial = self.getTrialImagesIndexes(images)
-
+    # -------------------------------------------------------------------------
+    # prepareTrials
+    # -------------------------------------------------------------------------
+    def prepareTrials(self, images, listOfIndexesInEachTrial):
         # ---
         # Prepare the trials.
         #
@@ -260,16 +268,52 @@ class MmxRequest(object):
                                                trialNum + 1))
             trialNum += 1
 
-        # Run the trials.
-        for trial in trials:
-            mer = MaxEntRequest(trial.obsFile, trial.images, trial.directory)
-            mer.run()
+        # Run the trials concurrently
+        MultiThreader().runTrials(runMaxEnt, trials)
+        return trials
+
+    # -------------------------------------------------------------------------
+    # runAggregateModel
+    # -------------------------------------------------------------------------
+    def runAggregateModel(self, topTen):
+
+        # Run the model that aggregates the trials.
+        final = self.prepareOneTrial(topTen, range(0, len(topTen) - 1),
+                                     'final')
+        runMaxEnt(final.obsFile, final.images, final.directory)
+
+    # -------------------------------------------------------------------------
+    # requestMerra
+    # -------------------------------------------------------------------------
+    def requestMerra(self):
+
+        #  Get the proper Retriever from the factory and use it to execute the retrieval process
+        retrieverInstance =  RetrieverFactory.retrieveRequest(self, self._source)
+        retriever = retrieverInstance(self._context)
+        retriever.retrieve(self._context)
+
+    # -------------------------------------------------------------------------
+    # run - refactored workflow
+    # -------------------------------------------------------------------------
+    def runMmxWorkflow(self):
+
+        # Get MERRA images.
+        images = self.selectRequiredImages()
+
+        # Get the random lists of indexes into Images for each trial.
+        listOfIndexesInEachTrial = self.getTrialImagesIndexes(images)
+
+        # Prepare the trial infrastructure for MaxEnt output
+        trials = self.prepareTrials(images, listOfIndexesInEachTrial)
 
         # Compile trial statistics and select the top-ten predictors.
         topTen = self.getTopTen(trials)
 
         # Run the final model.
-        final = self.prepareOneTrial(topTen, range(0, len(topTen) - 1),
-                                     'final')
-        finalMer = MaxEntRequest(final.obsFile, final.images, final.directory)
-        finalMer.run()
+        self.runAggregateModel(topTen)
+
+    # -------------------------------------------------------------------------
+    # run - run default MMX workflow, specify functions should be overridden here
+    # -------------------------------------------------------------------------
+    def run(self):
+        self.runMmxWorkflow()
