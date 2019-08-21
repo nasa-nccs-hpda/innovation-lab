@@ -7,12 +7,15 @@ import os
 import shutil
 import random
 from osgeo.osr import SpatialReference
+import pandas
 
 from model.EdasRequest import EdasRequest
 from model.MaxEntRequest import MaxEntRequest
 from model.ObservationFile import ObservationFile
 from model.GeospatialImageFile import GeospatialImageFile
+
 from model.MultiThreader import MultiThreader
+from model.RetrieverFactory import RetrieverFactory
 
 # Aggregate process to prepare for and run a trial using MaxEnt
 def runTrial(observationFile, listOfImages, outputDirectory):
@@ -26,42 +29,52 @@ def runTrial(observationFile, listOfImages, outputDirectory):
 class MmxEdasRequest(object):
     Trial = namedtuple('Trial', ['directory', 'obsFile', 'images'])
 
-    # -------------------------------------------------------------------------
-    # __init__
-    # -------------------------------------------------------------------------
-    #    def __init__(self, observationFile, dateRange, numTrials=10,
-    #                 outputDirectory):
+    def __init__(self, context, source = "Edas"):
 
-    def __init__(self, observationFile, dateRange, collection, variables,
-                 operation, numTrials, outputDirectory):
+        # save source and context
+        self._source = source
+        self._context = context
 
-        if not os.path.exists(outputDirectory):
-            raise RuntimeError(str(outputDirectory)) + ' does not exist.'
+        # validate incoming parameters
+        self._validate(context)
 
-        if not os.path.isdir(outputDirectory):
-            raise RuntimeError(str(outputDirectory) + ' must be a directory.')
-
-        # ---
-        # The top-level directory structure.
-        # - outputDirectory
-        #   - merra: raw merra files from requestMerra()
-        #   - asc: merra files prepared for maxent.jar
-        #   - trials: contains trial-n directories, one for each trial.
-        # ---
-        self._outputDirectory = outputDirectory
+        self._outputDirectory = context['outDir']
         self._merraDir = os.path.join(self._outputDirectory, 'merra')
         self._trialsDir = os.path.join(self._outputDirectory, 'trials')
-        self._numTrials = numTrials
-        self._observationFile = observationFile
-        self._dateRange = dateRange
-        self._collection = collection
-        self._variables = variables
-        self._operation = operation
+        self._numTrials = context['numTrials']
+        self._observationFilePath = context['observationFilePath']
+        self._species = context['species']
+        self._startDate = context['startDate']
+        self._endDate = context['endDate']
+        self._collection = context['collection']
+        self._variables = context['listOfVariables']
+        self._operation = context['operation']
+
+        self._observationFile = ObservationFile(self._observationFilePath, self._species)
+        self._dateRange = pandas.date_range(self._startDate, self._endDate)
+
+        if not os.path.exists(self._outputDirectory):
+            raise RuntimeError(str(self._outputDirectory)) + ' does not exist.'
+
+        if not os.path.isdir(self._outputDirectory):
+            raise RuntimeError(str(self._outputDirectory) + ' must be a directory.')
 
         if not os.path.exists(self._merraDir):
             os.mkdir(self._merraDir)
         if not os.path.exists(self._trialsDir):
             os.mkdir(self._trialsDir)
+
+    # -------------------------------------------------------------------------
+    # validate incoming parameters
+    # -------------------------------------------------------------------------
+    def _validate(self, context):
+        requiredParms = {
+            "observationFilePath", "species", "startDate", "endDate", "collection", \
+            "listOfVariables", "operation", "numTrials", "startDate", "outDir"
+        }
+        for key in requiredParms:
+            if not key in context.keys():
+                raise RuntimeError(str(key)) + ' parameter does not exist.'
 
     # -------------------------------------------------------------------------
     # compileContributions
@@ -212,14 +225,10 @@ class MmxEdasRequest(object):
     # -------------------------------------------------------------------------
     def requestMerra(self):
 
-        edasRequest = EdasRequest(self._observationFile.envelope(),
-                                  self._dateRange,
-                                  self._collection,
-                                  self._variables,
-                                  self._operation,
-                                  self._merraDir)
-
-        edasRequest.run()
+        #  Get the proper Retriever from the factory and use it to execute the retrieval process
+        retrieverInstance =  RetrieverFactory.retrieveRequest(self, self._source)
+        retriever = retrieverInstance(self._context)
+        retriever.retrieve(self._context)
 
     # -------------------------------------------------------------------------
     # run
