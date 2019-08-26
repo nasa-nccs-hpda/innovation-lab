@@ -32,13 +32,21 @@ def main():
     json_data = args.json_string
     context = json.loads(json_data)
 
-    # convert space-delimited string to list for consistency with CLI view
+    # convert space-delimited string to list for consistency with CLI view and set defaults
     context['listOfVariables'] =  str(context['listOfVariables']).split()
+    if 'numTrials' not in context.keys():  context['numTrials'] = 10
+    if 'numPredictors' not in context.keys():  context['numPredictors'] = 10
+    if 'outDir' not in context.keys():  context['outDir'] = '.'
+    if 'source' not in context.keys():  context['source'] = 'Edas'
+    if 'workflow' not in context.keys():  context['workflow'] = ''
 
-    # Process json args.
-    mmxr = MmxRequest(context)
+    # Dynamically select workflow request (defaults to MmxRequest)
+    clazzName = "Mmx{0}Request".format(context['workflow'])
+    # import the class from module
+    mod = __import__("model.{0}".format(clazzName), globals(), locals(), [clazzName])
+    requestInstance = getattr(mod, clazzName)
+    mmxr = requestInstance(context, context['source'])
     mmxr.run()
-
 
 # ------------------------------------------------------------------------------
 # Invoke the main
