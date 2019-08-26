@@ -40,17 +40,20 @@ class MmxRequest(object):
         # validate incoming parameters
         self._validate(context)
 
-        self._outputDirectory = context['outDir']
-        self._merraDir = os.path.join(self._outputDirectory, 'merra')
-        self._trialsDir = os.path.join(self._outputDirectory, 'trials')
-        self._numTrials = context['numTrials']
-        self._observationFilePath = context['observationFilePath']
-        self._species = context['species']
-        self._startDate = context['startDate']
-        self._endDate = context['endDate']
-        self._collection = context['collection']
-        self._variables = context['listOfVariables']
-        self._operation = context['operation']
+        if 'inDir' in context.keys(): self._inputDirectory = context['inDir']
+        if 'outDir' in context.keys():
+            self._outputDirectory = context['outDir']
+            self._merraDir = os.path.join(self._outputDirectory, 'merra')
+            self._trialsDir = os.path.join(self._outputDirectory, 'trials')
+        if 'numTrials' in context.keys():  self._numTrials = context['numTrials']
+        if 'numPredictors' in context.keys():  self._numPredictors = context['numPredictors']
+        if 'observationFilePath' in context.keys():  self._observationFilePath = context['observationFilePath']
+        if 'species' in context.keys():  self._species = context['species']
+        if 'startDate' in context.keys():  self._startDate = context['startDate']
+        if 'endDate' in context.keys():  self._endDate = context['endDate']
+        if 'collection' in context.keys():  self._collection = context['collection']
+        if 'listOfVariables' in context.keys():  self._variables = context['listOfVariables']
+        if 'operation' in context.keys():  self._operation = context['operation']
 
         self._observationFile = ObservationFile(self._observationFilePath, self._species)
         self._dateRange = pandas.date_range(self._startDate, self._endDate)
@@ -175,15 +178,13 @@ class MmxRequest(object):
     #
     # [[1, 3, 8, 4, ...], [31, 4, 99, ...], ...]
     # -------------------------------------------------------------------------
-    def getTrialImagesIndexes(self, images):
+    def getTrialImagesIndexes(self, images, numPredictors):
 
         # Generate lists of random indexes in the files.
         indexesInEachTrial = []
-        PREDICTORS_PER_TRIAL = 10
-
         for i in range(1, int(self._numTrials) + 1):
             indexesInEachTrial.append(random.sample(range(0, len(images) - 1),
-                                                    PREDICTORS_PER_TRIAL))
+                                                    numPredictors))
 
         return indexesInEachTrial
 
@@ -225,7 +226,7 @@ class MmxRequest(object):
     # -------------------------------------------------------------------------
     # determineRequiredImages
     # -------------------------------------------------------------------------
-    def selectRequiredImages(self):
+    def selectRequiredImages(self, suffix = '.nc'):
         # ---
         # Get MERRA images.
         #
@@ -235,9 +236,30 @@ class MmxRequest(object):
         # Check if required NetCDFs already existing,
         #       then skip data preparation
         existedVars = os.listdir(self._merraDir)
-        requiredVars = [v + '.nc' for v in self._variables]
+        requiredVars = [v + suffix for v in self._variables]
         if not all(elem in existedVars for elem in requiredVars):
             self.requestMerra()
+        images = self.getListofMerraImages(requiredVars)
+        return images
+
+
+    # -------------------------------------------------------------------------
+    # determineRequiredImages
+    # -------------------------------------------------------------------------
+    def getExistingImages(self, suffix = '.nc'):
+        # ---
+        # Get MERRA images.
+        #
+        # - outputDirectory
+        #   - merra
+        # ---
+        # Check if required NetCDFs already existing,
+        #       then skip data preparation
+        existedVars = os.listdir(self._inputDirectory)
+        requiredVars = [v + suffix for v in self._variables]
+        if not all(elem in existedVars for elem in requiredVars):
+            raise RuntimeError(' Required file missing from: ' + self._inputDirectory  + \
+                               '.  Expecting - ' + str(requiredVars))
         images = self.getListofMerraImages(requiredVars)
         return images
 
@@ -278,7 +300,8 @@ class MmxRequest(object):
     def runAggregateModel(self, topTen):
 
         # Run the model that aggregates the trials.
-        final = self.prepareOneTrial(topTen, range(0, len(topTen) - 1),
+#        final = self.prepareOneTrial(topTen, range(0, len(topTen) - 1),
+        final = self.prepareOneTrial(topTen, range(0, len(topTen)),
                                      'final')
         runMaxEnt(final.obsFile, final.images, final.directory)
 
@@ -295,13 +318,10 @@ class MmxRequest(object):
     # -------------------------------------------------------------------------
     # run - refactored workflow
     # -------------------------------------------------------------------------
-    def runMmxWorkflow(self):
-
-        # Get MERRA images.
-        images = self.selectRequiredImages()
+    def runMaxEnt(self, images):
 
         # Get the random lists of indexes into Images for each trial.
-        listOfIndexesInEachTrial = self.getTrialImagesIndexes(images)
+        listOfIndexesInEachTrial = self.getTrialImagesIndexes(images, self._numPredictors)
 
         # Prepare the trial infrastructure for MaxEnt output
         trials = self.prepareTrials(images, listOfIndexesInEachTrial)
@@ -311,6 +331,21 @@ class MmxRequest(object):
 
         # Run the final model.
         self.runAggregateModel(topTen)
+
+    # -------------------------------------------------------------------------
+    # run - refactored workflow
+    # -------------------------------------------------------------------------
+    def runMmxWorkflow(self):
+
+        if 'inDir' not in self._context.keys():
+            # Get MERRA images.
+            images = self.selectRequiredImages()
+        else:
+            # Get MERRA images.
+            images = self.getExistingImages()
+
+        # Run Maximum Entropy workflow.
+        self.runMaxEnt(images)
 
     # -------------------------------------------------------------------------
     # run - run default MMX workflow, specify functions should be overridden here

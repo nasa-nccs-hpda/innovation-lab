@@ -12,7 +12,7 @@ from model.EdasRequest import EdasRequest
 # -----------------------------------------------------------------------------
 class MmxRmRequest(MmxRequest):
     def __init__(self, context, source = "Edas"):
-        MmxRequest.__init__(self, context)
+        MmxRequest.__init__(self, context, source)
 
     # -------------------------------------------------------------------------
     # validate incoming parameters
@@ -88,22 +88,19 @@ class MmxRmRequest(MmxRequest):
         #       then skip data preparation
         ncFileList= []
 
-        if 'worldClim' in self._variables:
-            ncFileList += self.requestWorldClim()
-            self._variables.remove('worldClim')
+        if 'inDir' not in self._context.keys():
+            # Get MERRA images.
+            if 'worldClim' in self._variables:
+                ncFileList += self.requestWorldClim()
+                self._variables.remove('worldClim')
 
-        ncFileList += self.getMerra()
+            ncFileList += self.getMerra()
+            images = self.getListofMerraImages(ncFileList)
+        else:
+            # Get MERRA images.
+            existedVars = os.listdir(self._inputDirectory)
+            images = self.getListofMerraImages(existedVars)
 
-        images = self.getListofMerraImages(ncFileList)
 
-        # Get the random lists of indexes into Images for each trial.
-        listOfIndexesInEachTrial = self.getTrialImagesIndexes(images)
-
-        # Prepare the trial infrastructure for MaxEnt output
-        trials = self.prepareTrials(images, listOfIndexesInEachTrial)
-
-        # Compile trial statistics and select the top-ten predictors.
-        topTen = self.getTopTen(trials)
-
-        # Run the final model.
-        self.runAggregateModel(topTen)
+        # Run Maximum Entropy workflow.
+        self.runMaxEnt(images)
