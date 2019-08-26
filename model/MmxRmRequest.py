@@ -80,10 +80,6 @@ class MmxRmRequest(MmxRequest):
     def run(self):
         # ---
         # Get MERRA images.
-        #
-        # - outputDirectory
-        #   - merra
-        # ---
         # Check if required NetCDFs already existing,
         #       then skip data preparation
         ncFileList= []
