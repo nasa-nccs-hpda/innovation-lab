@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-import csv
+import sys, csv
 from collections import namedtuple
 import os
 import shutil
@@ -75,7 +75,7 @@ class MmxRequest(object):
     def _validate(self, context):
         requiredParms = {
             "observationFilePath", "species", "startDate", "endDate", "collection", \
-            "listOfVariables", "operation", "numTrials", "startDate", "outDir"
+            "listOfVariables", "operation", "numTrials", "outDir"
         }
         for key in requiredParms:
             if not key in context.keys():
@@ -102,7 +102,12 @@ class MmxRequest(object):
             results = csv.reader(open(resultsFile))
 
             try:
-                header = results.__next__()
+                # Skip 1st record to get to actual data
+                # Don't like it, but we need different reader per Python 2 (binary) and 3 (text)
+                if sys.version_info[0] < 3:
+                    header = results.next()
+                else:
+                    header = results.__next__()
 
             except:
                 raise RuntimeError('Error reading ' + str(resultsFile))
