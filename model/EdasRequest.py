@@ -23,6 +23,8 @@ class EdasRequest(RetrieverInterface):
     def __init__(self, context):
 
         self._outDir = context['outDir']
+        self._merraDir = os.path.join(self._outDir, 'merra')
+        self._trialsDir = os.path.join(self._outDir, 'trials')
         self.numTrials = context['numTrials']
         self.observationFilePath = context['observationFilePath']
         self.species = context['species']
@@ -105,7 +107,7 @@ class EdasRequest(RetrieverInterface):
             rstfile = self.runEdas(edas_request)
             outfile = var + '.nc'
 
-            outPath = os.path.join(self._outDir, outfile)
+            outPath = os.path.join(self._merraDir, outfile)
             shutil.copy(rstfile, outPath)
             self._ncImages.append(
                 GeospatialImageFile(outPath, self._tgt_srs))
