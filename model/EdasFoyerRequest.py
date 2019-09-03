@@ -1,6 +1,5 @@
 #!/usr/bin/python
 import os
-import shutil
 import glob
 from osgeo.osr import SpatialReference
 
@@ -10,34 +9,40 @@ from stratus_endpoint.handler.base import TaskHandle
 from model.RetrieverInterface import RetrieverInterface
 
 # -----------------------------------------------------------------------------
-# class EdasRequest
+# class EdasFoyerRequest
 # -----------------------------------------------------------------------------
-class EdasRequest(RetrieverInterface):
-
+class EdasFoyerRequest(RetrieverInterface):
     # -------------------------------------------------------------------------
     # __init__
     # -------------------------------------------------------------------------
     def __init__(self, context, envelope=None, dateRange=None):
 
-        self.envelope = envelope
-        self.dateRange = dateRange
-
         self.collection = context['collection']
         self.listOfVariables = context['vars']
         self.operation = context['operation']
-
         self._outDir = context['imageDir']
+
+        self.envelope = envelope
+        self.dateRange = dateRange
+
+        self._worldClim = context['EdasWorldClim'] if 'EdasWorldClim' in context.keys() else False
+
         self._tgt_srs = SpatialReference()
         self._tgt_srs.ImportFromEPSG(4326)
         self.client = None
+
+
     # -------------------------------------------------------------------------
     # initialize Edas Client
     # -------------------------------------------------------------------------
     def _setClient(self):
         settings = dict(
-            stratus=dict(type="rest",
-                         API="wps",
-                         host_address="https://edas.nccs.nasa.gov/wps/cwt")
+            stratus=dict(type="zeromq",
+                         client_address="127.0.0.1",
+                         request_port="4556",
+                         response_port="4557",
+                         certificate_path="/att/nobackup/tpmaxwel/.stratus/zmq/"
+                         )
         )
         core = StratusCore(settings)
         return core.getClient()
@@ -47,11 +52,12 @@ class EdasRequest(RetrieverInterface):
     # -------------------------------------------------------------------------
     def addDomain(self, domainname, env, date):
         env.TransformTo(self._tgt_srs)
-
+        sd = date[0].strftime("%Y-%m-%dT%HZ")
+        ed = date[-1].strftime("%Y-%m-%dT%HZ")
         return dict(name=domainname,
-            lat=dict(start=env.lry()-0.5, end=env.uly()+0.5, system="values"),
-            lon=dict(start=env.ulx()-0.5, end=env.lrx()+0.5, system="values"),
-            time=dict(start=f"{date[0]}", end=f"{date[-1]}",crs="timestamps"),)
+            lat=dict(start=env.lry()-1.5, end=env.uly()+1.5, system="values"),
+            lon=dict(start=env.ulx()-1.5, end=env.lrx()+1.5, system="values"),
+            time=dict(start=f"{sd}", end=f"{ed}",system="timestamps"),)
 
     # -------------------------------------------------------------------------
     # set target variable
@@ -64,7 +70,7 @@ class EdasRequest(RetrieverInterface):
     # set Edas operation
     # -------------------------------------------------------------------------
     def addOperation(self, varname, opr, axes):
-        return dict(name=f"xarray.{opr}", axes=f"{axes}", input=f"{varname}")
+        return dict(name=f"edas:{opr}", axes=f"{axes}", input=f"{varname}")
 
     # -------------------------------------------------------------------------
     # execute Edas request
@@ -72,7 +78,7 @@ class EdasRequest(RetrieverInterface):
     def runEdas(self, edas_request):
         task: TaskHandle = self.client.request(edas_request)
         result = task.getResult(block=True)
-        return result.header.get('file')
+        return result
 
     # -------------------------------------------------------------------------
     # run
@@ -91,18 +97,45 @@ class EdasRequest(RetrieverInterface):
                     domain=domain,
                     operation=operation,
                     input=[self.addInput(self.collection, var, "v0", "d0")],
-                )
+                    )
 
-                rstfile = self.runEdas(edas_request)
+                rstdata = self.runEdas(edas_request)
                 outfile = var + '.nc'
 
                 outPath = os.path.join(self._outDir, outfile)
-                shutil.copy(rstfile, outPath)
+                rstdata.getDataset().to_netcdf(outPath)
 
         return required
 
-    # -------------------------------------------------------------------------
-    # perform retrieval
-    # -------------------------------------------------------------------------
+    def getWorldClim(self):
+
+        collection = 'cip_merra2_mth'
+        year = self.dateRange[0].year
+
+        existed = [os.path.basename(x) for x in glob.glob(f'{self._outDir}/*bio*.nc')]
+        required = [f'bio-{i+1}_{collection}_worldClim_{year}.nc' for i in range(0, 19)]
+
+        if not all(elem in existed for elem in required):
+            self.client = self._setClient()
+            domain = [self.addDomain("d0", self.envelope, self.dateRange)]
+            inputs = [self.addInput(collection, "tasmin", "minTemp", "d0"),
+                      self.addInput(collection, "tasmax", "maxTemp", "d0"),
+                      self.addInput(collection, "pr",  "moist", "d0")]
+            operation = [dict(name="edas:worldClim", input="minTemp, maxTemp, moist")]
+            requestSpec = dict(domain=domain, input=inputs, operation=operation)
+
+            rsltdata=self.runEdas(requestSpec)
+
+            dsets = rsltdata.getDataset()
+            for var in dsets:
+                s = var.split('[')[0]
+                resultFile = f"{s}_{collection}_worldClim_{year}.nc"
+                dsets[var].to_netcdf(f"{self._outDir}/{resultFile}")
+
+        return required
+
     def retrieve(self, context):
-        return self.run()
+        if self._worldClim:
+            return self.getWorldClim()
+        else:
+            return self.run()

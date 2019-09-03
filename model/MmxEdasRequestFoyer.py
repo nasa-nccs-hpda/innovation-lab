@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
-
+import time
 import csv
 from collections import namedtuple
 import os
@@ -8,13 +8,21 @@ import glob
 import shutil
 import random
 from osgeo.osr import SpatialReference
+from osgeo import gdal
 
 from model.EdasRequestFoyer import EdasRequest
 from model.MaxEntRequest import MaxEntRequest
 from model.ObservationFile import ObservationFile
 from model.GeospatialImageFile import GeospatialImageFile
 
+from multiprocessing import Process
 
+threadCatalog = dict({})
+# Aggregate process to prepare for and run a trial using MaxEnt
+def runTrial(observationFile, listOfImages, outputDirectory):
+
+    mer = MaxEntRequest(observationFile, listOfImages, outputDirectory)
+    mer.run()
 # -----------------------------------------------------------------------------
 # class MmxRequest
 # -----------------------------------------------------------------------------
@@ -53,6 +61,9 @@ class MmxEdasRequest(object):
         self._collection = collection
         self._variables = variables
         self._operation = operation
+
+        self._orgWCDir = "/att/nobackup/jli30/SystemTesting/worldClim/origin/5m/wc2.0_5m_bio"
+        self._M2WCDir = "/att/nobackup/jli30/SystemTesting/worldClim/M2WdClim/5m"
 
         if not os.path.exists(self._merraDir):
             os.mkdir(self._merraDir)
@@ -119,7 +130,7 @@ class MmxEdasRequest(object):
     # -------------------------------------------------------------------------
     # getTopTen
     # -------------------------------------------------------------------------
-    def getTopTen(self, trials):
+    def getTopTen(self, trials, images):
 
         # Get the contributions of each predictor over all trials.
         contributions = self._compileContributions(trials)
@@ -141,12 +152,11 @@ class MmxEdasRequest(object):
 
         topTen = []
 
-        for k, v in sortedAvgs:
-            pred = k + '.nc'
-            topTen.append(pred)
+        for x in images:
+            if (k in x._filePath for k, v in sortedAvgs):
+                topTen.append(x)
 
-        list = self.getListofMerraImages(topTen)
-        return list
+        return topTen
 
     # -------------------------------------------------------------------------
     # getTrialImageIndexes
@@ -255,6 +265,38 @@ class MmxEdasRequest(object):
 
         return required
 
+    def getListofWorldClim(self, dir, files):
+        tgt_srs = SpatialReference()
+        required = []
+        for file in files:
+            prj = gdal.Open(os.path.join(dir, file)).GetProjection()
+            tgt_srs.ImportFromWkt(prj)
+            required.append(GeospatialImageFile(os.path.join(dir, file), tgt_srs))
+        return required
+
+    # -------------------------------------------------------------------------
+    # requestMerraTest
+    # -------------------------------------------------------------------------
+    def requestMerraTest(self):
+
+        collection = "merra2_t1nxslv"
+        vars = ['T10M', 'U10M', 'V10M', 'QV10M', 'SLP']
+        operation = 'ave'
+        existed = [os.path.basename(x) for x in glob.glob(f'{self._merraDir}/[!bio]*.nc')]
+        required = [v + '.nc' for v in vars]
+
+        if not all(elem in existed for elem in required):
+            edasRequest = EdasRequest(self._observationFile.envelope(),
+                                      self._dateRange,
+                                      collection,
+                                      vars,
+                                      operation,
+                                      self._merraDir)
+
+            edasRequest.run()
+
+        return required
+
     # -------------------------------------------------------------------------
     # run
     # -------------------------------------------------------------------------
@@ -267,15 +309,28 @@ class MmxEdasRequest(object):
         # ---
         # Check if required NetCDFs already existing,
         #       then skip data preparation
+
         ncFileList= []
+        images = []
+
+        if 'originWorldClim' in self._variables:
+            fileList = glob.glob(f"{self._orgWCDir}/*bio*.tif")
+            images += self.getListofWorldClim(self._orgWCDir, fileList)
+            self._variables.remove('originWorldClim')
+
+        if 'M2WorldClim' in self._variables:
+            fileList = glob.glob(f"{self._M2WCDir}/*bio*.tif")
+            images += self.getListofWorldClim(self._M2WCDir, fileList)
+            self._variables.remove('M2WorldClim')
 
         if 'worldClim' in self._variables:
             ncFileList += self.requestWorldClim()
             self._variables.remove('worldClim')
 
-        ncFileList += self.requestMerra()
-
-        images = self.getListofMerraImages(ncFileList)
+#        ncFileList += self.requestMerra()
+        ncFileList += self.requestMerraTest()
+        if ncFileList:
+            images += self.getListofMerraImages(ncFileList)
 
         # Get the random lists of indexes into Images for each trial.
         listOfIndexesInEachTrial = self.getTrialImagesIndexes(images)
@@ -304,15 +359,31 @@ class MmxEdasRequest(object):
             trialNum += 1
 
         # Run the trials.
+        # Run the trials in parallel using process multi-threading
+        trialNum = 0
         for trial in trials:
-            mer = MaxEntRequest(trial.obsFile, trial.images, trial.directory)
-            mer.run()
+            p = Process(target=runTrial, args=(trial.obsFile, trial.images, trial.directory))
+            p.start()
+            trialNum += 1
+            threadCatalog[trialNum] = p
+
+        # wait for the threads to complete
+        keylist = threadCatalog.keys()
+        for key in keylist:
+            p = threadCatalog[key]
+            p.join()
 
         # Compile trial statistics and select the top-ten predictors.
-        topTen = self.getTopTen(trials)
+        topTen = self.getTopTen(trials, images)
+
+#        topTenV = self.getListofWorldClim(self._orgWCDir, [s+".tif" for s in topTen])
+#        topTenX = self.getListofWorldClim(self._M2WCDir, [s+".tif" for s in topTen])
 
         # Run the final model.
-        final = self.prepareOneTrial(topTen, range(0, len(topTen) - 1),
-                                     'final')
+        final = self.prepareOneTrial(topTen, range(0, len(topTen) - 1),'final')
+
+        s = time.time()
         finalMer = MaxEntRequest(final.obsFile, final.images, final.directory)
+
         finalMer.run()
+        print(f"Executing time is {time.time()-s}")

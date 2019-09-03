@@ -24,84 +24,80 @@ def main():
     desc = 'This application runs MMX.'
     parser = argparse.ArgumentParser(description=desc)
 
-    parser.add_argument('-f',
-                        required=True,
-                        help='Path to observation file')
+    parser.add_argument('--imageDir',
+                        default=None,
+                        help='Path to input directory of environmental images')
 
-    parser.add_argument('-s',
-                        required=True,
-                        help='Name of species in observation file')
-
-    parser.add_argument('--start_date',
-                        required=True,
-                        help='YYYY-MM-DD')
-
-    parser.add_argument('--end_date',
-                        required=True,
-                        help='YYYY-MM-DD')
-
-    parser.add_argument('-c',
-                        required=True,
-                        help='Name of collection of MERRA2')
-
-    parser.add_argument('--vars',
-                        required=True,
-                        nargs='+',
-                        help='List of variables in M2 collection')
-
-    parser.add_argument('--opr',
-                        required=True,
-                        help='Type of analysis')
-
-    parser.add_argument('-n',
-                        default=10,
-                        help='Number of trials to run')
-
-    parser.add_argument('-k',
-                        default=10,
-                        type=int,
-                        help='Number of predictors for each trial')
-
-    parser.add_argument('-o',
+    parser.add_argument('--outDir',
                         default='.',
                         help='Path to output directory')
 
-    parser.add_argument('-i',
-                        default=None,
-                        help='Path to input directory')
+    parser.add_argument('--observation',
+                        required=True,
+                        help='Path to observation file')
 
-    parser.add_argument('--source',
-                        default='Edas',
-                        help='Data source')
+    parser.add_argument('--species',
+                        required=True,
+                        help='Name of species in observation file')
+
+    parser.add_argument('--numTrials',
+                        default=10,
+                        help='Number of trials to run')
+
+    parser.add_argument('--numPredictors',
+                        default=10,
+                        type=int,
+                        help='Number of predictors for each trial')
 
     parser.add_argument('--workflow',
                         default='',
                         help='Type of analysis')
 
-    args = parser.parse_args()
+    parser.add_argument('--startDate',
+                        help='YYYY-MM-DD')
+
+    parser.add_argument('--endDate',
+                        help='YYYY-MM-DD')
+
+    parser.add_argument('--collection',
+                        action='append',
+                        help='Name of collection of MERRA2')
+
+    parser.add_argument('--vars',
+                        action='append',
+                        nargs='+',
+                        help='List of variables in M2 collection')
+
+    parser.add_argument('--operation',
+                        action='append',
+                        help='Type of analysis')
+
+    parser.add_argument('--source',
+                        default='Edas',
+                        help='Analytics services')
+
+    parser.add_argument('--EdasWorldClim',
+                        type=bool,
+                        default=False,
+                        help='Activate EDAS WorldClim request')
+
+    parser.add_argument('--WorldClim',
+                        default=None,
+                        help='Path to directory of WorldClim images')
+
+    parser.add_argument('--MERRAClim',
+                        default=None,
+                        help='Path to directory of MERRAClim images')
 
     # prepare context - convert CLI parameters to context-sensitive dictionary
-    context = {}
-    if args.o is not None: context['outDir'] = args.o
-    if args.i is not None: context['inDir'] = args.i
-    if args.n is not None: context['numTrials'] = args.n
-    if args.f is not None: context['observationFilePath'] = args.f
-    if args.s is not None: context['species'] = args.s
-    if args.start_date is not None: context['startDate'] = args.start_date
-    if args.end_date is not None: context['endDate'] = args.end_date
-    if args.c is not None: context['collection'] = args.c
-    if args.vars is not None: context['listOfVariables'] = args.vars
-    if args.opr is not None: context['operation'] = args.opr
-    if args.k is not None: context['numPredictors'] = args.k
-    if args.source is not None: context['source'] = args.source
-    if args.workflow is not '': context['workflow'] = args.workflow
+    context = vars(parser.parse_args())
 
     # Dynamically select workflow request (defaults to MmxRequest)
-    clazzName = "Mmx{0}Request".format(args.workflow)
+    clazzName = "Mmx{0}Request".format(context['workflow'])
     # import the class from module
     mod = __import__("model.{0}".format(clazzName), globals(), locals(), [clazzName])
     requestInstance = getattr(mod, clazzName)
-    mmxr = requestInstance(context, context['source'])
+    mmxr = requestInstance(context)
     mmxr.run()
 
 # ------------------------------------------------------------------------------
