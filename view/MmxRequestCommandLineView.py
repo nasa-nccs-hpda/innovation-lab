@@ -72,10 +72,6 @@ def main():
                         action='append',
                         help='Type of analysis')
 
-    parser.add_argument('--source',
-                        default='Edas',
-                        help='Analytics services')
-
     parser.add_argument('--EdasWorldClim',
                         type=bool,
                         default=False,
@@ -100,9 +96,9 @@ def main():
     mmxr = requestInstance(context)
     mmxr.run()
 
+
 # ------------------------------------------------------------------------------
 # Invoke the main
 # ------------------------------------------------------------------------------
 if __name__ == "__main__":
     sys.exit(main())
-

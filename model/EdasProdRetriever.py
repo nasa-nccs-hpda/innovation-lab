@@ -10,9 +10,9 @@ from stratus_endpoint.handler.base import TaskHandle
 from model.RetrieverInterface import RetrieverInterface
 
 # -----------------------------------------------------------------------------
-# class EdasRequest
+# class EdasProdRetriever
 # -----------------------------------------------------------------------------
-class EdasRequest(RetrieverInterface):
+class EdasProdRetriever(RetrieverInterface):
 
     # -------------------------------------------------------------------------
     # __init__

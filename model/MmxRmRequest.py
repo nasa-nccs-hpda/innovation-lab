@@ -17,7 +17,7 @@ from model.RetrieverFactory import RetrieverFactory
 # -----------------------------------------------------------------------------
 class MmxRmRequest(MmxRequest):
 
-    def __init__(self, context, source="EdasFoyer"):
+    def __init__(self, context, source="EdasDev"):
         super(MmxRmRequest, self)._validate(context)
         super(MmxRmRequest, self).__init__(context)
 
@@ -100,12 +100,12 @@ class MmxRmRequest(MmxRequest):
         if self._context['WorldClim'] is not None:
             worldClimDir = self._context['WorldClim']
             files = glob.glob(f"{worldClimDir}/*")
-            images += self.getListofWorldClim(worldClimDir, files)
+            images = self.getListofWorldClim(worldClimDir, files)
 
         if self._context['MERRAClim'] is not None:
             worldClimDir = self._context['WorldClim']
             files = glob.glob(f"{worldClimDir}/*")
-            images += self.getListofWorldClim(worldClimDir, files)
+            images = self.getListofWorldClim(worldClimDir, files)
 
         # Run Maximum Entropy workflow.
         self.runMaxEnt(images)

@@ -16,10 +16,8 @@ class RetrieverFactory(object):
 
     def retrieveRequest(self, source):
         """This method returns the context-sensitive retriever."""
-        clazzName = "{0}Request".format(source)
+        clazzName = "{0}Retriever".format(source)
         # import the class from module
         mod = __import__("model.{0}".format(clazzName), globals(), locals(), [clazzName])
         classobj = getattr(mod, clazzName)
         return classobj
-
-    

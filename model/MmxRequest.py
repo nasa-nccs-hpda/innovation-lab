@@ -16,6 +16,7 @@ from model.GeospatialImageFile import GeospatialImageFile
 
 from model.MultiThreader import MultiThreader
 
+
 # -------------------------------------------------------------------------
 # runMaxEnt
 # -------------------------------------------------------------------------
@@ -23,6 +24,8 @@ from model.MultiThreader import MultiThreader
 def runMaxEnt(observationFile, listOfImages, outputDirectory):
     mer = MaxEntRequest(observationFile, listOfImages, outputDirectory)
     mer.run()
+    gridFile = observationFile.species().replace(' ', '_')+'.asc'
+    mer.printModelPic(outputDirectory, gridFile)
 
 
 # -----------------------------------------------------------------------------
@@ -141,11 +144,11 @@ class MmxRequest(object):
                             reverse=True)[:10]
 
         topTen = []
-
+        keys = [i[0] for i in sortedAvgs]
         for x in images:
-            if (k in x._filePath for k, v in sortedAvgs):
+            a = x._filePath
+            if any(k in a for k in keys):
                 topTen.append(x)
-
         return topTen
 
     # -------------------------------------------------------------------------
