@@ -60,20 +60,28 @@ def main():
     parser.add_argument('-o',
                         default='.',
                         help='Path to output directory')
-    
+
+    parser.add_argument('-i',
+                        default=None,
+                        help='Path to input directory')
+
     args = parser.parse_args()
 
     # prepare context - convert CLI parameters to context-sensitive dictionary
     context = {}
-    context['outDir'] = args.o
-    context['numTrials'] = args.n
-    context['observationFilePath'] = args.f
-    context['species'] = args.s
-    context['startDate'] = args.start_date
-    context['endDate'] = args.end_date
-    context['collection'] = args.c
-    context['listOfVariables'] = args.vars
-    context['operation'] = args.opr
+    context['source'] = 'Rm'
+
+    if args.o is not None: context['outDir'] = args.o
+    if args.i is not None: context['inDir'] = args.i
+    if args.n is not None: context['numTrials'] = args.n
+    if args.f is not None: context['observationFilePath'] = args.f
+    if args.s is not None: context['species'] = args.s
+    if args.start_date is not None: context['startDate'] = args.start_date
+    if args.end_date is not None: context['endDate'] = args.end_date
+    if args.c is not None: context['collection'] = args.c
+    if args.vars is not None: context['listOfVariables'] = args.vars
+    if args.opr is not None: context['operation'] = args.opr
+    if args.s is not None: context['source'] = args.s
 
     # initiate MMX (Note )
     mmxr = MmxEdasRequest(context)
