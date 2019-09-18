@@ -25,10 +25,11 @@ def main():
     parser = argparse.ArgumentParser(description=desc)
 
     parser.add_argument('--imageDir',
-                        default=None,
+                        default=argparse.SUPPRESS,
                         help='Path to input directory of environmental images')
 
     parser.add_argument('--outDir',
+                        required=True,
                         default='.',
                         help='Path to output directory')
 
@@ -54,22 +55,27 @@ def main():
                         help='Type of analysis')
 
     parser.add_argument('--startDate',
+                        default=argparse.SUPPRESS,
                         help='YYYY-MM-DD')
 
     parser.add_argument('--endDate',
+                        default=argparse.SUPPRESS,
                         help='YYYY-MM-DD')
 
     parser.add_argument('--collection',
                         action='append',
+                        default=argparse.SUPPRESS,
                         help='Name of collection of MERRA2')
 
     parser.add_argument('--vars',
                         action='append',
                         nargs='+',
+                        default=argparse.SUPPRESS,
                         help='List of variables in M2 collection')
 
     parser.add_argument('--operation',
                         action='append',
+                        default=argparse.SUPPRESS,
                         help='Type of analysis')
 
     parser.add_argument('--EdasWorldClim',
@@ -78,11 +84,11 @@ def main():
                         help='Activate EDAS WorldClim request')
 
     parser.add_argument('--WorldClim',
-                        default=None,
+                        default=argparse.SUPPRESS,
                         help='Path to directory of WorldClim images')
 
     parser.add_argument('--MERRAClim',
-                        default=None,
+                        default=argparse.SUPPRESS,
                         help='Path to directory of MERRAClim images')
 
     # prepare context - convert CLI parameters to context-sensitive dictionary

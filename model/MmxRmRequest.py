@@ -22,7 +22,6 @@ class MmxRmRequest(MmxRequest):
         super(MmxRmRequest, self).__init__(context)
 
         self._source = source
-        self._dateRange = pandas.date_range(context['startDate'], context['endDate'])
         self._imageDir = os.path.join(context['outDir'], 'merra')
         if not os.path.exists(self._imageDir):
             os.mkdir(self._imageDir)
@@ -31,22 +30,28 @@ class MmxRmRequest(MmxRequest):
     # validate incoming parameters
     # -------------------------------------------------------------------------
     def _validate(self, context):
-
+        worldClimParms = ['WorldClim', 'MERRAClim']
         requiredParms = [
-            'startDate', 'endDate', 'collection', 'vars', 'operation', 'outDir'
+            'startDate', 'endDate', 'collection', 'vars', 'operation'
         ]
-        for key in requiredParms:
-            if key not in context.keys():
-                raise RuntimeError(str(key)) + ' parameter does not exist.'
+        if any(e in context.keys() for e in worldClimParms):
+            if any(e in context.keys() for e in requiredParms):
+                raise RuntimeError('Can not process WorldClim/MERRAClim and analytics simultaneously '
+                                   'due to inconsistent spatial resolution')
+        else:
+            for key in requiredParms:
+                if key not in context.keys():
+                    raise RuntimeError(str(key)) + ' parameter does not exist.'
 
-        keys = ['operation', 'collection', 'vars']
-        if not len(context['collection']) == len(context['operation']) == len(context['vars']):
-            raise RuntimeError('Number of '+' '.join(keys)+' are not consistent.')
+            keys = ['operation', 'collection', 'vars']
+            if not len(context['collection']) == len(context['operation']) == len(context['vars']):
+                raise RuntimeError('Number of '+' '.join(keys)+' are not consistent.')
 
     def requestMerra(self, context):
+        _dateRange = pandas.date_range(context['startDate'], context['endDate'])
         #  Get the proper Retriever from the factory and use it to execute the retrieval process
         retrieverInstance = RetrieverFactory.retrieveRequest(self, self._source)
-        retriever = retrieverInstance(context, self._observationFile.envelope(), self._dateRange)
+        retriever = retrieverInstance(context, self._observationFile.envelope(), _dateRange)
         return retriever.retrieve(context)
 
     # -------------------------------------------------------------------------
@@ -80,32 +85,33 @@ class MmxRmRequest(MmxRequest):
     # -------------------------------------------------------------------------
     def runMmxWorkflow(self):
         # Execute the EDAS retrieval process
-        ncFileList= []
+        ncFileList=[]
         if self._context['EdasWorldClim']:
             c = self._context
             c['imageDir'] = self._imageDir
             ncFileList += self.requestMerra(c)
 
-        subcontext = {k: self._context[k] for k in ('operation', 'vars', 'collection')}
-        contextlist = [{k: v[i] for k, v in subcontext.items()} for i in range(max(map(len, subcontext.values())))]
-        for c in contextlist:
-            c['imageDir'] = self._imageDir
-            ncFileList += self.requestMerra(c)
+        if 'operation' in self._context.keys():
+            subcontext = {k: self._context[k] for k in ('operation', 'vars', 'collection')}
+            contextlist = [{k: v[i] for k, v in subcontext.items()} for i in range(max(map(len, subcontext.values())))]
+            for c in contextlist:
+                c['imageDir'] = self._imageDir
+                ncFileList += self.requestMerra(c)
 
         images = []
         # Convert NetCDF files to GeoSpatialImages
         images += self.getListofMerraImages(ncFileList)
 
         # Convert WorldClim files, if present, to GeoSpatialImages
-        if self._context['WorldClim'] is not None:
+        if 'WorldClim' in self._context.keys():
             worldClimDir = self._context['WorldClim']
             files = glob.glob(f"{worldClimDir}/*")
-            images = self.getListofWorldClim(worldClimDir, files)
+            images += self.getListofWorldClim(worldClimDir, files)
 
-        if self._context['MERRAClim'] is not None:
+        if 'MERRAClim' in self._context.keys():
             worldClimDir = self._context['WorldClim']
             files = glob.glob(f"{worldClimDir}/*")
-            images = self.getListofWorldClim(worldClimDir, files)
+            images += self.getListofWorldClim(worldClimDir, files)
 
         # Run Maximum Entropy workflow.
         self.runMaxEnt(images)
