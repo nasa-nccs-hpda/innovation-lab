@@ -144,6 +144,7 @@ class MaxEntRequest(object):
         for line in fileinput.FileInput(ascImagePath, inplace=1):
 
             line = line.replace('nan', '-9999')
+            line = line.replace('-inf', '-9999')
             sys.stdout.write(line)
 
         return ascImagePath
@@ -153,7 +154,6 @@ class MaxEntRequest(object):
     # -------------------------------------------------------------------------
     def run(self):
 
-#        imagesLeft = sys.maxint  (Python 2x, replaced in 3x by maxsize)
         imagesLeft = sys.maxsize
         while imagesLeft > 0:
 
@@ -168,13 +168,14 @@ class MaxEntRequest(object):
     def runMaxEntJar(self):
 
         print ('Running MaxEnt.')
-
         # Invoke maxent.jar.
         MAX_ENT_JAR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                    'libraries',
                                    'maxent.jar')
 
-        baseCmd = 'java -Xmx1024m -jar ' + \
+        JAVA = os.path.join(os.getenv('JAVA_HOME', default=''), 'java')
+
+        baseCmd = JAVA + ' -Xmx1024m -jar ' + \
                   MAX_ENT_JAR + \
                   ' visible=false autorun -P -J writeplotdata ' + \
                   '"applythresholdrule=Equal training sensitivity and ' + \
@@ -185,4 +186,24 @@ class MaxEntRequest(object):
             '-e "' + self._ascDir + '" ' + \
             '-o "' + self._outputDirectory + '"'
 
+        SystemCommand(cmd, None, True)
+
+    # -------------------------------------------------------------------------
+    # Print Model Picture
+    # -------------------------------------------------------------------------
+    def printModelPic(self, directory, file):
+
+        MAX_ENT_JAR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                   'libraries',
+                                   'maxent.jar')
+        GRID_FILE = os.path.join(directory,
+                                 file)
+
+        JAVA = os.path.join(os.getenv('JAVA_HOME', default=''), 'java')
+
+        cmd = JAVA + ' -Xmx1024m -cp ' + \
+                  MAX_ENT_JAR + \
+                 ' density.Show ' + \
+                 GRID_FILE + \
+                 ' -o'
         SystemCommand(cmd, None, True)

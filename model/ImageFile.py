@@ -14,7 +14,7 @@ from model.BaseFile import BaseFile
 # -----------------------------------------------------------------------------
 class ImageFile(BaseFile):
 
-    EXTENSION = '.nc'
+    EXTENSIONS = ['.nc', '.tif']
 
     # -------------------------------------------------------------------------
     # __init__
@@ -22,7 +22,7 @@ class ImageFile(BaseFile):
     def __init__(self, pathToFile):
 
         # Initialize the base class.
-        super(ImageFile, self).__init__(pathToFile, ImageFile.EXTENSION)
+        super(ImageFile, self).__init__(pathToFile, ImageFile.EXTENSIONS)
 
         self._dataset = None
 
