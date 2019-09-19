@@ -250,15 +250,18 @@ class MmxRequest(object):
     # determineRequiredImages
     # -------------------------------------------------------------------------
     def getExistingImages(self, filepath):
-        existingFiles = glob.glob(filepath)
+        existingFiles = glob.glob(filepath+'/*')
         if existingFiles is None:
-            raise RuntimeError(' Required image files missing from: ' + filepath )
+            raise RuntimeError(' Required image files missing from: ' + filepath)
 
         tgt_srs = SpatialReference()
         images = []
         for file in existingFiles:
             prj = gdal.Open(os.path.join(filepath, file)).GetProjection()
-            tgt_srs.ImportFromWkt(prj)
+            if len(prj) > 0:
+                tgt_srs.ImportFromWkt(prj)
+            else:
+                tgt_srs.ImportFromEPSG(4326)
             images.append(GeospatialImageFile(os.path.join(filepath, file), tgt_srs))
         return images
 
