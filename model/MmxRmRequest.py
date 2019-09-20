@@ -48,10 +48,10 @@ class MmxRmRequest(MmxRequest):
                 raise RuntimeError('Number of '+' '.join(keys)+' are not consistent.')
 
     def requestMerra(self, context):
-        _dateRange = pandas.date_range(context['startDate'], context['endDate'])
+        dateRange = pandas.date_range(self._context['startDate'], self._context['endDate'])
         #  Get the proper Retriever from the factory and use it to execute the retrieval process
         retrieverInstance = RetrieverFactory.retrieveRequest(self, self._source)
-        retriever = retrieverInstance(context, self._observationFile.envelope(), _dateRange)
+        retriever = retrieverInstance(context, self._observationFile.envelope(), dateRange)
         return retriever.retrieve(context)
 
     # -------------------------------------------------------------------------

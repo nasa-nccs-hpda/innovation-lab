@@ -59,6 +59,9 @@ class MmxRequest(object):
 
         if not os.path.exists(self._trialsDir):
             os.mkdir(self._trialsDir)
+        
+        if os.listdir(self._trialsDir):
+            raise RuntimeError(str(self._trialsDir) + ' must be empty.')
 
     # -------------------------------------------------------------------------
     # validate incoming parameters
@@ -296,3 +299,4 @@ class MmxRequest(object):
     # -------------------------------------------------------------------------
     def run(self):
         self.runMmxWorkflow()
+
