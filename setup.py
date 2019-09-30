@@ -8,9 +8,8 @@ setup(name='mmx',
       author_email='thomas.maxwell@nasa.gov',
       url='https://github.com/nasa-nccs-hpda/innovation-lab/tree/mmx_alone',
       packages=find_packages(),
-      package_data={ 'mmx.data': ['csv/*.csv'], 'mmx.model': [ 'libraries/*.jar' ] },
-      zip_safe=False,
-      include_package_data=True )
+      package_data={ 'mmx.data': ['csv/*.csv',"merra/*.nc"], 'mmx.model': [ 'libraries/*.jar' ] },
+      zip_safe=False )
 
 
 

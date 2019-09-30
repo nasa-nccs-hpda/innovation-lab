@@ -1,7 +1,7 @@
 import sys,os
 from mmx.model.MmxRequest import MmxRequest
 HERE = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join( os.path.dirname(HERE), "data" )
+DATA_DIR = os.path.join(  os.path.dirname(os.path.dirname(HERE)), "data" )
 
 def main():
 

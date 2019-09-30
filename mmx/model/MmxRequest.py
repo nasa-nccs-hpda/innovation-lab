@@ -52,7 +52,7 @@ class MmxRequest(object):
         self._observationFile = ObservationFile(self._observationFilePath, self._species)
 
         if not os.path.exists(self._outputDirectory):
-            raise RuntimeError(str(self._outputDirectory)) + ' does not exist.'
+            raise RuntimeError( str(self._outputDirectory) + ' does not exist.' )
 
         if not os.path.isdir(self._outputDirectory):
             raise RuntimeError(str(self._outputDirectory) + ' must be a directory.')
