@@ -32,7 +32,7 @@ class MmxRmRequest(MmxRequest):
     def _validate(self, context):
         worldClimParms = ['WorldClim', 'MERRAClim']
         requiredParms = [
-            'startDate', 'endDate', 'collection', 'vars', 'operation'
+            'startDate', 'endDate'
         ]
         if any(e in context.keys() for e in worldClimParms):
             if any(e in context.keys() for e in requiredParms):
@@ -44,8 +44,9 @@ class MmxRmRequest(MmxRequest):
                     raise RuntimeError(str(key)) + ' parameter does not exist.'
 
             keys = ['operation', 'collection', 'vars']
-            if not len(context['collection']) == len(context['operation']) == len(context['vars']):
-                raise RuntimeError('Number of '+' '.join(keys)+' are not consistent.')
+            if any(e in context.keys() for e in keys):
+                if not len(context['collection']) == len(context['operation']) == len(context['vars']):
+                    raise RuntimeError('Number of '+' '.join(keys)+' are not consistent.')
 
     def requestMerra(self, context):
         dateRange = pandas.date_range(self._context['startDate'], self._context['endDate'])
