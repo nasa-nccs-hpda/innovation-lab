@@ -41,7 +41,7 @@ class MmxRmRequest(MmxRequest):
         else:
             for key in requiredParms:
                 if key not in context.keys():
-                    raise RuntimeError(str(key)) + ' parameter does not exist.'
+                    raise RuntimeError(str(key) + ' parameter does not exist.')
 
             keys = ['operation', 'collection', 'vars']
             if any(e in context.keys() for e in keys):
