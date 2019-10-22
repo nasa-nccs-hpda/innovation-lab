@@ -1,7 +1,8 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-from multiprocessing import Process
+#from multiprocessing import Process
+from billiard.context import Process
 
 # -----------------------------------------------------------------------------
 # class MultiThreader

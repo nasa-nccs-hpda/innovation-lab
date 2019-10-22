@@ -11,6 +11,8 @@ import glob
 from model.MmxRequest import MmxRequest
 from model.GeospatialImageFile import GeospatialImageFile
 from model.RetrieverFactory import RetrieverFactory
+import pickle
+import json
 
 # -----------------------------------------------------------------------------
 # class MmxRequest
@@ -32,7 +34,7 @@ class MmxRmRequest(MmxRequest):
     def _validate(self, context):
         worldClimParms = ['WorldClim', 'MERRAClim']
         requiredParms = [
-            'startDate', 'endDate', 'collection', 'vars', 'operation'
+            'startDate', 'endDate'
         ]
         if any(e in context.keys() for e in worldClimParms):
             if any(e in context.keys() for e in requiredParms):
@@ -41,11 +43,12 @@ class MmxRmRequest(MmxRequest):
         else:
             for key in requiredParms:
                 if key not in context.keys():
-                    raise RuntimeError(str(key)) + ' parameter does not exist.'
+                    raise RuntimeError(str(key) + ' parameter does not exist.')
 
             keys = ['operation', 'collection', 'vars']
-            if not len(context['collection']) == len(context['operation']) == len(context['vars']):
-                raise RuntimeError('Number of '+' '.join(keys)+' are not consistent.')
+            if any(e in context.keys() for e in keys):
+                if not len(context['collection']) == len(context['operation']) == len(context['vars']):
+                    raise RuntimeError('Number of '+' '.join(keys)+' are not consistent.')
 
     def requestMerra(self, context):
         dateRange = pandas.date_range(self._context['startDate'], self._context['endDate'])
@@ -83,7 +86,7 @@ class MmxRmRequest(MmxRequest):
     # -------------------------------------------------------------------------
     # run
     # -------------------------------------------------------------------------
-    def runMmxWorkflow(self):
+    def getData(self, context):
         # Execute the EDAS retrieval process
         ncFileList=[]
         if self._context['EdasWorldClim']:
@@ -113,5 +116,13 @@ class MmxRmRequest(MmxRequest):
             files = glob.glob(f"{worldClimDir}/*")
             images += self.getListofWorldClim(worldClimDir, files)
 
+        return images
+
+    # -------------------------------------------------------------------------
+    # run
+    # -------------------------------------------------------------------------
+    def runMmxWorkflow(self, context):
+        self.getData(context)
+
         # Run Maximum Entropy workflow.
-        self.runMaxEnt(images)
+        self.runMaxEnt(self._context['images'])

@@ -16,6 +16,8 @@ from model.GeospatialImageFile import GeospatialImageFile
 
 from model.MultiThreader import MultiThreader
 
+from model.ILServicesInterface import ILServicesInterface
+from typing import Dict
 
 # -------------------------------------------------------------------------
 # runMaxEnt
@@ -31,7 +33,7 @@ def runMaxEnt(observationFile, listOfImages, outputDirectory):
 # -----------------------------------------------------------------------------
 # class MmxRequest
 # -----------------------------------------------------------------------------
-class MmxRequest(object):
+class MmxRequest(ILServicesInterface):
     Trial = namedtuple('Trial', ['directory', 'obsFile', 'images'])
 
     def __init__(self, context):
@@ -48,6 +50,7 @@ class MmxRequest(object):
         self._numPredictors = context['numPredictors']
         self._observationFilePath = context['observation']
         self._species = context['species']
+#        self._images = []
 
         self._observationFile = ObservationFile(self._observationFilePath, self._species)
 
@@ -168,7 +171,7 @@ class MmxRequest(object):
         indexesInEachTrial = []
         for i in range(1, int(self._numTrials) + 1):
             indexesInEachTrial.append(random.sample(range(0, len(images) - 1),
-                                                    numPredictors))
+                                                    int(numPredictors)))
 
         return indexesInEachTrial
 
@@ -269,9 +272,85 @@ class MmxRequest(object):
         return images
 
     # -------------------------------------------------------------------------
-    # run - refactored workflow
+    # getData
+    # -------------------------------------------------------------------------
+    def getData(self, context):
+        # Get Existing Images
+        images = self.getExistingImages(self._context['imageDir'])
+        return images
+    
+    def prepareImages(self, context):
+        images = self.getData(context)
+
+        # Get the random lists of indexes into Images for each trial.
+        listOfIndexesInEachTrial = self.getTrialImagesIndexes(images, context['numPredictors'])
+
+        context['listOfIndexesInEachTrial'] = listOfIndexesInEachTrial
+        return context
+
+    def runTrials(self, context):
+        images = self.getData(context)
+
+        # Prepare the trial infrastructure for MaxEnt output
+        trials = self.prepareTrials(images, context['listOfIndexesInEachTrial'])
+
+        return context
+
+    def rankPredictors(self, context):
+        # determine top predictors
+        images = self.getData(context)
+
+        # Prepare the trial infrastructure for MaxEnt output
+        trials = self.prepareTrials(images, context['listOfIndexesInEachTrial'])
+
+        # Compile trial statistics and select the top-ten predictors.
+        topPredictors = self.getTopTen(trials, images)
+        return topPredictors
+
+    def getTopPredictors(self, context):
+        # business logic placeholder
+        return context
+
+    def subsetData(self, context):
+        # business logic placeholder
+        return context
+
+    def runFinalModel(self, context):
+        # Run the final model.
+
+        # Compile trial statistics and select the top-ten predictors.
+        topPredictors = self.rankPredictors(context)
+
+        self.runAggregateModel(topPredictors)
+        return context
+
+    # -------------------------------------------------------------------------
+    # runMaxEnt
     # -------------------------------------------------------------------------
     def runMaxEnt(self, images):
+
+        # Get Existing Images
+        context = self.getData()
+
+        # Get the random lists of indexes into Images for each trial.
+        listOfIndexesInEachTrial = self.prepareImages(images)
+
+        # Prepare the trial infrastructure for MaxEnt output
+        trials = self.runTrials(images, listOfIndexesInEachTrial)
+
+        # Compile trial statistics and select the top-ten predictors.
+        topTen = self.getTopPredictors(trials, images)
+
+        # Run the final model.
+        return self.runFinalModel(topTen)
+
+    # -------------------------------------------------------------------------
+    # runMaxEnt
+    # -------------------------------------------------------------------------
+    def runMaxEnt_(self, images):
+
+        # Get Existing Images
+        images = self.getExistingImages(self._context['imageDir'])
 
         # Get the random lists of indexes into Images for each trial.
         listOfIndexesInEachTrial = self.getTrialImagesIndexes(images, self._numPredictors)
@@ -299,4 +378,28 @@ class MmxRequest(object):
     # -------------------------------------------------------------------------
     def run(self):
         self.runMmxWorkflow()
+
+    # -------------------------------------------------------------------------
+    # order - run default MMX workflow, specify functions should be overridden here
+    # -------------------------------------------------------------------------
+    def order(self, context) -> dict:
+        method_to_call = getattr(self, context['request'])
+        context = method_to_call(context)
+        return context
+
+    # -------------------------------------------------------------------------
+    # status - determine runtime status of workflow
+    # -------------------------------------------------------------------------
+    def status(self, context):
+        # business logic placeholder
+        context['status'] = 'COMPLETED'
+        return context
+
+    # -------------------------------------------------------------------------
+    # download - download results
+    # -------------------------------------------------------------------------
+    def download(self, context):
+        # business logic placeholder
+        context['status'] = 'COMPLETED'
+        return context
 
