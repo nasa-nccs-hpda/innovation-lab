@@ -17,9 +17,9 @@ class EdasDevRetriever(RetrieverInterface):
     # -------------------------------------------------------------------------
     def __init__(self, context, envelope=None, dateRange=None):
 
-        self.collection = context['collection']
-        self.listOfVariables = context['vars']
-        self.operation = context['operation']
+        self.collection = context['collection'] if 'collection' in context.keys() else None
+        self.listOfVariables = context['vars'] if 'vars' in context.keys() else None
+        self.operation = context['operation'] if 'operation' in context.keys() else None
         self._outDir = context['imageDir']
 
         self.envelope = envelope
