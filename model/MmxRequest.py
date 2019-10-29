@@ -26,7 +26,7 @@ class MmxRequest(object):
     #    def __init__(self, observationFile, dateRange, numTrials=10,
     #                 outputDirectory):
 
-    def __init__(self, observationFile, dateRange, collection, variables,
+    def __init__(self, observationFile, dateRange, edasCfgFile, collection, variables,
                  operation, numTrials, outputDirectory):
 
         if not os.path.exists(outputDirectory):
@@ -51,6 +51,7 @@ class MmxRequest(object):
         self._collection = collection
         self._variables = variables
         self._operation = operation
+        self._edasCfgFile = edasCfgFile
 
         if not os.path.exists(self._merraDir):
             os.mkdir(self._merraDir)

@@ -34,6 +34,10 @@ def main():
                         nargs='+',
                         help='ulx uly lrx lry')
 
+    parser.add_argument('-edas',
+                        required=True,
+                        help='Path to EDAS config file')
+
     parser.add_argument('--epsg',
                         required=True,
                         type=int,
@@ -77,8 +81,7 @@ def main():
     dateRange = pandas.date_range(args.start_date, args.end_date)
 
     # Mas Request
-    masReq = EdasRequest(env, dateRange,
-                         args.c, args.vars, args.opr, args.o)
+    masReq = EdasRequest( args.edas, env, dateRange, args.c, args.vars, args.opr, args.o)
     masReq.run()
 
 

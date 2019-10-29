@@ -30,6 +30,10 @@ def main():
                         required=True,
                         help='Path to observation file')
 
+    parser.add_argument('-edas',
+                        required=True,
+                        help='Path to EDAS config file')
+
     parser.add_argument('-s',
                         required=True,
                         help='Name of species in observation file')
@@ -68,7 +72,7 @@ def main():
     observationFile = ObservationFile(args.f, args.s)
     dateRange = pandas.date_range(args.start_date, args.end_date)
 
-    mmxr = MmxRequest(observationFile, dateRange,
+    mmxr = MmxRequest(observationFile, dateRange, args.edas,
                       args.c, args.vars, args.opr, args.n, args.o)
 #    mmxr.runBatch()
 #    mmxr.runSimple()

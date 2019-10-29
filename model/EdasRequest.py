@@ -16,8 +16,7 @@ class EdasRequest(object):
     # -------------------------------------------------------------------------
     # __init__
     # -------------------------------------------------------------------------
-    def __init__(self, envelope, dateRange,
-                 collection, listOfVariables, operation, outDir):
+    def __init__(self, edasCfgFile, envelope, dateRange, collection, listOfVariables, operation, outDir):
 
         self.envelop = envelope
         self.dateRange = dateRange
@@ -32,6 +31,7 @@ class EdasRequest(object):
         self._outDir = outDir
         self._ncImages = list()
         self.client = self._setClient()
+        self._edasCfgFile = edasCfgFile
 
     # -------------------------------------------------------------------------
     # initialize Edas Client

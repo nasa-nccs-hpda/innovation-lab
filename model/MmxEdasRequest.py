@@ -26,8 +26,7 @@ class MmxEdasRequest(object):
     #    def __init__(self, observationFile, dateRange, numTrials=10,
     #                 outputDirectory):
 
-    def __init__(self, observationFile, dateRange, collection, variables,
-                 operation, numTrials, outputDirectory):
+    def __init__(self, edasCfgFile, observationFile, dateRange, collection, variables, operation, numTrials, outputDirectory):
 
         if not os.path.exists(outputDirectory):
             raise RuntimeError(str(outputDirectory)) + ' does not exist.'
@@ -51,6 +50,7 @@ class MmxEdasRequest(object):
         self._collection = collection
         self._variables = variables
         self._operation = operation
+        self._edasCfgFile = edasCfgFile
 
         if not os.path.exists(self._merraDir):
             os.mkdir(self._merraDir)
@@ -206,7 +206,8 @@ class MmxEdasRequest(object):
     # -------------------------------------------------------------------------
     def requestMerra(self):
 
-        edasRequest = EdasRequest(self._observationFile.envelope(),
+        edasRequest = EdasRequest(self._edasCfgFile,
+                                  self._observationFile.envelope(),
                                   self._dateRange,
                                   self._collection,
                                   self._variables,

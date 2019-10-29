@@ -68,8 +68,7 @@ def main():
     observationFile = ObservationFile(args.f, args.s)
     dateRange = pandas.date_range(args.start_date, args.end_date)
 
-    mmxr = MmxEdasRequest(observationFile, dateRange,
-                      args.c, args.vars, args.opr, args.n, args.o)
+    mmxr = MmxEdasRequest(observationFile, dateRange, args.c, args.vars, args.opr, args.n, args.o)
     mmxr.run()
 
 # ------------------------------------------------------------------------------
