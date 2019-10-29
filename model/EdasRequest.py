@@ -37,12 +37,7 @@ class EdasRequest(object):
     # initialize Edas Client
     # -------------------------------------------------------------------------
     def _setClient(self):
-        settings = dict(
-            stratus=dict(type="rest",
-                         API="wps",
-                         host_address="https://edas.nccs.nasa.gov/wps/cwt")
-        )
-        core = StratusCore(settings)
+        core = StratusCore( self._edasCfgFile )
         return core.getClient()
 
     # -------------------------------------------------------------------------
