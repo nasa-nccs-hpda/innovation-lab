@@ -30,12 +30,17 @@ class ApplyAlgorithm(object):
         self.outDir = outDir
         self.coefFile = BaseFile(coefFile, '.csv')
         self.imageFile = ImageFile(avirisImage, None)
+        self.coefs = []
         
-        # with open(self.coefFile.fileName()) as csvFile:
-        #     self.coefs = csv.DictReader(csvFile)
+        with open(self.coefFile.fileName()) as csvFile:
+            
+            reader = csv.DictReader(csvFile)
+            
+            for row in reader:
+                self.coefs.append(row)
 
-        self.csvFd = open(self.coefFile.fileName())
-        self.coefs = csv.DictReader(self.csvFd)
+        # self.csvFd = open(self.coefFile.fileName())
+        # self.coefs = csv.DictReader(self.csvFd)
         
     # -------------------------------------------------------------------------
     # applyAlgorithm
@@ -44,8 +49,6 @@ class ApplyAlgorithm(object):
     # -------------------------------------------------------------------------
     def applyAlgorithm(self, algorithmName):
         
-        import pdb
-        pdb.set_trace()
         # Ensure the algorithm name is valid.
         if algorithmName not in self.coefs[0]:
 
