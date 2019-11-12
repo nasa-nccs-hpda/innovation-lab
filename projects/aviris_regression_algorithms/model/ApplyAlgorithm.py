@@ -29,7 +29,7 @@ class ApplyAlgorithm(object):
             
         self.outDir = outDir
         self.coefFile = BaseFile(coefFile, '.csv')
-        self.imageFile = ImageFile(avirisImage, '.img')
+        self.imageFile = ImageFile(avirisImage, None)
         
         with open(self.coefFile) as csvFile:
             self.coefs = csv.DictReader(csvFile)
