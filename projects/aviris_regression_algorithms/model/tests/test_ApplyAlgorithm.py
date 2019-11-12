@@ -21,9 +21,9 @@ class ApplyAlgorithmTestCase(unittest.TestCase):
                 'ang20170709t224839_rfl_v2p9/ang20170709t224839_corr_v2p9_img'
     
     # -------------------------------------------------------------------------
-    # testInit
+    # test
     # -------------------------------------------------------------------------
-    def testInit(self):
+    def test(self):
 
         coefFile = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                 'Chl_Coeff_input.csv')
@@ -31,3 +31,5 @@ class ApplyAlgorithmTestCase(unittest.TestCase):
         aa = ApplyAlgorithm(coefFile, 
                             ApplyAlgorithmTestCase.TEST_FILE, 
                             tempfile.gettempdir())
+                            
+        aa.applyAlgorithm('Avg Chl')
