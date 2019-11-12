@@ -62,8 +62,8 @@ class ApplyAlgorithm(object):
         driver = gdal.GetDriverByName('GTiff')
         
         outDs = driver.Create(outName, 
-                              self.imageFile.getDataset().RasterXSize, 
-                              self.imageFile.getDataset().RasterYSize)
+                              self.imageFile._getDataset().RasterXSize, 
+                              self.imageFile._getDataset().RasterYSize)
 
         # ---
         # Remove the coefficients that are zero.  Only the bands for non-zero
