@@ -41,6 +41,8 @@ class ApplyAlgorithm(object):
     # -------------------------------------------------------------------------
     def applyAlgorithm(self, algorithmName):
         
+        import pdb
+        pdb.set_trace()
         # Ensure the algorithm name is valid.
         if algorithmName not in self.coefs[0]:
 
