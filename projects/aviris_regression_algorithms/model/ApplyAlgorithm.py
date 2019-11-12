@@ -78,8 +78,8 @@ class ApplyAlgorithm(object):
         # Iterate through the raster, extracting the pixel for each non-zero
         # band, and computing the output pixel value.
         # ---
-        for row in range(self._dataset.RasterYSize):
-            for col in range(self._dataset.RasterXSize):
+        for row in range(self.imageFile._getDataset().RasterYSize):
+            for col in range(self.imageFile._getDataset().RasterXSize):
                 for coef in coefs[1:]:
 
                     bandName = 'Band ' + str(coef['Band Number'])
