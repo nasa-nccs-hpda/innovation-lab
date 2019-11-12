@@ -31,7 +31,7 @@ class ApplyAlgorithm(object):
         self.coefFile = BaseFile(coefFile, '.csv')
         self.imageFile = ImageFile(avirisImage, None)
         
-        with open(self.coefFile) as csvFile:
+        with open(self.coefFile.fileName()) as csvFile:
             self.coefs = csv.DictReader(csvFile)
 
     # -------------------------------------------------------------------------
