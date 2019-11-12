@@ -174,7 +174,7 @@ class GeospatialImageFileTestCase(unittest.TestCase):
         workingCopy = tempfile.mkstemp(suffix='.nc')[1]
         shutil.copyfile(testFile, workingCopy)
 
-        with self.assertRaisesRegexp(RuntimeError, 'Spatial reference for'):
+        with self.assertRaisesRegexp(RuntimeError, 'Spatial reference for '):
             GeospatialImageFile(workingCopy, SpatialReference())
 
         os.remove(workingCopy)

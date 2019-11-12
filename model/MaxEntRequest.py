@@ -4,9 +4,13 @@
 import csv
 import fileinput
 import os
+import pickle
 import shutil
 import sys
 
+from osgeo.osr import SpatialReference
+
+from model.Envelope import Envelope
 from model.GeospatialImageFile import GeospatialImageFile
 from model.SystemCommand import SystemCommand
 
@@ -95,9 +99,9 @@ class MaxEntRequest(object):
         try:
             image = self._imagesToProcess.pop()
 
-            self.prepareImage(image,
-                              self._imageSRS,
-                              self._observationFile.envelope(),
+            self.prepareImage(image.fileName(),
+                              self._imageSRS.ExportToProj4(),
+                              pickle.dumps(self._observationFile.envelope()),
                               self._ascDir)
 
         except IndexError:
@@ -114,17 +118,20 @@ class MaxEntRequest(object):
     # instead of preparing a new set for each trial.
     # -------------------------------------------------------------------------
     @staticmethod
-    def prepareImage(image, srs, envelope, ascDir):
+    def prepareImage(imageFileName, srsProj4, envelopePickle, ascDir):
 
         # ---
         # First, to preserve the original files, copy the input file to the
         # output directory.
         # ---
-        baseName = os.path.basename(image.fileName())
+        baseName = os.path.basename(imageFileName)
         copyPath = os.path.join(ascDir, baseName)
         print ('Processing ' + copyPath)
-        shutil.copy(image.fileName(), copyPath)
+        shutil.copy(imageFileName, copyPath)
+        srs = SpatialReference()
+        srs.ImportFromProj4(srsProj4)
         imageCopy = GeospatialImageFile(copyPath, srs)
+        envelope = pickle.loads(envelopePickle)
         imageCopy.clipReproject(envelope)
 
         squareScale = imageCopy.getSquareScale()
@@ -153,7 +160,6 @@ class MaxEntRequest(object):
     # -------------------------------------------------------------------------
     def run(self):
 
-#        imagesLeft = sys.maxint  (Python 2x, replaced in 3x by maxsize)
         imagesLeft = sys.maxsize
         while imagesLeft > 0:
 

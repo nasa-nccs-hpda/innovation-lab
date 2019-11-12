@@ -10,6 +10,9 @@ from osgeo.osr import SpatialReference
 # -----------------------------------------------------------------------------
 class Envelope(ogr.Geometry):
 
+    MULTIPOINT_KEY = 'Multipoint'
+    SRS_KEY = 'SpatialReference'
+    
     # -------------------------------------------------------------------------
     # __init__
     # -------------------------------------------------------------------------
@@ -90,6 +93,7 @@ class Envelope(ogr.Geometry):
 
         return self.GetEnvelope()[index]
 
+
     # -------------------------------------------------------------------------
     # lrx
     # -------------------------------------------------------------------------
@@ -117,3 +121,30 @@ class Envelope(ogr.Geometry):
     def uly(self):
 
         return self._getOrdinate(3)
+    
+    # -------------------------------------------------------------------------
+    # __setstate__
+    #
+    # e2 = pickle.loads(pickle.dumps(env))
+    # -------------------------------------------------------------------------
+    def __setstate__(self, state):
+
+        multipointWkt = state[Envelope.MULTIPOINT_KEY]
+        copy = ogr.CreateGeometryFromWkt(multipointWkt)
+        self.__dict__.update(copy.__dict__)
+
+        srsWkt = state[Envelope.SRS_KEY]
+        srs = SpatialReference()
+        srs.ImportFromWkt(srsWkt)
+        self.AssignSpatialReference(srs)
+        
+    # -------------------------------------------------------------------------
+    # __reduce__
+    # -------------------------------------------------------------------------
+    def __reduce__(self):
+        
+        state = {Envelope.MULTIPOINT_KEY: self.ExportToWkt(),
+                 Envelope.SRS_KEY: self.GetSpatialReference().ExportToWkt()}
+        
+        return (self.__class__, (), state)
+        
