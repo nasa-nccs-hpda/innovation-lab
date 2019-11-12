@@ -69,7 +69,7 @@ class ApplyAlgorithm(object):
         # Remove the coefficients that are zero.  Only the bands for non-zero
         # terms will be extracted.
         # ---
-        coefs = [coef for coef in self.coefs if self.coefs[algorithmName] !=0]
+        coefs = [coef for coef in self.coefs if coef[algorithmName] != 0]
 
         # The first term is the y intercept.
         P = self.coefs[0][algorithmName]
