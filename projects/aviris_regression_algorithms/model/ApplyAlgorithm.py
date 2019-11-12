@@ -85,14 +85,14 @@ class ApplyAlgorithm(object):
                     bandName = 'Band ' + str(coef['Band Number'])
                     
                     bandValue = \
-                        self.imageFile._getDataset.ReadRaster(col,
-                                                              row,
-                                                              1,
-                                                              1,
-                                                              None,
-                                                              None,
-                                                              None,
-                                                              [bandName])
+                        self.imageFile._getDataset().ReadRaster(col,
+                                                                row,
+                                                                1,
+                                                                1,
+                                                                None,
+                                                                None,
+                                                                None,
+                                                                [bandName])
                                                          
                     P += bandValue * coef[algorithm]
                     
