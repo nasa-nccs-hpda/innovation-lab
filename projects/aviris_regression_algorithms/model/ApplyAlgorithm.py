@@ -78,21 +78,22 @@ class ApplyAlgorithm(object):
         for row in range(self.imageFile._getDataset().RasterYSize):
             for col in range(self.imageFile._getDataset().RasterXSize):
 
-                pixelsAsStrings = self. \
-                                  imageFile. \
-                                  _getDataset(). \
-                                  ReadRaster(col,
-                                             row,
-                                             1, # x read size
-                                             1, # y read size
-                                             1, # buf_xsize
-                                             1, # buf_ysize
-                                             None)
-                                             
                 # Requirement 1: band 10 > 0.8.
                 import pdb
                 pdb.set_trace()
-                b10 = struct.unpack('f', pixelsAsStrings[9])[0]
+                
+                pixelAsString = self. \
+                                imageFile. \
+                                _getDataset(). \
+                                ReadRaster(col,
+                                           row,
+                                           1, # x read size
+                                           1, # y read size
+                                           1, # buf_xsize
+                                           , # buf_ysize
+                                           [9])
+                                             
+                b10 = struct.unpack('f', pixelAsString)[0]
                 if b10 <= 0.8: next
                 
                 
