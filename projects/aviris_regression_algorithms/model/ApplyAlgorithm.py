@@ -3,6 +3,7 @@
 import csv
 import os
 import re
+import struct
 
 from osgeo import gdal
 
@@ -100,9 +101,8 @@ class ApplyAlgorithm(object):
                                            None, # buf_type read from image
                                            [bandIndex])
                                             
-                    import pdb
-                    pdb.set_trace()
-                    print 'bv = ' + str(float(bandValue))
+                    floatValue = struct.unpack('f', bandValue)[0]
+                    print 'fv = ' + str(floatValue)
 
                     P += bandValue * coef[algorithmName]
 
