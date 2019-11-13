@@ -2,6 +2,7 @@
 
 import csv
 import os
+import re
 
 from osgeo import gdal
 
