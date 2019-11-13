@@ -84,9 +84,9 @@ class ApplyAlgorithm(object):
 
                     bandName = 'Band ' + str(coef['Band Number'])
                     
-                    bandValue = self.
-                                imageFile.
-                                _getDataset().
+                    bandValue = self. \
+                                imageFile. \
+                                _getDataset(). \
                                 ReadRaster(col,
                                            row,
                                            1,
