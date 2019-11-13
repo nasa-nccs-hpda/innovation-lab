@@ -98,11 +98,11 @@ class ApplyAlgorithm(object):
                                             None, # buf_xsize
                                             None, # buf_ysize
                                             gdal.GDT_CFloat32, # buf_type
-                                            range(1,2))
+                                            [bandIndex])
                                             
                     print 'bv = ' + str(bandValue)
 
-                    P += bandValue * coef[algorithm]
+                    P += bandValue * coef[algorithmName]
 
                 outDs.WriteRaster(col, row, 1, 1, P)
                 
