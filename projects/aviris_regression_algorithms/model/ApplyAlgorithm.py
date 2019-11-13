@@ -90,7 +90,7 @@ class ApplyAlgorithm(object):
                                            1, # x read size
                                            1, # y read size
                                            1, # buf_xsize
-                                           , # buf_ysize
+                                           1, # buf_ysize
                                            [9])
                                              
                 b10 = struct.unpack('f', pixelAsString)[0]
