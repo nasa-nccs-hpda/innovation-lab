@@ -100,7 +100,9 @@ class ApplyAlgorithm(object):
                                             gdal.GDT_CFloat32, # buf_type
                                             [bandIndex])
                                             
-                    print 'bv = ' + str(bandValue)
+                    import pdb
+                    pdb.set_trace()
+                    print 'bv = ' + str(float(bandValue)
 
                     P += bandValue * coef[algorithmName]
 
