@@ -111,6 +111,7 @@ class ApplyAlgorithm(object):
                           str(floatValue) + ', ' + \
                           str(P) + ')'
                     
+                hexValue = struct.pack('f', P)
                 outDs.WriteRaster(col, row, 1, 1, P)
                 
         outDs.close()
