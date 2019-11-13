@@ -18,6 +18,8 @@ from model.ImageFile import ImageFile
 # -----------------------------------------------------------------------------
 class ApplyAlgorithm(object):
 
+    NO_DATA_VALUE = -9999.0
+    
     # -------------------------------------------------------------------------
     # __init__
     # -------------------------------------------------------------------------
@@ -100,7 +102,9 @@ class ApplyAlgorithm(object):
                                            [bandIndex])
                                             
                     floatValue = struct.unpack('f', bandValue)[0]
-                    P += floatValue * float(coef[algorithmName])
+                    
+                    if floatValue != ApplyAlgorithm.NO_DATA_VALUE:
+                        P += floatValue * float(coef[algorithmName])
 
                     print '(band, value, P) = (' + \
                           str(bandIndex) + ', ' + \
