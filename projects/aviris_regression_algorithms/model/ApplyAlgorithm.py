@@ -84,6 +84,8 @@ class ApplyAlgorithm(object):
 
                     bandName = 'Band ' + str(coef['Band Number'])
                     
+                    import pdb
+                    pdb.set_trace()
                     bandValue = self. \
                                 imageFile. \
                                 _getDataset(). \
@@ -93,8 +95,8 @@ class ApplyAlgorithm(object):
                                            1,
                                            None, # buf_xsize
                                            None, # buf_ysize
-                                           gdal.GDT_CFloat32) # buf_type
-                                           # [bandName])
+                                           gdal.GDT_CFloat32 # buf_type
+                                           [bandName])
 
                 #     P += bandValue * coef[algorithm]
                 #
