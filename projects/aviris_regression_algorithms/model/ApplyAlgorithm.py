@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import csv
+import math
 import os
 import re
 import struct
@@ -75,9 +76,9 @@ class ApplyAlgorithm(object):
             for col in range(self.imageFile._getDataset().RasterXSize):
 
                 # ---
-                # Test for masks.
+                # Test for masks and no-data values.
                 # ---
-                if self.isMasked(col, row): 
+                if self.isMaskedOrNoData(col, row): 
                     
                     hexValue = struct.pack('f', ApplyAlgorithm.NO_DATA_VALUE)
                     outDs.WriteRaster(col, row, 1, 1, hexValue)
@@ -86,17 +87,16 @@ class ApplyAlgorithm(object):
                 # ---
                 # Read the stack of pixels at this col, row location.
                 # ---
-                import pdb
-                pdb.set_trace()
                 pixelStack = self.readStack(col, row)
                 
                 # ---
                 # Compute the square root of the sum of the squares of all band
-                # reflectances between 397nm and 898nm.
+                # reflectances between 397nm and 898nm.  Those reflectances 
+                # translate to bands 6 - 105.
                 # ---
-                # self.computeNormalizationDivisor(pixelStack)
-                #
-                #
+                divisor = math.sqrt(sum([p**2 for p in pixelStack[6:105] \
+                                              if pixelStack[p] != 0]))
+                
                 # # The first term is the y intercept.
                 # P = float(self.coefs[0][algorithmName])
                 #
@@ -109,22 +109,21 @@ class ApplyAlgorithm(object):
         outDs.close()
                 
     # -------------------------------------------------------------------------
-    # computeNormalizationDivisor
+    # isMaskedOrNoData
     # -------------------------------------------------------------------------
-    def computeNormalizationDivisor(self):
-        
-        pass
-        
-    # -------------------------------------------------------------------------
-    # isMasked
-    # -------------------------------------------------------------------------
-    def isMasked(self, col, row):
-        
+    def isMaskedOrNoData(self, col, row):
+                
+        # ---
         # Mask: band 10 > 0.8
+        # Also check for a no-data value.  When found the output value is
+        # no data.
+        # ---
         bandValue = self.readOnePixelToFloat(col, row, 9)  
-        if bandValue > 0.8: return True
+        
+        if bandValue > 0.8 or bandValue == ApplyAlgorithm.NO_DATA_VALUE:
+            return True
 
-        # Requirement: band 426 < 0.01
+        # Mask: band 426 < 0.01
         bandValue = self.readOnePixelToFloat(col, row, 425)  
         if bandValue < 0.01: return True
         
