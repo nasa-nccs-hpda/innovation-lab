@@ -38,6 +38,7 @@ class ApplyAlgorithmTestCase(unittest.TestCase):
 
         aa = ApplyAlgorithm(coefFile, 
                             ApplyAlgorithmTestCase.TEST_FILE, 
-                            tempfile.gettempdir())
+                            tempfile.gettempdir(),
+                            logger)
                             
         aa.applyAlgorithm('Avg Chl')
