@@ -69,31 +69,66 @@ class ApplyAlgorithm(object):
                               self.imageFile._getDataset().RasterYSize)
 
         # ---
-        # Iterate through the raster, extracting the stack of pixels from each
-        # band.
+        # Iterate through the raster, pixel by pixel.
         # ---
         for row in range(self.imageFile._getDataset().RasterYSize):
             for col in range(self.imageFile._getDataset().RasterXSize):
 
-                # Requirement 1: band 10 > 0.8.
-                b10 = self.readOnePixelToFloat(col, row, 9)                        
-                if b10 <= 0.8: next
+                # ---
+                # Test for masks.
+                # ---
+                if self.isMasked(col, row): 
+                    
+                    hexValue = struct.pack('f', ApplyAlgorithm.NO_DATA_VALUE)
+                    outDs.WriteRaster(col, row, 1, 1, hexValue)
+                    next
                 
+                # ---
+                # Read the stack of pixels at this col, row location.
+                # ---
+                import pdb
+                pdb.set_trace()
+                pixelStack = self.readStack()
                 
-
-
-
-                # The first term is the y intercept.
-                P = float(self.coefs[0][algorithmName])
-        
-
-
-
-                hexValue = struct.pack('f', P)
-                outDs.WriteRaster(col, row, 1, 1, hexValue)
+                # ---
+                # Compute the square root of the sum of the squares of all band
+                # reflectances between 397nm and 898nm.
+                # ---
+                # self.computeNormalizationDivisor(pixelStack)
+                #
+                #
+                # # The first term is the y intercept.
+                # P = float(self.coefs[0][algorithmName])
+                #
+                #
+                #
+                #
+                # hexValue = struct.pack('f', P)
+                # outDs.WriteRaster(col, row, 1, 1, hexValue)
                 
         outDs.close()
                 
+    # -------------------------------------------------------------------------
+    # computeNormalizationDivisor
+    # -------------------------------------------------------------------------
+    def computeNormalizationDivisor(self):
+        
+        
+    # -------------------------------------------------------------------------
+    # isMasked
+    # -------------------------------------------------------------------------
+    def isMasked(self, col, row):
+        
+        # Mask: band 10 > 0.8
+        bandValue = self.readOnePixelToFloat(col, row, 9)  
+        if bandValue > 0.8: return True
+
+        # Requirement: band 426 < 0.01
+        bandValue = self.readOnePixelToFloat(col, row, 425)  
+        if bandValue < 0.01: return True
+        
+        return False
+        
     # -------------------------------------------------------------------------
     # readOnePixelToFloat
     # -------------------------------------------------------------------------
@@ -113,7 +148,27 @@ class ApplyAlgorithm(object):
 
         pixelAsFloat = struct.unpack('f', pixelAsString)[0]
 
+        if self.logger:
+
+            msg = '(band, value) = (' + \
+                  str(band) + ', ' + \
+                  str(pixelAsFloat) + ')'
+
+            self.logger.info(msg)
+            
         return pixelAsFloat
+        
+    # -------------------------------------------------------------------------
+    # readStack
+    # -------------------------------------------------------------------------
+    def readStack(self, col, row):
+        
+        pixelsAsStrings = \
+            self.imageFile._getDataset().ReadAsArray(col, row, 1, 1)
+            
+        pixelsAsFloats = [struct.unpack('f', p)[0]] for p in pixelsAsStrings]
+
+        return pixelsAsFloats
         
     # -------------------------------------------------------------------------
     # applyAlgorithm
