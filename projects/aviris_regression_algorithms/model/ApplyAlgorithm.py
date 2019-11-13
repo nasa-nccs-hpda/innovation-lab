@@ -87,8 +87,6 @@ class ApplyAlgorithm(object):
                     bandIndex = int(re.search(r'\d{0,3}$', 
                                               coef['Band Number']).group())
                     
-                    print 'bi = ' + str(bandIndex)
-                    
                     bandValue = self. \
                                 imageFile. \
                                 _getDataset(). \
@@ -102,10 +100,13 @@ class ApplyAlgorithm(object):
                                            [bandIndex])
                                             
                     floatValue = struct.unpack('f', bandValue)[0]
-                    print 'fv = ' + str(floatValue)
-
                     P += floatValue * float(coef[algorithmName])
 
+                    print '(band, value, P) = (' + 
+                          str(bandIndex) + ', ' + 
+                          str(floatValue) + ', ' + 
+                          str(P) + ')'
+                    
                 outDs.WriteRaster(col, row, 1, 1, P)
                 
         outDs.close()
