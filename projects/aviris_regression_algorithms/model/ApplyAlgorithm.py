@@ -23,7 +23,7 @@ class ApplyAlgorithm(object):
     # -------------------------------------------------------------------------
     # __init__
     # -------------------------------------------------------------------------
-    def __init__(self, coefFile, avirisImage, outDir):
+    def __init__(self, coefFile, avirisImage, outDir, logger=None):
         
         if not outDir:
             raise RuntimeError('An output directory must be provided.')
@@ -31,6 +31,7 @@ class ApplyAlgorithm(object):
         if not os.path.exists(outDir) or not os.path.isdir(outDir):
             raise RuntimeError(str(outDir) + ' is not an existing directory.')
             
+        self.logger = logger
         self.outDir = outDir
         self.coefFile = BaseFile(coefFile, '.csv')
         self.imageFile = ImageFile(avirisImage, None)
@@ -43,8 +44,6 @@ class ApplyAlgorithm(object):
             for row in reader:
                 self.coefs.append(row)
 
-        # self.csvFd = open(self.coefFile.fileName())
-        # self.coefs = csv.DictReader(self.csvFd)
         
     # -------------------------------------------------------------------------
     # applyAlgorithm
@@ -106,11 +105,14 @@ class ApplyAlgorithm(object):
                     if floatValue != ApplyAlgorithm.NO_DATA_VALUE:
                         P += floatValue * float(coef[algorithmName])
 
-                    print '(band, value, P) = (' + \
+                    msg = '(band, value, P) = (' + \
                           str(bandIndex) + ', ' + \
                           str(floatValue) + ', ' + \
                           str(P) + ')'
                     
+                    if self.logger:
+                        self.logger.info(msg)
+
                 hexValue = struct.pack('f', P)
                 outDs.WriteRaster(col, row, 1, 1, hexValue)
                 
