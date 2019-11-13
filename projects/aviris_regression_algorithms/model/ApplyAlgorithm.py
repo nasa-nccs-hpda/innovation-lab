@@ -91,6 +91,7 @@ class ApplyAlgorithm(object):
                                            1, # y read size
                                            1, # buf_xsize
                                            1, # buf_ysize
+                                           None, # buf_type read from image
                                            [9])
                                              
                 b10 = struct.unpack('f', pixelAsString)[0]
