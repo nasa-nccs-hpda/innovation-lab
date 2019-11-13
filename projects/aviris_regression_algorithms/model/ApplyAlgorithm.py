@@ -112,9 +112,7 @@ class ApplyAlgorithm(object):
                           str(P) + ')'
                     
                 hexValue = struct.pack('f', P)
-                import pdb
-                pdb.set_trace()
-                outDs.WriteRaster(col, row, 1, 1, P)
+                outDs.WriteRaster(col, row, 1, 1, hexValue)
                 
         outDs.close()
                 
