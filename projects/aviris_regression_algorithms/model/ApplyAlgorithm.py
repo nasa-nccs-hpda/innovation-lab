@@ -102,9 +102,9 @@ class ApplyAlgorithm(object):
                     floatValue = struct.unpack('f', bandValue)[0]
                     P += floatValue * float(coef[algorithmName])
 
-                    print '(band, value, P) = (' + 
-                          str(bandIndex) + ', ' + 
-                          str(floatValue) + ', ' + 
+                    print '(band, value, P) = (' + \
+                          str(bandIndex) + ', ' + \
+                          str(floatValue) + ', ' + \
                           str(P) + ')'
                     
                 outDs.WriteRaster(col, row, 1, 1, P)
