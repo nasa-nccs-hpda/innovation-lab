@@ -76,7 +76,7 @@ class ApplyAlgorithm(object):
             for col in range(self.imageFile._getDataset().RasterXSize):
 
                 # Requirement 1: band 10 > 0.8.
-                b10 = self.readOnePixelAsFloat(col, row, 9)                        
+                b10 = self.readOnePixelToFloat(col, row, 9)                        
                 if b10 <= 0.8: next
                 
                 
