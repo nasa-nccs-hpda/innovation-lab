@@ -167,7 +167,7 @@ class ApplyAlgorithm(object):
         pixelsAsStrings = \
             self.imageFile._getDataset().ReadAsArray(col, row, 1, 1)
             
-        pixelsAsFloats = [struct.unpack('f', p)[0]] for p in pixelsAsStrings]
+        pixelsAsFloats = [struct.unpack('f', p)[0] for p in pixelsAsStrings]
 
         return pixelsAsFloats
         
