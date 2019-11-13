@@ -102,7 +102,7 @@ class ApplyAlgorithm(object):
                                             
                     import pdb
                     pdb.set_trace()
-                    print 'bv = ' + str(float(bandValue)
+                    print 'bv = ' + str(float(bandValue))
 
                     P += bandValue * coef[algorithmName]
 
