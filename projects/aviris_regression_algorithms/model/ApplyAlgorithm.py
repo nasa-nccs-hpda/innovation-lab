@@ -84,15 +84,17 @@ class ApplyAlgorithm(object):
 
                     bandName = 'Band ' + str(coef['Band Number'])
                     
-                    bandValue = \
-                        self.imageFile._getDataset().ReadRaster(col,
-                                                                row,
-                                                                1,
-                                                                1,
-                                                                None,
-                                                                None,
-                                                                None,
-                                                                [bandName])
+                    bandValue = self.
+                                imageFile.
+                                _getDataset().
+                                ReadRaster(col,
+                                           row,
+                                           1,
+                                           1,
+                                           None, # buf_xsize
+                                           None, # buf_ysize
+                                           gdal.GDT_CFloat32, # buf_type
+                                           [bandName])
                                                          
                     P += bandValue * coef[algorithm]
                     
