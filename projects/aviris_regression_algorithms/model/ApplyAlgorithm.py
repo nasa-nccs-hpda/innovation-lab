@@ -68,9 +68,6 @@ class ApplyAlgorithm(object):
                               self.imageFile._getDataset().RasterXSize, 
                               self.imageFile._getDataset().RasterYSize)
 
-        # The first term is the y intercept.
-        P = float(self.coefs[0][algorithmName])
-        
         # ---
         # Iterate through the raster, extracting the stack of pixels from each
         # band.
@@ -79,28 +76,16 @@ class ApplyAlgorithm(object):
             for col in range(self.imageFile._getDataset().RasterXSize):
 
                 # Requirement 1: band 10 > 0.8.
-                import pdb
-                pdb.set_trace()
-                
-                pixelAsString = self. \
-                                imageFile. \
-                                _getDataset(). \
-                                ReadRaster(col,
-                                           row,
-                                           1, # x read size
-                                           1, # y read size
-                                           1, # buf_xsize
-                                           1, # buf_ysize
-                                           None, # buf_type read from image
-                                           [9])
-                                             
-                b10 = struct.unpack('f', pixelAsString)[0]
+                b10 = self.readOnePixelAsFloat(col, row, 9)                        
                 if b10 <= 0.8: next
                 
                 
 
 
 
+                # The first term is the y intercept.
+                P = float(self.coefs[0][algorithmName])
+        
 
 
 
@@ -109,6 +94,27 @@ class ApplyAlgorithm(object):
                 
         outDs.close()
                 
+    # -------------------------------------------------------------------------
+    # readOnePixelToFloat
+    # -------------------------------------------------------------------------
+    def readOnePixelToFloat(self, col, row, band):
+        
+        pixelAsString = self. \
+                        imageFile. \
+                        _getDataset(). \
+                        ReadRaster(col,
+                                   row,
+                                   1, # x read size
+                                   1, # y read size
+                                   1, # buf_xsize
+                                   1, # buf_ysize
+                                   None, # buf_type read from image
+                                   [band])
+
+        pixelAsFloat = struct.unpack('f', pixelAsString)[0]
+
+        return pixelAsFloat
+        
     # -------------------------------------------------------------------------
     # applyAlgorithm
     #
