@@ -74,7 +74,7 @@ class ApplyAlgorithm(object):
         coefs = [coef for coef in self.coefs if coef[algorithmName] != 0]
 
         # The first term is the y intercept.
-        P = self.coefs[0][algorithmName]
+        P = float(self.coefs[0][algorithmName])
         
         # ---
         # Iterate through the raster, extracting the pixel for each non-zero
