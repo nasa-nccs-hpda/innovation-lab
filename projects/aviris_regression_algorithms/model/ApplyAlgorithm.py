@@ -97,7 +97,7 @@ class ApplyAlgorithm(object):
                                            1, # y read size
                                            1, # buf_xsize
                                            1, # buf_ysize
-                                           gdal.GDT_CFloat32, # buf_type
+                                           None, # buf_type read from image
                                            [bandIndex])
                                             
                     import pdb
