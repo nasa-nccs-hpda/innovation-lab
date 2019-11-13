@@ -84,19 +84,21 @@ class ApplyAlgorithm(object):
                 for coef in coefs[1:]:
 
                     bandName = 'Band ' + str(coef['Band Number'])
+                    import pdb
+                    pdb.set_trace()
+                    bandIndex = re.search(r'\d{0,3}$', bandName).group()
                     
-                    bandValue = \
-                        self. \
-                        imageFile. \
-                        _getDataset(). \
-                        ReadRaster(col,
-                                   row,
-                                   1,
-                                   1,
-                                   None, # buf_xsize
-                                   None, # buf_ysize
-                                   gdal.GDT_CFloat32 # buf_type
-                                   [re.search(r'\d{0,3}$', bandName).group()])
+                    bandValue = self. \
+                                imageFile. \
+                                    _getDataset(). \
+                                        ReadRaster(col,
+                                            row,
+                                            1,
+                                            1,
+                                            None, # buf_xsize
+                                            None, # buf_ysize
+                                            gdal.GDT_CFloat32 # buf_type
+                                            [bandIndex])
 
                 #     P += bandValue * coef[algorithm]
                 #
