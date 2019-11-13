@@ -97,7 +97,7 @@ class ApplyAlgorithm(object):
                                             1,
                                             None, # buf_xsize
                                             None, # buf_ysize
-                                            gdal.GDT_CFloat32 # buf_type
+                                            gdal.GDT_CFloat32, # buf_type
                                             range(1,2))
                                             
                     print 'bv = ' + str(bandValue)
