@@ -95,7 +95,7 @@ class ApplyAlgorithm(object):
                 # translate to bands 6 - 105.
                 # ---
                 divisor = math.sqrt(sum([p**2 for p in pixelStack[6:105] \
-                                              if pixelStack[p] != 0]))
+                                              if p != 0]))
                 
                 # # The first term is the y intercept.
                 # P = float(self.coefs[0][algorithmName])
