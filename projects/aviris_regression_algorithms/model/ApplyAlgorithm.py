@@ -104,9 +104,7 @@ class ApplyAlgorithm(object):
                     floatValue = struct.unpack('f', bandValue)[0]
                     print 'fv = ' + str(floatValue)
 
-                    import pdb
-                    pdb.set_trace()
-                    P += bandValue * float(coef[algorithmName])
+                    P += floatValue * float(coef[algorithmName])
 
                 outDs.WriteRaster(col, row, 1, 1, P)
                 
