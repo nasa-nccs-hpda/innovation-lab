@@ -96,7 +96,7 @@ class ApplyAlgorithm(object):
                     #                        gdal.GDT_CFloat32, # buf_type
                     #                        [bandName])
 
-                    self. \
+                    bandValue = self. \
                                 imageFile. \
                                 _getDataset(). \
                                 ReadRaster(col,
