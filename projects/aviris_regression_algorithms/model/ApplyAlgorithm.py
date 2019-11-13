@@ -83,8 +83,10 @@ class ApplyAlgorithm(object):
             for col in range(self.imageFile._getDataset().RasterXSize):
                 for coef in coefs[1:]:
 
-                    bandName = 'Band ' + str(coef['Band Number'])
-                    bandIndex = int(re.search(r'\d{0,3}$', bandName).group())
+                    bandIndex = int(re.search(r'\d{0,3}$', 
+                                              coef['Band Number']).group())
+                    
+                    print 'bi = ' + str(bandIndex)
                     
                     bandValue = self. \
                                 imageFile. \
