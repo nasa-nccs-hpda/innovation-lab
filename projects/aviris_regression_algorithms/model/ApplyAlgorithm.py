@@ -90,15 +90,15 @@ class ApplyAlgorithm(object):
                     
                     bandValue = self. \
                                 imageFile. \
-                                    _getDataset(). \
-                                        ReadRaster(col,
-                                            row,
-                                            1,
-                                            1,
-                                            None, # buf_xsize
-                                            None, # buf_ysize
-                                            gdal.GDT_CFloat32, # buf_type
-                                            [bandIndex])
+                                _getDataset(). \
+                                ReadRaster(col,
+                                           row,
+                                           1, # x read size
+                                           1, # y read size
+                                           1, # buf_xsize
+                                           1, # buf_ysize
+                                           gdal.GDT_CFloat32, # buf_type
+                                           [bandIndex])
                                             
                     import pdb
                     pdb.set_trace()
