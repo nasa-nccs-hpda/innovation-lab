@@ -88,7 +88,7 @@ class ApplyAlgorithm(object):
                 # ---
                 import pdb
                 pdb.set_trace()
-                pixelStack = self.readStack()
+                pixelStack = self.readStack(col, row)
                 
                 # ---
                 # Compute the square root of the sum of the squares of all band
