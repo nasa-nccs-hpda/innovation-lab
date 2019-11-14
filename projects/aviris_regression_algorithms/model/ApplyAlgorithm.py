@@ -163,8 +163,8 @@ class ApplyAlgorithm(object):
                         
                 coefValue = bandCoefValueDict[band]
             
-                if coefValue[1] != 0:
-                    tally += coefValue[2]**2
+                if coefValue[0] != 0:
+                    tally += coefValue[1]**2
                 
         return math.sqrt(tally)
         
