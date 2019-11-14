@@ -106,8 +106,6 @@ class ApplyAlgorithm(object):
                 # reflectances between 397nm and 898nm.  Those reflectances 
                 # translate to bands 6 - 105.
                 # ---
-                import pdb
-                pdb.set_trace()
                 divisor = self.computeDivisor(bandCoefValueDict)
                         
                 # Compute the result, normalizing pixel values as we go.
