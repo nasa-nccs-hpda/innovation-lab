@@ -95,7 +95,7 @@ class ApplyAlgorithm(object):
                 
                 # Apply masks.
                 if bandCoefValueDict[9][1] > 0.8 or \
-                    bandCoefValueDict[425][1] < 0.01:
+                    bandCoefValueDict[245][1] < 0.01:
 
                     hexValue = struct.pack('f', ApplyAlgorithm.NO_DATA_VALUE)
                     outDs.WriteRaster(col, row, 1, 1, hexValue)
