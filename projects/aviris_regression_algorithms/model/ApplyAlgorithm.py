@@ -76,8 +76,6 @@ class ApplyAlgorithm(object):
             for col in range(self.imageFile._getDataset().RasterXSize):
 
                 # Read the stack of pixels at this col, row location.
-                import pdb
-                pdb.set_trace()
                 pixelStack = self.readStack(col, row)
                 
                 # Check for no-data in the first pixel of the stack.
@@ -87,6 +85,8 @@ class ApplyAlgorithm(object):
                     outDs.WriteRaster(col, row, 1, 1, hexValue)
                     continue
 
+                import pdb
+                pdb.set_trace()
                 # ---
                 # Associate the pixel values in the stack with the band
                 # and coefficient information.  
