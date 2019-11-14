@@ -85,8 +85,6 @@ class ApplyAlgorithm(object):
                     outDs.WriteRaster(col, row, 1, 1, hexValue)
                     continue
 
-                import pdb
-                pdb.set_trace()
                 # ---
                 # Associate the pixel values in the stack with the band
                 # and coefficient information.  
@@ -107,6 +105,8 @@ class ApplyAlgorithm(object):
                 # reflectances between 397nm and 898nm.  Those reflectances 
                 # translate to bands 6 - 105.
                 # ---
+                import pdb
+                pdb.set_trace()
                 divisor = self.computeDivisor(bandCoefValueDict)
                         
                 # Compute the result, normalizing pixel values as we go.
