@@ -94,7 +94,7 @@ class ApplyAlgorithm(object):
                     self.associateValuesWithCoefs(pixelStack, algorithmName)
                 
                 # Apply masks.
-                if bandCoefValueDict[9][1] > 0.8 or 
+                if bandCoefValueDict[9][1] > 0.8 or \
                     bandCoefValueDict[425][1] < 0.01:
 
                     hexValue = struct.pack('f', ApplyAlgorithm.NO_DATA_VALUE)
