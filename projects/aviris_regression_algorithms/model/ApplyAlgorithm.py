@@ -141,7 +141,7 @@ class ApplyAlgorithm(object):
         for coefRow in self.coefs:
             
             bandIndex = \
-                int(re.search(r'\d{0,3}$', coefRow['Band Number']).group())
+                int(re.search(r'\d{0,3}$', coefRow['Band Number']).group()) - 1
 
             coef = float(coefRow[algorithmName])
             value = pixelStack[bandIndex]
