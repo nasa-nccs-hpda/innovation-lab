@@ -75,88 +75,145 @@ class ApplyAlgorithm(object):
         for row in range(self.imageFile._getDataset().RasterYSize):
             for col in range(self.imageFile._getDataset().RasterXSize):
 
-                # ---
-                # Test for masks and no-data values.
-                # ---
-                if self.isMaskedOrNoData(col, row): 
-                    
+                # Read the stack of pixels at this col, row location.
+                pixelStack = self.readStack(col, row)
+                
+                # Check for no-data in the first pixel of the stack.
+                if pixelStack[0] == ApplyAlgorithm.NO_DATA_VALUE:
+
                     hexValue = struct.pack('f', ApplyAlgorithm.NO_DATA_VALUE)
                     outDs.WriteRaster(col, row, 1, 1, hexValue)
                     next
-                
+
                 # ---
-                # Read the stack of pixels at this col, row location.
+                # Associate the pixel values in the stack with the band
+                # and coefficient information.  
+                # {bandNumber: (coefficient, pixel value)}
                 # ---
-                pixelStack = self.readStack(col, row)
+                bandCoefValueDict = \
+                    self.associateValuesWithCoefs(pixelStack, algorithmName)
                 
+                # Apply masks.
+                if bandCoefValueDict[9] > 0.8 or bandCoefValueDict[425] <0.01:
+
+                    hexValue = struct.pack('f', ApplyAlgorithm.NO_DATA_VALUE)
+                    outDs.WriteRaster(col, row, 1, 1, hexValue)
+                    next
+
                 # ---
                 # Compute the square root of the sum of the squares of all band
                 # reflectances between 397nm and 898nm.  Those reflectances 
                 # translate to bands 6 - 105.
                 # ---
-                divisor = math.sqrt(sum([p**2 for p in pixelStack[6:105] \
-                                              if p != 0]))
+                divisor = self.computeDivisor(bandCoefValueDict)
+                        
+                # Compute the result, normalizing pixel values as we go.
+                p = 0.0
                 
-                # # The first term is the y intercept.
-                # P = float(self.coefs[0][algorithmName])
-                #
-                #
-                #
-                #
-                # hexValue = struct.pack('f', P)
-                # outDs.WriteRaster(col, row, 1, 1, hexValue)
+                for band in bandCoefValueDict.iterkeys():
+            
+                    coefValue = bandCoefValueDict[band]
+                    coef = coefValue[0]
+                    normalizedValue = coefValue[1] / divisor
+
+                    if band == 0:
+
+                        p = normalizedValue
+                        
+                    else:
+                        
+                        p += coef * normalizedValue
+                        
+                hexValue = struct.pack('f', p)
+                outDs.WriteRaster(col, row, 1, 1, hexValue)
                 
         outDs.close()
                 
     # -------------------------------------------------------------------------
+    # associateValuesWithCoefs
+    # -------------------------------------------------------------------------
+    def associateValuesWithCoefs(self, pixelStack, algorithmName):
+        
+        bandCoefValueDict = {}
+
+        for coefRow in self.coefs:
+            
+            bandIndex = \
+                int(re.search(r'\d{0,3}$', coefRow['Band Number']).group())
+
+            coef = float(coefRow[algorithmName])
+            value = pixelStack[bandIndex])
+            bandCoefValueDict[bandIndex] = (coef, value)
+            
+        return bandCoefValueDict
+
+    # -------------------------------------------------------------------------
+    # computeDivisor
+    # -------------------------------------------------------------------------
+    def computeDivisor(self, bandCoefValueDict):
+        
+        tally = 0.0
+        
+        for band in bandCoefValueDict.iterkeys():
+            
+            if band > 5 and band < 106:
+                        
+                coefValue = bandCoefValueDict[band]
+            
+                if coefValue[1] != 0:
+                    tally += coefValue[2]**2
+                
+        return math.sqrt(tally)
+        
+    # -------------------------------------------------------------------------
     # isMaskedOrNoData
     # -------------------------------------------------------------------------
-    def isMaskedOrNoData(self, col, row):
-                
-        # ---
-        # Mask: band 10 > 0.8
-        # Also check for a no-data value.  When found the output value is
-        # no data.
-        # ---
-        bandValue = self.readOnePixelToFloat(col, row, 9)  
-        
-        if bandValue > 0.8 or bandValue == ApplyAlgorithm.NO_DATA_VALUE:
-            return True
-
-        # Mask: band 426 < 0.01
-        bandValue = self.readOnePixelToFloat(col, row, 425)  
-        if bandValue < 0.01: return True
-        
-        return False
+    # def isMaskedOrNoData(self, col, row):
+    #
+    #     # ---
+    #     # Mask: band 10 > 0.8
+    #     # Also check for a no-data value.  When found the output value is
+    #     # no data.
+    #     # ---
+    #     bandValue = self.readOnePixelToFloat(col, row, 9)
+    #
+    #     if bandValue > 0.8 or bandValue == ApplyAlgorithm.NO_DATA_VALUE:
+    #         return True
+    #
+    #     # Mask: band 426 < 0.01
+    #     bandValue = self.readOnePixelToFloat(col, row, 425)
+    #     if bandValue < 0.01: return True
+    #
+    #     return False
         
     # -------------------------------------------------------------------------
     # readOnePixelToFloat
     # -------------------------------------------------------------------------
-    def readOnePixelToFloat(self, col, row, band):
-        
-        pixelAsString = self. \
-                        imageFile. \
-                        _getDataset(). \
-                        ReadRaster(col,
-                                   row,
-                                   1, # x read size
-                                   1, # y read size
-                                   1, # buf_xsize
-                                   1, # buf_ysize
-                                   None, # buf_type read from image
-                                   [band])
-
-        pixelAsFloat = struct.unpack('f', pixelAsString)[0]
-
-        if self.logger:
-
-            msg = '(band, value) = (' + \
-                  str(band) + ', ' + \
-                  str(pixelAsFloat) + ')'
-
-            self.logger.info(msg)
-            
-        return pixelAsFloat
+    # def readOnePixelToFloat(self, col, row, band):
+    #
+    #     pixelAsString = self. \
+    #                     imageFile. \
+    #                     _getDataset(). \
+    #                     ReadRaster(col,
+    #                                row,
+    #                                1, # x read size
+    #                                1, # y read size
+    #                                1, # buf_xsize
+    #                                1, # buf_ysize
+    #                                None, # buf_type read from image
+    #                                [band])
+    #
+    #     pixelAsFloat = struct.unpack('f', pixelAsString)[0]
+    #
+    #     if self.logger:
+    #
+    #         msg = '(band, value) = (' + \
+    #               str(band) + ', ' + \
+    #               str(pixelAsFloat) + ')'
+    #
+    #         self.logger.info(msg)
+    #
+    #     return pixelAsFloat
         
     # -------------------------------------------------------------------------
     # readStack
