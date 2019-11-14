@@ -94,9 +94,8 @@ class ApplyAlgorithm(object):
                     self.associateValuesWithCoefs(pixelStack, algorithmName)
                 
                 # Apply masks.
-                import pdb
-                pdb.set_trace()
-                if bandCoefValueDict[9] > 0.8 or bandCoefValueDict[425] <0.01:
+                if bandCoefValueDict[9][1] > 0.8 or 
+                    bandCoefValueDict[425][1] < 0.01:
 
                     hexValue = struct.pack('f', ApplyAlgorithm.NO_DATA_VALUE)
                     outDs.WriteRaster(col, row, 1, 1, hexValue)
@@ -107,6 +106,8 @@ class ApplyAlgorithm(object):
                 # reflectances between 397nm and 898nm.  Those reflectances 
                 # translate to bands 6 - 105.
                 # ---
+                import pdb
+                pdb.set_trace()
                 divisor = self.computeDivisor(bandCoefValueDict)
                         
                 # Compute the result, normalizing pixel values as we go.
