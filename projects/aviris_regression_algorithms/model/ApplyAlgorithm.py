@@ -83,15 +83,13 @@ class ApplyAlgorithm(object):
 
                     hexValue = struct.pack('f', ApplyAlgorithm.NO_DATA_VALUE)
                     outDs.WriteRaster(col, row, 1, 1, hexValue)
-                    next
+                    continue
 
                 # ---
                 # Associate the pixel values in the stack with the band
                 # and coefficient information.  
                 # {bandNumber: (coefficient, pixel value)}
                 # ---
-                import pdb
-                pdb.set_trace()
                 bandCoefValueDict = \
                     self.associateValuesWithCoefs(pixelStack, algorithmName)
                 
@@ -100,13 +98,15 @@ class ApplyAlgorithm(object):
 
                     hexValue = struct.pack('f', ApplyAlgorithm.NO_DATA_VALUE)
                     outDs.WriteRaster(col, row, 1, 1, hexValue)
-                    next
+                    continue
 
                 # ---
                 # Compute the square root of the sum of the squares of all band
                 # reflectances between 397nm and 898nm.  Those reflectances 
                 # translate to bands 6 - 105.
                 # ---
+                import pdb
+                pdb.set_trace()
                 divisor = self.computeDivisor(bandCoefValueDict)
                         
                 # Compute the result, normalizing pixel values as we go.
