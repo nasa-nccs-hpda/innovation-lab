@@ -76,6 +76,8 @@ class ApplyAlgorithm(object):
             for col in range(self.imageFile._getDataset().RasterXSize):
 
                 # Read the stack of pixels at this col, row location.
+                import pdb
+                pdb.set_trace()
                 pixelStack = self.readStack(col, row)
                 
                 # Check for no-data in the first pixel of the stack.
@@ -105,8 +107,6 @@ class ApplyAlgorithm(object):
                 # reflectances between 397nm and 898nm.  Those reflectances 
                 # translate to bands 6 - 105.
                 # ---
-                import pdb
-                pdb.set_trace()
                 divisor = self.computeDivisor(bandCoefValueDict)
                         
                 # Compute the result, normalizing pixel values as we go.
@@ -129,7 +129,7 @@ class ApplyAlgorithm(object):
                 hexValue = struct.pack('f', p)
                 outDs.WriteRaster(col, row, 1, 1, hexValue)
                 
-        outDs.close()
+        outDs = None
                 
     # -------------------------------------------------------------------------
     # associateValuesWithCoefs
