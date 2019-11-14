@@ -172,10 +172,8 @@ class ApplyAlgorithm(object):
     # -------------------------------------------------------------------------
     def readStack(self, col, row):
         
-        pixelsAsStrings = \
-            self.imageFile._getDataset().ReadAsArray(col, row, 1, 1)
-            
-        pixelsAsFloats = [struct.unpack('f', p)[0] for p in pixelsAsStrings]
+        numpyPixels = self.imageFile._getDataset().ReadAsArray(col, row, 1, 1)
+        pixelsAsFloats = [p[0][0] for p in numpyPixels]
 
         return pixelsAsFloats
         
