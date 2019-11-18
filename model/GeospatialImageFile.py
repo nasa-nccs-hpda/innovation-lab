@@ -5,6 +5,8 @@ import math
 import shutil
 import tempfile
 
+from osgeo.osr import SpatialReference
+
 from model.Envelope import Envelope
 from model.ImageFile import ImageFile
 from model.SystemCommand import SystemCommand
@@ -29,8 +31,12 @@ class GeospatialImageFile(ImageFile):
         # Initialize the base class.
         super(GeospatialImageFile, self).__init__(pathToFile, extension)
         
+        # Initialize the spatial reference.
         if not spatialReference:
-            spatialReference = self._getDataset()
+            
+            spatialReferenceWkt = self._getDataset().GetProjection()
+            spatialReference = SpatialReference()
+            spatialReference.ImportFromWKT(spatialReferenceWkt)
 
         if spatialReference.Validate() != 0:
 
@@ -142,17 +148,6 @@ class GeospatialImageFile(ImageFile):
         return math.fabs(yScale * -1)
 
     # -------------------------------------------------------------------------
-    # __reduce__
-    # -------------------------------------------------------------------------
-    def __reduce__(self):
-        
-        print 'reduce'
-        state = {GeospatialImageFile.FILE_KEY: self.fileName(),
-                 GeospatialImageFile.SRS_KEY: self._srs.ExportToWkt()}
-        
-        return (self.__class__, (), state)
-
-    # -------------------------------------------------------------------------
     # resample
     # -------------------------------------------------------------------------
     def resample(self, xScale, yScale):
@@ -178,13 +173,73 @@ class GeospatialImageFile(ImageFile):
         return xform[1], xform[5]
 
     # -------------------------------------------------------------------------
+    # srs
+    # -------------------------------------------------------------------------
+    def srs(self):
+
+        return self._srs
+
+    # -------------------------------------------------------------------------
+    # __dict__
+    # -------------------------------------------------------------------------
+    def __dict__(self):
+
+        print '__dict__'
+
+    # -------------------------------------------------------------------------
+    # __getnewargs__
+    #
+    # NOTE: This is not called when __reduce__ is available.
+    # -------------------------------------------------------------------------
+    def __getnewargs__(self):
+
+        print '__getnewargs__ for new-style classes using protocol 2'
+
+    # -------------------------------------------------------------------------
+    # __getinitargs__
+    # -------------------------------------------------------------------------
+    def __getinitargs__(self):
+
+        print '__getinitargs__ for old-style classes'
+        srs = SpatialReference()
+        srs.ImportFromWkt(state[GeospatialImageFile.SRS_KEY])
+        return (state[GeospatialImageFile.SRS_KEY], srs)
+        
+    # -------------------------------------------------------------------------
+    # __getstate__
+    # -------------------------------------------------------------------------
+    def __getstate__(self):
+        
+        print '__getstate__'
+
+    # -------------------------------------------------------------------------
+    # __new__
+    # -------------------------------------------------------------------------
+    # def __new__(self):
+    #
+    #     print '__new__'
+        
+    # -------------------------------------------------------------------------
+    # __reduce__
+    #
+    # NOTE: When using __reduce__, __getnewargs__ will not be called.
+    # -------------------------------------------------------------------------
+    # def __reduce__(self):
+    #
+    #     print '__reduce__'
+    #     state = {GeospatialImageFile.FILE_KEY: self.fileName(),
+    #              GeospatialImageFile.SRS_KEY: self._srs.ExportToWkt()}
+    #
+    #     return (self.__class__, (), state)
+
+    # -------------------------------------------------------------------------
     # __setstate__
     #
     # e2 = pickle.loads(pickle.dumps(env))
     # -------------------------------------------------------------------------
     def __setstate__(self, state):
 
-        print 'setstate'
+        print '__setstate__'
         # self._filePath = state[GeospatialImageFile.FILE_KEY]
         # self._srs = SpatialReference()
         # self._srs.ImportFromWkt(state[GeospatialImageFile.SRS_KEY])
@@ -193,19 +248,3 @@ class GeospatialImageFile(ImageFile):
         srs.ImportFromWkt(state[GeospatialImageFile.SRS_KEY])
         self.__init__(state[GeospatialImageFile.FILE_KEY], srs)
 
-    # -------------------------------------------------------------------------
-    # __getinitargs__
-    # -------------------------------------------------------------------------
-    def __getinitargs__(self):
-
-        print 'getnewargs'
-        srs = SpatialReference()
-        srs.ImportFromWkt(state[GeospatialImageFile.SRS_KEY])
-        return (state[GeospatialImageFile.SRS_KEY], srs)
-        
-    # -------------------------------------------------------------------------
-    # srs
-    # -------------------------------------------------------------------------
-    def srs(self):
-
-        return self._srs
