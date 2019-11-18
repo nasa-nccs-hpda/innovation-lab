@@ -186,8 +186,13 @@ class ApplyAlgorithm(object):
         pdb.set_trace()
         with open(outFile, 'w') as f:
             
-            writer = csv.writer(f)
-            writer.writerows(pixelStack)
+            fieldNames = ['Band', 'Value']
+            writer = csv.writer(f, fieldnames=fieldNames)
+            write.writeheader()
+            band = 0
+            
+            for pixel in pixelStack:
+                writer.writerow([band++, pixelStack])
         
     # -------------------------------------------------------------------------
     # readStack
