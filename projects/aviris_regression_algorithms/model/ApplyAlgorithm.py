@@ -92,6 +92,10 @@ class ApplyAlgorithm(object):
 
                     hexValue = struct.pack('f', ApplyAlgorithm.NO_DATA_VALUE)
                     outDs.WriteRaster(col, row, 1, 1, hexValue)
+
+                    if writer:
+                        writer.writerow({'Band': 'No Data', 'Value': True})
+                        
                     continue
 
                 # ---
@@ -108,6 +112,10 @@ class ApplyAlgorithm(object):
 
                     hexValue = struct.pack('f', ApplyAlgorithm.NO_DATA_VALUE)
                     outDs.WriteRaster(col, row, 1, 1, hexValue)
+
+                    if writer:
+                        writer.writerow({'Band': 'Mask', 'Value': True})
+                        
                     continue
 
                 # ---
