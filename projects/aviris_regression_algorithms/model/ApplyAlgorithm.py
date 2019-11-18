@@ -81,7 +81,8 @@ class ApplyAlgorithm(object):
                 pixelStack = self.readStack(col, row)
                 
                 # For debugging, this can be imported to a spreadsheet.
-                self.pixelStackToCsv(pixelStack, row, col)
+                if row == 0 and col == 0:
+                    self.pixelStackToCsv(pixelStack, row, col)
                 
                 # Check for no-data in the first pixel of the stack.
                 if pixelStack[0] == ApplyAlgorithm.NO_DATA_VALUE:
@@ -180,10 +181,9 @@ class ApplyAlgorithm(object):
                                             '-pixelStack-' + \
                                             str(row) + \
                                             '-' + \
-                                            str(col))
+                                            str(col) + \
+                                            '.csv')
 
-        import pdb
-        pdb.set_trace()
         with open(outFile, 'w') as f:
             
             fieldNames = ['Band', 'Value']
