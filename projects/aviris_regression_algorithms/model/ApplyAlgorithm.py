@@ -82,8 +82,6 @@ class ApplyAlgorithm(object):
                 
                 # For debugging, this can be imported to a spreadsheet.
                 if row == 0 and col == 0:
-                    import pdb
-                    pdb.set_trace()
                     self.pixelStackToCsv(pixelStack, row, col)
                 
                 # Check for no-data in the first pixel of the stack.
@@ -179,12 +177,13 @@ class ApplyAlgorithm(object):
     # -------------------------------------------------------------------------
     def pixelStackToCsv(self, pixelStack, row, col):
         
-        outFile = os.path.join(self.outDir, self.imageFile.fileName() + \
-                                            '-pixelStack-' + \
-                                            str(row) + \
-                                            '-' + \
-                                            str(col) + \
-                                            '.csv')
+        outFile = os.path.join(self.outDir, 
+                               os.path.basename(self.imageFile.fileName()) + \
+                                                '-pixelStack-' + \
+                                                str(row) + \
+                                                '-' + \
+                                                str(col) + \
+                                                '.csv')
 
         with open(outFile, 'w') as f:
             
