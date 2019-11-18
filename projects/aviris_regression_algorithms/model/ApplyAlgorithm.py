@@ -182,6 +182,8 @@ class ApplyAlgorithm(object):
                                             '-' + \
                                             str(col))
 
+        import pdb
+        pdb.set_trace()
         with open(outFile, 'w') as f:
             
             writer = csv.writer(f)
