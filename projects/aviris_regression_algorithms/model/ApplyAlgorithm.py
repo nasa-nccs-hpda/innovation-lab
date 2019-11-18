@@ -19,6 +19,7 @@ from model.GeospatialImageFile import GeospatialImageFile
 # -----------------------------------------------------------------------------
 class ApplyAlgorithm(object):
 
+    DEBUG_ROW_COL = (0, 0)  # Set to (-1, -1) to debug no pixels.
     NO_DATA_VALUE = -9999.0
     
     # -------------------------------------------------------------------------
@@ -81,8 +82,10 @@ class ApplyAlgorithm(object):
                 pixelStack = self.readStack(col, row)
                 
                 # For debugging, this can be imported to a spreadsheet.
-                if row == 0 and col == 0:
-                    self.pixelStackToCsv(pixelStack, row, col)
+                writer = None
+                
+                if ApplyAlgorithm.DEBUG_ROW_COL == (row, col):
+                    writer = self.pixelStackToCsv(pixelStack, row, col)
                 
                 # Check for no-data in the first pixel of the stack.
                 if pixelStack[0] == ApplyAlgorithm.NO_DATA_VALUE:
@@ -113,6 +116,10 @@ class ApplyAlgorithm(object):
                 # translate to bands 6 - 105.
                 # ---
                 divisor = self.computeDivisor(bandCoefValueDict)
+                
+                if writer:
+                    writer.writerow({'Band': 'divisor', 'Value': divisor})
+                
                         
                 # Compute the result, normalizing pixel values as we go.
                 p = 0.0
@@ -133,6 +140,11 @@ class ApplyAlgorithm(object):
                         
                 hexValue = struct.pack('f', p)
                 outDs.WriteRaster(col, row, 1, 1, hexValue)
+                
+                if writer:
+
+                    writer.writerow({'Band': 'p', 'Value': p})
+                    writer.writerow({'Band': 'hex', 'Value': hexValue})
                 
         outDs = None
                 
@@ -196,6 +208,8 @@ class ApplyAlgorithm(object):
                 
                 band += 1
                 writer.writerow({'Band': band, 'Value': pixel})
+                
+        return writer
         
     # -------------------------------------------------------------------------
     # readStack
