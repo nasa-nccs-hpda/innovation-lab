@@ -195,7 +195,7 @@ class ApplyAlgorithm(object):
             for pixel in pixelStack:
                 
                 band += 1
-                writer.writerow({'Band': band, 'Value': pixelStack})
+                writer.writerow({'Band': band, 'Value': pixel})
         
     # -------------------------------------------------------------------------
     # readStack
