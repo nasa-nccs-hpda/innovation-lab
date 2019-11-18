@@ -69,7 +69,7 @@ class ApplyAlgorithm(object):
                               self.imageFile._getDataset().RasterYSize)
 
         outDs.SetProjection(self.imageFile._getDataset().GetProjection())
-        outDs.SetGeoTransform(self.imageFile._getDataset().GetGeoTransoform())
+        outDs.SetGeoTransform(self.imageFile._getDataset().GetGeoTransform())
         
         # ---
         # Iterate through the raster, pixel by pixel.
