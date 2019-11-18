@@ -36,7 +36,7 @@ class GeospatialImageFile(ImageFile):
             
             spatialReferenceWkt = self._getDataset().GetProjection()
             spatialReference = SpatialReference()
-            spatialReference.ImportFromWKT(spatialReferenceWkt)
+            spatialReference.ImportFromWkt(spatialReferenceWkt)
 
         if spatialReference.Validate() != 0:
 
