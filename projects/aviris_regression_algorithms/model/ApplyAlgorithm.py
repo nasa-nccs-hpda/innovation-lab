@@ -80,6 +80,9 @@ class ApplyAlgorithm(object):
                 # Read the stack of pixels at this col, row location.
                 pixelStack = self.readStack(col, row)
                 
+                # For debugging, this can be imported to a spreadsheet.
+                self.pixelStackToCsv(pixelStack, row, col)
+                
                 # Check for no-data in the first pixel of the stack.
                 if pixelStack[0] == ApplyAlgorithm.NO_DATA_VALUE:
 
@@ -167,6 +170,22 @@ class ApplyAlgorithm(object):
                     tally += coefValue[1]**2
                 
         return math.sqrt(tally)
+        
+    # -------------------------------------------------------------------------
+    # pixelStackToCsv
+    # -------------------------------------------------------------------------
+    def pixelStackToCsv(self, pixelStack, row, col):
+        
+        outFile = os.path.join(outDir, self.imageFile.fileName + \
+                                       '-pixelStack-' + \
+                                       str(row) + \
+                                       '-' + \
+                                       str(col))
+
+        with open(outFile, 'w') as f:
+            
+            writer = csv.writer(f)
+            writer.writerows(pixelStack)
         
     # -------------------------------------------------------------------------
     # readStack
