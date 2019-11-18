@@ -187,14 +187,14 @@ class ApplyAlgorithm(object):
         with open(outFile, 'w') as f:
             
             fieldNames = ['Band', 'Value']
-            writer = csv.writer(f, fieldnames=fieldNames)
+            writer = csv.DictWriter(f, fieldnames=fieldNames)
             write.writeheader()
             band = -1
             
             for pixel in pixelStack:
                 
                 band += 1
-                writer.writerow([band, pixelStack])
+                writer.writerow({'Band': band, 'Value': pixelStack})
         
     # -------------------------------------------------------------------------
     # readStack
