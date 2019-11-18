@@ -64,12 +64,13 @@ class ApplyAlgorithm(object):
         outName = os.path.join(self.outDir, algorithmName + '.tif')
         driver = gdal.GetDriverByName('GTiff')
         
-        outDs = driver.Create(outName, 
-                              self.imageFile._getDataset().RasterXSize, 
+        outDs = driver.Create(outName,
+                              self.imageFile._getDataset().RasterXSize,
                               self.imageFile._getDataset().RasterYSize)
-                              
-        outDs.SetProjection(self.imageFile._getDataset().GetProjection())
 
+        outDs.SetProjection(self.imageFile._getDataset().GetProjection())
+        outDs.SetGeoTransform(self.imageFile._getDataset().GetGeoTransofrm()))
+        
         # ---
         # Iterate through the raster, pixel by pixel.
         # ---
