@@ -188,7 +188,7 @@ class ApplyAlgorithm(object):
             
             fieldNames = ['Band', 'Value']
             writer = csv.DictWriter(f, fieldnames=fieldNames)
-            write.writeheader()
+            writer.writeheader()
             band = -1
             
             for pixel in pixelStack:
