@@ -189,10 +189,12 @@ class ApplyAlgorithm(object):
             fieldNames = ['Band', 'Value']
             writer = csv.writer(f, fieldnames=fieldNames)
             write.writeheader()
-            band = 0
+            band = -1
             
             for pixel in pixelStack:
-                writer.writerow([band++, pixelStack])
+                
+                band += 1
+                writer.writerow([band, pixelStack])
         
     # -------------------------------------------------------------------------
     # readStack
