@@ -82,6 +82,8 @@ class ApplyAlgorithm(object):
                 
                 # For debugging, this can be imported to a spreadsheet.
                 if row == 0 and col == 0:
+                    import pdb
+                    pdb.set_trace()
                     self.pixelStackToCsv(pixelStack, row, col)
                 
                 # Check for no-data in the first pixel of the stack.
