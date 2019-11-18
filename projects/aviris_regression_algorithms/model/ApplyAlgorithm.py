@@ -176,7 +176,7 @@ class ApplyAlgorithm(object):
     # -------------------------------------------------------------------------
     def pixelStackToCsv(self, pixelStack, row, col):
         
-        outFile = os.path.join(self.outDir, self.imageFile.fileName + \
+        outFile = os.path.join(self.outDir, self.imageFile.fileName() + \
                                             '-pixelStack-' + \
                                             str(row) + \
                                             '-' + \
