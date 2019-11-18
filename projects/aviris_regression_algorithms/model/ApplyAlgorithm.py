@@ -9,7 +9,7 @@ import struct
 from osgeo import gdal
 
 from model.BaseFile import BaseFile
-from model.ImageFile import ImageFile
+from model.GeospatialImageFile import GeospatialImageFile
 
 
 # -----------------------------------------------------------------------------
@@ -35,7 +35,7 @@ class ApplyAlgorithm(object):
         self.logger = logger
         self.outDir = outDir
         self.coefFile = BaseFile(coefFile, '.csv')
-        self.imageFile = ImageFile(avirisImage, None)
+        self.imageFile = GeospatialImageFile(avirisImage, None, None)
         self.coefs = []
         
         with open(self.coefFile.fileName()) as csvFile:
@@ -44,7 +44,6 @@ class ApplyAlgorithm(object):
             
             for row in reader:
                 self.coefs.append(row)
-
         
     # -------------------------------------------------------------------------
     # applyAlgorithm
@@ -68,6 +67,8 @@ class ApplyAlgorithm(object):
         outDs = driver.Create(outName, 
                               self.imageFile._getDataset().RasterXSize, 
                               self.imageFile._getDataset().RasterYSize)
+                              
+        outDs.SetProjection(self.imageFile._getDataset().GetProjection())
 
         # ---
         # Iterate through the raster, pixel by pixel.
