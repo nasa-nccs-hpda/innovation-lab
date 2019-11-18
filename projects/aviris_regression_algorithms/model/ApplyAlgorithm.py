@@ -155,6 +155,9 @@ class ApplyAlgorithm(object):
                     writer.writerow({'Band': 'hex', 'Value': hexValue})
                 
         outDs = None
+        
+        if writer:
+            writer = None
                 
     # -------------------------------------------------------------------------
     # associateValuesWithCoefs
@@ -205,17 +208,16 @@ class ApplyAlgorithm(object):
                                                 str(col) + \
                                                 '.csv')
 
-        with open(outFile, 'w') as f:
+        open(outFile, 'w') as f
+        fieldNames = ['Band', 'Value']
+        writer = csv.DictWriter(f, fieldnames=fieldNames)
+        writer.writeheader()
+        band = -1
+        
+        for pixel in pixelStack:
             
-            fieldNames = ['Band', 'Value']
-            writer = csv.DictWriter(f, fieldnames=fieldNames)
-            writer.writeheader()
-            band = -1
-            
-            for pixel in pixelStack:
-                
-                band += 1
-                writer.writerow({'Band': band, 'Value': pixel})
+            band += 1
+            writer.writerow({'Band': band, 'Value': pixel})
                 
         return writer
         
