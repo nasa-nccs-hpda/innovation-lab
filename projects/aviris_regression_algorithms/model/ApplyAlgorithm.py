@@ -19,7 +19,9 @@ from model.GeospatialImageFile import GeospatialImageFile
 # -----------------------------------------------------------------------------
 class ApplyAlgorithm(object):
 
-    DEBUG_ROW_COL = (0, 0)  # Set to (-1, -1) to debug no pixels.
+    DEBUG_START = (0, 0)  # Set to (-1, -1) to debug no pixels.
+    DEBUG_END = (-1, -1)  # Set to (-1, -1) to debug all pixels from start.
+    
     NO_DATA_VALUE = -9999.0
     
     # -------------------------------------------------------------------------
@@ -45,6 +47,36 @@ class ApplyAlgorithm(object):
             
             for row in reader:
                 self.coefs.append(row)
+                
+        # ---
+        # Set up debugging.
+        #
+        # Band      (Row, Col)  (Row, Col)
+        # Band      Value       Value
+        # ...
+        # No Data   True    False
+        # P         p           p
+        # Hex       hex         hex
+        # ---
+        if ApplyAlgorithm.DEBUG_START[0] != -1 and \
+            ApplyAlgorithm.DEBUG_END != -1:
+            
+            fieldNames = ['Band']
+            
+            for row in range(ApplyAlgorithm.DEBUG_START[0],
+                             ApplyAlgorithm.DEBUG_END[0] + 1):
+                for col in range(ApplyAlgorithm.DEBUG_END[1],
+                                 ApplyAlgorithm.DEBUG_END[1] + 1):
+                                 
+                    fieldNames.append(self._makeRowColKey(row, col))
+                                 
+            outFile = \
+                os.path.join(self.outDir, 
+                             os.path.basename(self.imageFile.fileName()) + \
+                                              '.csv')
+
+            f = open(outFile, 'w')
+            self.debugWriter = csv.DictWriter(f, fieldnames=fieldNames)
         
     # -------------------------------------------------------------------------
     # applyAlgorithm
@@ -79,14 +111,13 @@ class ApplyAlgorithm(object):
             for col in range(self.imageFile._getDataset().RasterXSize):
 
                 # Read the stack of pixels at this col, row location.
-                pixelStack = self.readStack(col, row)
+                pixelStack = self._readStack(col, row)
                 
-                # For debugging, this can be imported to a spreadsheet.
-                # writer = None
-                #
-                # if ApplyAlgorithm.DEBUG_ROW_COL == (row, col):
-                writer = self.pixelStackToCsv(pixelStack, row, col) \
-                    if ApplyAlgorithm.DEBUG_ROW_COL == (row, col) else None
+                debugKey = self._makeRowColKey(row, col) \
+                    if self._isDebugPixel(row, col) else None
+                    
+                if debugKey:
+                    self._pixelStackToCsv(key, pixelStack)
                 
                 # Check for no-data in the first pixel of the stack.
                 if pixelStack[0] == ApplyAlgorithm.NO_DATA_VALUE:
@@ -94,8 +125,8 @@ class ApplyAlgorithm(object):
                     hexValue = struct.pack('f', ApplyAlgorithm.NO_DATA_VALUE)
                     outDs.WriteRaster(col, row, 1, 1, hexValue)
 
-                    if writer:
-                        writer.writerow({'Band': 'No Data', 'Value': True})
+                    if debugKey:
+                        self.debugWriter.writerow({'Band': 'No data'})
                         
                     continue
 
@@ -105,7 +136,7 @@ class ApplyAlgorithm(object):
                 # {bandNumber: (coefficient, pixel value)}
                 # ---
                 bandCoefValueDict = \
-                    self.associateValuesWithCoefs(pixelStack, algorithmName)
+                    self._associateValuesWithCoefs(pixelStack, algorithmName)
                 
                 # Apply masks.
                 if bandCoefValueDict[9][1] > 0.8 or \
@@ -114,8 +145,8 @@ class ApplyAlgorithm(object):
                     hexValue = struct.pack('f', ApplyAlgorithm.NO_DATA_VALUE)
                     outDs.WriteRaster(col, row, 1, 1, hexValue)
 
-                    if writer:
-                        writer.writerow({'Band': 'Mask', 'Value': True})
+                    if debugKey:
+                        self.debugWriter.writerow({'Band': 'Mask'})
                         
                     continue
 
@@ -124,11 +155,10 @@ class ApplyAlgorithm(object):
                 # reflectances between 397nm and 898nm.  Those reflectances 
                 # translate to bands 6 - 105.
                 # ---
-                divisor = self.computeDivisor(bandCoefValueDict)
+                divisor = self._computeDivisor(bandCoefValueDict)
                 
                 if writer:
-                    writer.writerow({'Band': 'divisor', 'Value': divisor})
-                
+                    writer.writerow({'Band': 'divisor', 'Value': divisor})             
                         
                 # Compute the result, normalizing pixel values as we go.
                 p = 0.0
@@ -161,9 +191,9 @@ class ApplyAlgorithm(object):
             writer = None
                 
     # -------------------------------------------------------------------------
-    # associateValuesWithCoefs
+    # _associateValuesWithCoefs
     # -------------------------------------------------------------------------
-    def associateValuesWithCoefs(self, pixelStack, algorithmName):
+    def _associateValuesWithCoefs(self, pixelStack, algorithmName):
         
         bandCoefValueDict = {}
 
@@ -179,9 +209,9 @@ class ApplyAlgorithm(object):
         return bandCoefValueDict
 
     # -------------------------------------------------------------------------
-    # computeDivisor
+    # _computeDivisor
     # -------------------------------------------------------------------------
-    def computeDivisor(self, bandCoefValueDict):
+    def _computeDivisor(self, bandCoefValueDict):
         
         tally = 0.0
         
@@ -197,35 +227,45 @@ class ApplyAlgorithm(object):
         return math.sqrt(tally)
         
     # -------------------------------------------------------------------------
-    # pixelStackToCsv
+    # _isDebugPixel
     # -------------------------------------------------------------------------
-    def pixelStackToCsv(self, pixelStack, row, col):
+    def _isDebugPixel(self, row, col):
         
-        outFile = os.path.join(self.outDir, 
-                               os.path.basename(self.imageFile.fileName()) + \
-                                                '-pixelStack-' + \
-                                                str(row) + \
-                                                '-' + \
-                                                str(col) + \
-                                                '.csv')
-
-        f = open(outFile, 'w')
-        fieldNames = ['Band', 'Value']
-        writer = csv.DictWriter(f, fieldnames=fieldNames)
-        writer.writeheader()
+        if self.writer and \
+            row >= ApplyAlgorithm.DEBUG_START[0] and \
+            row <= ApplyAlgorithm.DEBUG_END[0] and \
+            col >= ApplyAlgorithm.DEBUG_START[1] and \
+            col <= ApplyAlgorithm.DEBUG_END[1]:
+            
+            return True
+            
+        return False
+        
+    # -------------------------------------------------------------------------
+    # _makeRowColKey
+    # -------------------------------------------------------------------------
+    def _makeRowColKey(self, row, col):
+        
+        return '(' + str(row) + ', ' + str(col) + ')'
+        
+    # -------------------------------------------------------------------------
+    # _pixelStackToCsv
+    # -------------------------------------------------------------------------
+    def _pixelStackToCsv(self, key, pixelStack):
+        
         band = -1
         
         for pixel in pixelStack:
             
             band += 1
-            writer.writerow({'Band': band, 'Value': pixel})
+            self.debugWriter.writerow({'Band': band, key: pixel})
                 
         return writer
         
     # -------------------------------------------------------------------------
-    # readStack
+    # _readStack
     # -------------------------------------------------------------------------
-    def readStack(self, col, row):
+    def _readStack(self, col, row):
         
         numpyPixels = self.imageFile._getDataset().ReadAsArray(col, row, 1, 1)
         pixelsAsFloats = [p[0][0] for p in numpyPixels]
