@@ -76,8 +76,8 @@ class ApplyAlgorithm(object):
                 self.rowEnd = -1
                 self.colEnd = -1
                 
-            for row in range(ApplyAlgorithm.DEBUG_START[0], rowEnd):
-                for col in range(ApplyAlgorithm.DEBUG_START[1], colEnd):
+            for row in range(ApplyAlgorithm.DEBUG_START[0], self.rowEnd):
+                for col in range(ApplyAlgorithm.DEBUG_START[1], self.colEnd):
                     fieldNames.append(self._makeRowColKey(row, col))
                                  
             outFile = \
