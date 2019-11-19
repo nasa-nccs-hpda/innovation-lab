@@ -187,8 +187,8 @@ class ApplyAlgorithm(object):
                 
         outDs = None
         
-        if debugWriter:
-            debugWriter = None
+        if self.debugWriter:
+            self.debugWriter = None
                 
     # -------------------------------------------------------------------------
     # _associateValuesWithCoefs
