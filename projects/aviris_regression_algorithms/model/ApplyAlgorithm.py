@@ -82,10 +82,11 @@ class ApplyAlgorithm(object):
                 pixelStack = self.readStack(col, row)
                 
                 # For debugging, this can be imported to a spreadsheet.
-                writer = None
-                
-                if ApplyAlgorithm.DEBUG_ROW_COL == (row, col):
-                    writer = self.pixelStackToCsv(pixelStack, row, col)
+                # writer = None
+                #
+                # if ApplyAlgorithm.DEBUG_ROW_COL == (row, col):
+                writer = self.pixelStackToCsv(pixelStack, row, col) \
+                    if ApplyAlgorithm.DEBUG_ROW_COL == (row, col)
                 
                 # Check for no-data in the first pixel of the stack.
                 if pixelStack[0] == ApplyAlgorithm.NO_DATA_VALUE:
