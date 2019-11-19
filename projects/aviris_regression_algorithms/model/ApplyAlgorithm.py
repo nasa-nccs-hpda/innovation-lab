@@ -87,7 +87,7 @@ class ApplyAlgorithm(object):
 
             f = open(outFile, 'w')
             self.debugWriter = csv.DictWriter(f, fieldnames=fieldNames)
-            self.debugWrite.writeheader()
+            self.debugWriter.writeheader()
         
     # -------------------------------------------------------------------------
     # applyAlgorithm
