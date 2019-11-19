@@ -231,7 +231,7 @@ class ApplyAlgorithm(object):
     # -------------------------------------------------------------------------
     def _isDebugPixel(self, row, col):
         
-        if self.writer and \
+        if self.debugWriter and \
             row >= ApplyAlgorithm.DEBUG_START[0] and \
             row <= ApplyAlgorithm.DEBUG_END[0] and \
             col >= ApplyAlgorithm.DEBUG_START[1] and \
