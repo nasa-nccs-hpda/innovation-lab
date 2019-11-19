@@ -208,7 +208,7 @@ class ApplyAlgorithm(object):
                                                 str(col) + \
                                                 '.csv')
 
-        open(outFile, 'w') as f
+        f = open(outFile, 'w')
         fieldNames = ['Band', 'Value']
         writer = csv.DictWriter(f, fieldnames=fieldNames)
         writer.writeheader()
