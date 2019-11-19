@@ -118,7 +118,7 @@ class ApplyAlgorithm(object):
                     
                 # if debugKey:
                 #     self._pixelStackToCsv(key, pixelStack)
-                #
+               
                 # Check for no-data in the first pixel of the stack.
                 if pixelStack[0] == ApplyAlgorithm.NO_DATA_VALUE:
 
