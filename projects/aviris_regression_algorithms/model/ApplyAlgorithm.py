@@ -60,6 +60,9 @@ class ApplyAlgorithm(object):
         # ---
         self.debugWriter = None
         
+        import pdb
+        pdb.set_trace()
+        
         if ApplyAlgorithm.DEBUG_START[0] != -1 and \
             ApplyAlgorithm.DEBUG_END[0] != -1:
             
