@@ -64,7 +64,7 @@ class ApplyAlgorithm(object):
         pdb.set_trace()
         
         if ApplyAlgorithm.DEBUG_START[0] != -1 and \
-            ApplyAlgorithm.DEBUG_END[0] != -1:
+            ApplyAlgorithm.DEBUG_START[1] != -1:
             
             fieldNames = ['Band']
             
