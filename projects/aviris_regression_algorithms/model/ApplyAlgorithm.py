@@ -65,18 +65,19 @@ class ApplyAlgorithm(object):
             
             fieldNames = ['Band']
             
-            colStart = 0 \
-                if ApplyAlgorithm.DEBUG_END == (-1, -1) else \
-                ApplyAlgorithm.DEBUG_END[0]
+            if ApplyAlgorithm.DEBUG_END[0] < 0 and \
+                ApplyAlgorithm.DEBUG_END[1] < 0:
+                
+                rowEnd = self.imageFile._getDataset().RasterXSize - 1
+                colEnd = self.imageFile._getDataset().RasterYSize - 1
 
-            colEnd = self.imageFile._getDataset().RasterYSize - 1 \
-                if ApplyAlgorithm.DEBUG_END == (-1, -1) else \
-                ApplyAlgorithm.DEBUG_END[1]
-            
-            for row in range(ApplyAlgorithm.DEBUG_START[0],
-                             ApplyAlgorithm.DEBUG_END[0] + 1):
-                for col in range(colStart, colEnd):
-                                 
+            else:
+                
+                rowEnd = -1
+                colEnd = -1
+                
+            for row in range(ApplyAlgorithm.DEBUG_START[0], rowEnd):
+                for col in range(ApplyAlgorithm.DEBUG_START[1], colEnd):
                     fieldNames.append(self._makeRowColKey(row, col))
                                  
             outFile = \
