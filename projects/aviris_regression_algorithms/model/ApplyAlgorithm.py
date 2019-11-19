@@ -156,6 +156,8 @@ class ApplyAlgorithm(object):
                     hexValue = struct.pack('f', ApplyAlgorithm.NO_DATA_VALUE)
                     outDs.WriteRaster(col, row, 1, 1, hexValue)
 
+                    import pdb
+                    pdb.set_trace()
                     if debugKey:
                         
                         self.debugWriter.\
