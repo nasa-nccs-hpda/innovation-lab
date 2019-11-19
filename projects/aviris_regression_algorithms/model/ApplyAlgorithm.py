@@ -86,7 +86,7 @@ class ApplyAlgorithm(object):
                 #
                 # if ApplyAlgorithm.DEBUG_ROW_COL == (row, col):
                 writer = self.pixelStackToCsv(pixelStack, row, col) \
-                    if ApplyAlgorithm.DEBUG_ROW_COL == (row, col)
+                    if ApplyAlgorithm.DEBUG_ROW_COL == (row, col) else None
                 
                 # Check for no-data in the first pixel of the stack.
                 if pixelStack[0] == ApplyAlgorithm.NO_DATA_VALUE:
