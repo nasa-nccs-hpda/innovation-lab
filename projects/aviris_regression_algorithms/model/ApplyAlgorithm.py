@@ -60,9 +60,6 @@ class ApplyAlgorithm(object):
         # ---
         self.debugWriter = None
         
-        import pdb
-        pdb.set_trace()
-        
         if ApplyAlgorithm.DEBUG_START[0] != -1 and \
             ApplyAlgorithm.DEBUG_START[1] != -1:
             
@@ -71,8 +68,8 @@ class ApplyAlgorithm(object):
             if ApplyAlgorithm.DEBUG_END[0] < 0 and \
                 ApplyAlgorithm.DEBUG_END[1] < 0:
                 
-                rowEnd = self.imageFile._getDataset().RasterXSize - 1
-                colEnd = self.imageFile._getDataset().RasterYSize - 1
+                rowEnd = self.imageFile._getDataset().RasterYSize - 1
+                colEnd = self.imageFile._getDataset().RasterXSize - 1
 
             else:
                 
@@ -90,6 +87,7 @@ class ApplyAlgorithm(object):
 
             f = open(outFile, 'w')
             self.debugWriter = csv.DictWriter(f, fieldnames=fieldNames)
+            self.debugWrite.writeheader()
         
     # -------------------------------------------------------------------------
     # applyAlgorithm
