@@ -68,13 +68,13 @@ class ApplyAlgorithm(object):
             if ApplyAlgorithm.DEBUG_END[0] < 0 and \
                 ApplyAlgorithm.DEBUG_END[1] < 0:
                 
-                rowEnd = self.imageFile._getDataset().RasterYSize - 1
-                colEnd = self.imageFile._getDataset().RasterXSize - 1
+                self.rowEnd = self.imageFile._getDataset().RasterYSize - 1
+                self.colEnd = self.imageFile._getDataset().RasterXSize - 1
 
             else:
                 
-                rowEnd = -1
-                colEnd = -1
+                self.rowEnd = -1
+                self.colEnd = -1
                 
             for row in range(ApplyAlgorithm.DEBUG_START[0], rowEnd):
                 for col in range(ApplyAlgorithm.DEBUG_START[1], colEnd):
@@ -124,6 +124,8 @@ class ApplyAlgorithm(object):
                 # Read the stack of pixels at this col, row location.
                 pixelStack = self._readStack(col, row)
                 
+                import pdb
+                pdb.set_trace()
                 debugKey = self._makeRowColKey(row, col) \
                     if self._isDebugPixel(row, col) else None
                     
@@ -156,8 +158,6 @@ class ApplyAlgorithm(object):
                     hexValue = struct.pack('f', ApplyAlgorithm.NO_DATA_VALUE)
                     outDs.WriteRaster(col, row, 1, 1, hexValue)
 
-                    import pdb
-                    pdb.set_trace()
                     if debugKey:
                         
                         self.debugWriter.\
@@ -255,9 +255,9 @@ class ApplyAlgorithm(object):
         
         if self.debugWriter and \
             row >= ApplyAlgorithm.DEBUG_START[0] and \
-            row <= ApplyAlgorithm.DEBUG_END[0] and \
+            row <= self.rowEnd and \
             col >= ApplyAlgorithm.DEBUG_START[1] and \
-            col <= ApplyAlgorithm.DEBUG_END[1]:
+            col <= self.colEnd:
             
             return True
             
