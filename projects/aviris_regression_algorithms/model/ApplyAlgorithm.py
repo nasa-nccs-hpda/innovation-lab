@@ -116,9 +116,9 @@ class ApplyAlgorithm(object):
                 debugKey = self._makeRowColKey(row, col) \
                     if self._isDebugPixel(row, col) else None
                     
-                if debugKey:
-                    self._pixelStackToCsv(key, pixelStack)
-                
+                # if debugKey:
+                #     self._pixelStackToCsv(key, pixelStack)
+                #
                 # Check for no-data in the first pixel of the stack.
                 if pixelStack[0] == ApplyAlgorithm.NO_DATA_VALUE:
 
@@ -146,6 +146,15 @@ class ApplyAlgorithm(object):
                     outDs.WriteRaster(col, row, 1, 1, hexValue)
 
                     if debugKey:
+                        
+                        self.debugWriter.\
+                            writerow({'Band': 10, 
+                                      key: str(bandCoefValueDict[9][1])})
+                                                    
+                        self.debugWriter.\
+                            writerow({'Band': 246, 
+                                      key: str(bandCoefValueDict[245][1])})
+                                                    
                         self.debugWriter.writerow({'Band': 'Mask'})
                         
                     continue
