@@ -58,6 +58,8 @@ class ApplyAlgorithm(object):
         # P         p           p
         # Hex       hex         hex
         # ---
+        self.debugWriter = None
+        
         if ApplyAlgorithm.DEBUG_START[0] != -1 and \
             ApplyAlgorithm.DEBUG_END[0] != -1:
             
