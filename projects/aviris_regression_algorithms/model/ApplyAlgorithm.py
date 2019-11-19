@@ -59,14 +59,21 @@ class ApplyAlgorithm(object):
         # Hex       hex         hex
         # ---
         if ApplyAlgorithm.DEBUG_START[0] != -1 and \
-            ApplyAlgorithm.DEBUG_END != -1:
+            ApplyAlgorithm.DEBUG_END[0] != -1:
             
             fieldNames = ['Band']
             
+            colStart = 0 \
+                if ApplyAlgorithm.DEBUG_END == (-1, -1) else \
+                ApplyAlgorithm.DEBUG_END[0]
+
+            colEnd = self.imageFile._getDataset().RasterYSize - 1 \
+                if ApplyAlgorithm.DEBUG_END == (-1, -1) else \
+                ApplyAlgorithm.DEBUG_END[1]
+            
             for row in range(ApplyAlgorithm.DEBUG_START[0],
                              ApplyAlgorithm.DEBUG_END[0] + 1):
-                for col in range(ApplyAlgorithm.DEBUG_END[1],
-                                 ApplyAlgorithm.DEBUG_END[1] + 1):
+                for col in range(colStart, colEnd):
                                  
                     fieldNames.append(self._makeRowColKey(row, col))
                                  
