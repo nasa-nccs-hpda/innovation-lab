@@ -80,7 +80,7 @@ class ApplyAlgorithm(object):
     def _addDebugDictItem(self, band, coord, value):
         
         if not band in self.debugDict:
-            self.debugDict[band] = {}
+            self.debugDict[band] = {'Band': 0}
             
         self.debugDict[band][coord] = value
         
@@ -192,6 +192,7 @@ class ApplyAlgorithm(object):
                 outDs.WriteRaster(col, row, 1, 1, hexValue)
                 
         outDs = None
+        self._writeDebugDict()
                         
     # -------------------------------------------------------------------------
     # _associateValuesWithCoefs
