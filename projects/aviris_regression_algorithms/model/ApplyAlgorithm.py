@@ -124,8 +124,6 @@ class ApplyAlgorithm(object):
                 # Read the stack of pixels at this col, row location.
                 pixelStack = self._readStack(col, row)
                 
-                import pdb
-                pdb.set_trace()
                 debugKey = self._makeRowColKey(row, col) \
                     if self._isDebugPixel(row, col) else None
                     
