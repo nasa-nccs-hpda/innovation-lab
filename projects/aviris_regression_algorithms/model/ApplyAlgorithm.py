@@ -142,7 +142,7 @@ class ApplyAlgorithm(object):
 
                     if debugKey:
                    
-                        if not debugKey in self.debugDict[0]:
+                        if not 0 in self.debugDict[0]:
                             self.debugDict[0] = {}
                             
                         self.debugDict[0][debugKey] = 'Mask'
