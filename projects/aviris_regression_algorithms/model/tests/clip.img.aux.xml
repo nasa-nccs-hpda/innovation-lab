@@ -9,8 +9,8 @@
     <MDI key="file_type">ENVI Standard</MDI>
     <MDI key="header_offset">0</MDI>
     <MDI key="interleave">bsq</MDI>
-    <MDI key="lines">5</MDI>
-    <MDI key="samples">5</MDI>
+    <MDI key="lines">25</MDI>
+    <MDI key="samples">25</MDI>
   </Metadata>
   <Metadata>
     <MDI key="Band_1">376.86 Nanometers</MDI>
