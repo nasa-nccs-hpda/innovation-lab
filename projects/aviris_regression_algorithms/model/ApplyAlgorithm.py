@@ -215,7 +215,7 @@ class ApplyAlgorithm(object):
                 int(re.search(r'\d{0,3}$', coefRow['Band Number']).group())
                 
             coef = float(coefRow[algorithmName])
-            value = pixelStack[bandIndex-1] if bandIndex > 0 else None
+            value = pixelStack[bandIndex-1] if bandIndex > 0 else 0.0
             bandCoefValueDict[bandIndex] = (coef, value)
             
         return bandCoefValueDict
