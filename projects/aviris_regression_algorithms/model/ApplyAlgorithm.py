@@ -213,13 +213,9 @@ class ApplyAlgorithm(object):
             
             bandIndex = \
                 int(re.search(r'\d{0,3}$', coefRow['Band Number']).group())
-
-            if bandIndex > 420:
-                import pdb
-                pdb.set_trace()
-            
+                
             coef = float(coefRow[algorithmName])
-            value = pixelStack[bandIndex]
+            value = pixelStack[bandIndex-1] if bandIndex > 0 else None
             bandCoefValueDict[bandIndex] = (coef, value)
             
         return bandCoefValueDict
