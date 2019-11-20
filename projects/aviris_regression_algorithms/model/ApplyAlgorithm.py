@@ -14,7 +14,7 @@ from model.GeospatialImageFile import GeospatialImageFile
 
 # -----------------------------------------------------------------------------
 # class ApplyAlgorithm
-#
+# 96, 41
 # gdallocationinfo -b 10 projects/aviris_regression_algorithms/model/tests/clip.img 0 0 
 # -----------------------------------------------------------------------------
 class ApplyAlgorithm(object):
@@ -167,10 +167,18 @@ class ApplyAlgorithm(object):
                 # reflectances between 397nm and 898nm.  Those reflectances 
                 # translate to bands 6 - 105.
                 # ---
-                import pdb
-                pdb.set_trace()
                 divisor = self._computeDivisor(bandCoefValueDict)
-                
+            
+                if debugKey:
+               
+                    for band in bandCoefValueDict.iterkeys():
+
+                        value = bandCoefValueDict[band][1]
+                        self._addDebugDictItem(band, debugKey, value)
+                        
+                    self._addDebugDictItem('Divisor', debugKey, divisor)
+                    
+                        
                 # Compute the result, normalizing pixel values as we go.
                 p = 0.0
                 
