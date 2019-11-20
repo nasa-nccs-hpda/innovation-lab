@@ -51,44 +51,29 @@ class ApplyAlgorithm(object):
         # ---
         # Set up debugging.
         #
-        # Band      (Row, Col)  (Row, Col)
-        # Band      Value       Value
-        # ...
-        # No Data   True    False
-        # P         p           p
-        # Hex       hex         hex
+        # Debug dictionary:  
+        # Band, (0, 0), (0, 1), ...
+        # 0     value,  value, ...
         # ---
-        self.debugWriter = None
-        
         if ApplyAlgorithm.DEBUG_START[0] != -1 and \
             ApplyAlgorithm.DEBUG_START[1] != -1:
-            
-            fieldNames = ['Band']
-            
+
             if ApplyAlgorithm.DEBUG_END[0] < 0 and \
                 ApplyAlgorithm.DEBUG_END[1] < 0:
-                
+
                 self.rowEnd = self.imageFile._getDataset().RasterYSize
                 self.colEnd = self.imageFile._getDataset().RasterXSize
 
             else:
-                
+
                 self.rowEnd = ApplyAlgorithm.DEBUG_END[0]
                 self.colEnd = ApplyAlgorithm.DEBUG_END[1]
-                
-            for row in range(ApplyAlgorithm.DEBUG_START[0], self.rowEnd):
-                for col in range(ApplyAlgorithm.DEBUG_START[1], self.colEnd):
-                    fieldNames.append(self._makeRowColKey(row, col))
-                                 
-            outFile = \
-                os.path.join(self.outDir, 
-                             os.path.basename(self.imageFile.fileName()) + \
-                                              '.csv')
 
-            f = open(outFile, 'w')
-            self.debugWriter = csv.DictWriter(f, fieldnames=fieldNames)
-            self.debugWriter.writeheader()
-        
+            self.debugDict = {}
+
+        else:
+            self.debugDict = None
+                
     # -------------------------------------------------------------------------
     # applyAlgorithm
     #
@@ -118,6 +103,8 @@ class ApplyAlgorithm(object):
         # ---
         # Iterate through the raster, pixel by pixel.
         # ---
+        import pdb
+        pdb.set_trace()
         for row in range(self.imageFile._getDataset().RasterYSize):
             for col in range(self.imageFile._getDataset().RasterXSize):
 
@@ -134,7 +121,7 @@ class ApplyAlgorithm(object):
                     outDs.WriteRaster(col, row, 1, 1, hexValue)
 
                     if debugKey:
-                        self.debugWriter.writerow({'Band': 'No data'})
+                        self.debugDict[0] = {debugKey: pixelStack[0]}
                         
                     continue
 
@@ -155,15 +142,11 @@ class ApplyAlgorithm(object):
 
                     if debugKey:
                         
-                        self.debugWriter.\
-                            writerow({'Band': 10, 
-                                      debugKey: str(bandCoefValueDict[9][1])})
-                                                    
-                        self.debugWriter.\
-                            writerow({'Band': 246, 
-                                      debugKey:str(bandCoefValueDict[245][1])})
-                                                    
-                        self.debugWriter.writerow({'Band': 'Mask'})
+                        self.debugDict[0]] = {debugKey: 'Mask'}
+                        self.debugDict[9] = {debugKey:bandCoefValueDict[9][1]}
+                        
+                        self.debugDict[246] = \
+                            {debugKey: bandCoefValueDict[245][1]}
                         
                     continue
 
@@ -174,9 +157,6 @@ class ApplyAlgorithm(object):
                 # ---
                 divisor = self._computeDivisor(bandCoefValueDict)
                 
-                if writer:
-                    writer.writerow({'Band': 'divisor', debugKey: divisor})             
-                        
                 # Compute the result, normalizing pixel values as we go.
                 p = 0.0
                 
@@ -197,16 +177,8 @@ class ApplyAlgorithm(object):
                 hexValue = struct.pack('f', p)
                 outDs.WriteRaster(col, row, 1, 1, hexValue)
                 
-                if writer:
-
-                    writer.writerow({'Band': 'p', debugKey: p})
-                    writer.writerow({'Band': 'hex', debugKey: hexValue})
-                
         outDs = None
-        
-        if self.debugWriter:
-            self.debugWriter = None
-                
+                        
     # -------------------------------------------------------------------------
     # _associateValuesWithCoefs
     # -------------------------------------------------------------------------
@@ -248,7 +220,7 @@ class ApplyAlgorithm(object):
     # -------------------------------------------------------------------------
     def _isDebugPixel(self, row, col):
         
-        if self.debugWriter and \
+        if self.debugDict and \
             row >= ApplyAlgorithm.DEBUG_START[0] and \
             row <= self.rowEnd and \
             col >= ApplyAlgorithm.DEBUG_START[1] and \
@@ -289,3 +261,29 @@ class ApplyAlgorithm(object):
 
         return pixelsAsFloats
         
+    # -------------------------------------------------------------------------
+    # _writeDebugDict
+    # -------------------------------------------------------------------------
+    def _writeDebugDict(self):
+        
+        fieldName = ['Band']
+        
+        for row in range(ApplyAlgorithm.DEBUG_START[0], self.rowEnd):
+            for col in range(ApplyAlgorithm.DEBUG_START[1], self.colEnd):
+                fieldNames.append(self._makeRowColKey(row, col))
+
+        outFile = \
+            os.path.join(self.outDir,
+                         os.path.basename(self.imageFile.fileName()) + '.csv')
+
+        f = open(outFile, 'w')
+        writer = csv.DictWriter(f, fieldnames=fieldNames)
+        writer.writeheader()
+        
+        for bandKey in self.debugDict:
+            
+            bandDict = self.debugDict[bandKey]
+            
+            for pixelKey in bandDict:
+
+                pixelValue = bandDict[pixelKey]
