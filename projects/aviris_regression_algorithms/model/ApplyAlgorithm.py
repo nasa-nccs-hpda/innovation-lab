@@ -281,7 +281,7 @@ class ApplyAlgorithm(object):
     # -------------------------------------------------------------------------
     def _writeDebugDict(self):
         
-        fieldName = ['Band']
+        fieldNames = ['Band']
         
         for row in range(ApplyAlgorithm.DEBUG_START[0], self.rowEnd):
             for col in range(ApplyAlgorithm.DEBUG_START[1], self.colEnd):
