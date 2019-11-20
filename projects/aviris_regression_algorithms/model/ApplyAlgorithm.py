@@ -75,6 +75,16 @@ class ApplyAlgorithm(object):
             self.debugDict = None
                 
     # -------------------------------------------------------------------------
+    # _addDebugDictItem
+    # -------------------------------------------------------------------------
+    def _addDebugDictItem(self, band, coord, value):
+        
+        if not band in self.debugDict:
+            self.debugDict[band] = {}
+            
+        self.debugDict[band][coord] = value
+        
+    # -------------------------------------------------------------------------
     # applyAlgorithm
     #
     # P = a0 + a1b1 + a2b2 …
@@ -142,21 +152,15 @@ class ApplyAlgorithm(object):
 
                     if debugKey:
                    
-                        if not 0 in self.debugDict:
-                            self.debugDict[0] = {}
-                            
-                        self.debugDict[0][debugKey] = 'Mask'
-
-                        if not 9 in self.debugDict:
-                            self.debugDict[9] = {}
-                            
-                        self.debugDict[9][debugKey] = bandCoefValueDict[9][1]
+                        self._addDebugDictItem(0, debugKey, 'Mask')
                         
-                        if not 246 in self.debugDict:
-                            self.debugDict[246] = {}
-                            
-                        self.debugDict[246][debugKey] = \
-                            bandCoefValueDict[245][1]
+                        self._addDebugDictItem(9,
+                                               debugKey, 
+                                               bandCoefValueDict[9][1])
+                        
+                        self._addDebugDictItem(245,
+                                               debugKey, 
+                                               bandCoefValueDict[245][1])
                         
                     continue
 
