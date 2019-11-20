@@ -142,7 +142,7 @@ class ApplyAlgorithm(object):
 
                     if debugKey:
                         
-                        self.debugDict[0]] = {debugKey: 'Mask'}
+                        self.debugDict[0] = {debugKey: 'Mask'}
                         self.debugDict[9] = {debugKey:bandCoefValueDict[9][1]}
                         
                         self.debugDict[246] = \
