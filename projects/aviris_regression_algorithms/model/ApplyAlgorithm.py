@@ -79,10 +79,6 @@ class ApplyAlgorithm(object):
     # -------------------------------------------------------------------------
     def _addDebugDictItem(self, band, coord, value):
         
-        if band == -1:
-            import pdb
-            pdb.set_trace()
-            
         if not band in self.debugDict:
             self.debugDict[band] = {'Band': band}
             
@@ -211,6 +207,9 @@ class ApplyAlgorithm(object):
     # -------------------------------------------------------------------------
     def _associateValuesWithCoefs(self, pixelStack, algorithmName):
         
+        import pdb
+        pdb.set_trace()
+            
         bandCoefValueDict = {}
 
         for coefRow in self.coefs:
