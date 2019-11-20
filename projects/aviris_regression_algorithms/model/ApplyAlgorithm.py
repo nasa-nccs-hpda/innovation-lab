@@ -79,6 +79,10 @@ class ApplyAlgorithm(object):
     # -------------------------------------------------------------------------
     def _addDebugDictItem(self, band, coord, value):
         
+        if band == -1:
+            import pdb
+            pdb.set_trace()
+            
         if not band in self.debugDict:
             self.debugDict[band] = {'Band': band}
             
@@ -288,9 +292,6 @@ class ApplyAlgorithm(object):
     # _writeDebugDict
     # -------------------------------------------------------------------------
     def _writeDebugDict(self):
-        
-        import pdb
-        pdb.set_trace()
         
         fieldNames = ['Band']
         
