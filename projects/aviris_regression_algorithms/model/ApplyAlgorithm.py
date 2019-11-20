@@ -80,7 +80,7 @@ class ApplyAlgorithm(object):
     def _addDebugDictItem(self, band, coord, value):
         
         if not band in self.debugDict:
-            self.debugDict[band] = {'Band': 0}
+            self.debugDict[band] = {'Band': band}
             
         self.debugDict[band][coord] = value
         
