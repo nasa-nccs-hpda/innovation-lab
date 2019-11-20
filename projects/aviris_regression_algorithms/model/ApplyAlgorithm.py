@@ -207,9 +207,6 @@ class ApplyAlgorithm(object):
     # -------------------------------------------------------------------------
     def _associateValuesWithCoefs(self, pixelStack, algorithmName):
         
-        import pdb
-        pdb.set_trace()
-            
         bandCoefValueDict = {}
 
         for coefRow in self.coefs:
@@ -217,6 +214,10 @@ class ApplyAlgorithm(object):
             bandIndex = \
                 int(re.search(r'\d{0,3}$', coefRow['Band Number']).group())
 
+            if bandIndex > 420:
+                import pdb
+                pdb.set_trace()
+            
             coef = float(coefRow[algorithmName])
             value = pixelStack[bandIndex]
             bandCoefValueDict[bandIndex] = (coef, value)
