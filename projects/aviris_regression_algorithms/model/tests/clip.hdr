@@ -1,8 +1,8 @@
 ENVI
 description = {
 clip.img}
-samples = 25
-lines   = 25
+samples = 5
+lines   = 5
 bands   = 425
 header offset = 0
 file type = ENVI Standard
