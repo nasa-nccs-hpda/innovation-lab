@@ -129,9 +129,6 @@ class ApplyAlgorithm(object):
                 debugKey = self._makeRowColKey(row, col) \
                     if self._isDebugPixel(row, col) else None
                     
-                # if debugKey:
-                #     self._pixelStackToCsv(key, pixelStack)
-               
                 # Check for no-data in the first pixel of the stack.
                 if pixelStack[0] == ApplyAlgorithm.NO_DATA_VALUE:
 
@@ -162,11 +159,11 @@ class ApplyAlgorithm(object):
                         
                         self.debugWriter.\
                             writerow({'Band': 10, 
-                                      key: str(bandCoefValueDict[9][1])})
+                                      debugKey: str(bandCoefValueDict[9][1])})
                                                     
                         self.debugWriter.\
                             writerow({'Band': 246, 
-                                      key: str(bandCoefValueDict[245][1])})
+                                      debugKey:str(bandCoefValueDict[245][1])})
                                                     
                         self.debugWriter.writerow({'Band': 'Mask'})
                         
@@ -180,7 +177,7 @@ class ApplyAlgorithm(object):
                 divisor = self._computeDivisor(bandCoefValueDict)
                 
                 if writer:
-                    writer.writerow({'Band': 'divisor', 'Value': divisor})             
+                    writer.writerow({'Band': 'divisor', debugKey: divisor})             
                         
                 # Compute the result, normalizing pixel values as we go.
                 p = 0.0
@@ -204,8 +201,8 @@ class ApplyAlgorithm(object):
                 
                 if writer:
 
-                    writer.writerow({'Band': 'p', 'Value': p})
-                    writer.writerow({'Band': 'hex', 'Value': hexValue})
+                    writer.writerow({'Band': 'p', debugKey: p})
+                    writer.writerow({'Band': 'hex', debugKey: hexValue})
                 
         outDs = None
         
