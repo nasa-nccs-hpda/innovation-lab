@@ -17,6 +17,8 @@ logger.level = logging.DEBUG
 # -----------------------------------------------------------------------------
 # class ApplyAlgorithmTestCase
 #
+# gdal_translate -of ENVI -srcwin 41 96 5 5 /att/nobackup/rlgill/AVIRIS/ang20170709t224222_rfl_v2p9/ang20170709t224222_corr_v2p9_img clip.img
+#
 # python -m unittest projects.aviris_regression_algorithms.model.tests.test_ApplyAlgorithm
 # -----------------------------------------------------------------------------
 class ApplyAlgorithmTestCase(unittest.TestCase):
