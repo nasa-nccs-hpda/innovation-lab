@@ -291,14 +291,12 @@ class ApplyAlgorithm(object):
             os.path.join(self.outDir,
                          os.path.basename(self.imageFile.fileName()) + '.csv')
 
-        f = open(outFile, 'w')
-        writer = csv.DictWriter(f, fieldnames=fieldNames)
-        writer.writeheader()
-        
-        for bandKey in self.debugDict:
-            
-            bandDict = self.debugDict[bandKey]
-            
-            for pixelKey in bandDict:
+        with open(outFile, 'w') as f:
 
-                pixelValue = bandDict[pixelKey]
+            writer = csv.DictWriter(f, fieldnames=fieldNames)
+            writer.writeheader()
+        
+            for bandKey in self.debugDict:
+            
+                bandRow = self.debugDict[bandKey]
+                writer.writerow(bandRow)
