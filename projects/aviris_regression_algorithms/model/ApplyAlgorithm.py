@@ -14,7 +14,7 @@ from model.GeospatialImageFile import GeospatialImageFile
 
 # -----------------------------------------------------------------------------
 # class ApplyAlgorithm
-# 96, 41
+# 
 # gdallocationinfo -b 10 projects/aviris_regression_algorithms/model/tests/clip.img 0 0 
 # -----------------------------------------------------------------------------
 class ApplyAlgorithm(object):
@@ -288,6 +288,9 @@ class ApplyAlgorithm(object):
     # _writeDebugDict
     # -------------------------------------------------------------------------
     def _writeDebugDict(self):
+        
+        import pdb
+        pdb.set_trace()
         
         fieldNames = ['Band']
         
