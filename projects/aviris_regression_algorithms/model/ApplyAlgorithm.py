@@ -68,13 +68,13 @@ class ApplyAlgorithm(object):
             if ApplyAlgorithm.DEBUG_END[0] < 0 and \
                 ApplyAlgorithm.DEBUG_END[1] < 0:
                 
-                self.rowEnd = self.imageFile._getDataset().RasterYSize - 1
-                self.colEnd = self.imageFile._getDataset().RasterXSize - 1
+                self.rowEnd = self.imageFile._getDataset().RasterYSize
+                self.colEnd = self.imageFile._getDataset().RasterXSize
 
             else:
                 
-                self.rowEnd = -1
-                self.colEnd = -1
+                self.rowEnd = ApplyAlgorithm.DEBUG_END[0]
+                self.colEnd = ApplyAlgorithm.DEBUG_END[1]
                 
             for row in range(ApplyAlgorithm.DEBUG_START[0], self.rowEnd):
                 for col in range(ApplyAlgorithm.DEBUG_START[1], self.colEnd):
