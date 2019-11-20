@@ -60,8 +60,8 @@ class MmxRequest(object):
         if not os.path.exists(self._trialsDir):
             os.mkdir(self._trialsDir)
         
-        if os.listdir(self._trialsDir):
-            raise RuntimeError(str(self._trialsDir) + ' must be empty.')
+#        if os.listdir(self._trialsDir):
+#            raise RuntimeError(str(self._trialsDir) + ' must be empty.')
 
     # -------------------------------------------------------------------------
     # validate incoming parameters
@@ -234,9 +234,45 @@ class MmxRequest(object):
                                                trialNum + 1))
             trialNum += 1
 
-        # Run the trials concurrently
-        MultiThreader().runTrials(runMaxEnt, trials)
+
         return trials
+
+
+    # -------------------------------------------------------------------------
+    # prepareTrials
+    # -------------------------------------------------------------------------
+    def prepareTrials(self, images, listOfIndexesInEachTrial, trailCount):
+        # ---
+        # Prepare the trials.
+        #
+        # - outputDirectory
+        #   - trials
+        #     - trial-1
+        #       - observation file
+        #       - asc
+        #         - asc image 1
+        #         - asc image 2
+        #         ...
+        #     - trial-2
+        #     ...
+        # ---
+        trialNum = trailCount
+        trials = []
+
+        for trialImageIndexes in listOfIndexesInEachTrial:
+            trials.append(self.prepareOneTrial(images,
+                                               trialImageIndexes,
+                                               trialNum + 1))
+            trialNum += 1
+
+
+        return trials
+    # -------------------------------------------------------------------------
+    # runTrials
+    # -------------------------------------------------------------------------
+    def runTrials(self, process, trials):
+        # Run the trials concurrently
+        MultiThreader().runTrials(process, trials)
 
     # -------------------------------------------------------------------------
     # runAggregateModel
@@ -278,6 +314,9 @@ class MmxRequest(object):
 
         # Prepare the trial infrastructure for MaxEnt output
         trials = self.prepareTrials(images, listOfIndexesInEachTrial)
+
+        # Run trials
+        self.runTrials(runMaxEnt, trials)
 
         # Compile trial statistics and select the top-ten predictors.
         topTen = self.getTopTen(trials, images)
