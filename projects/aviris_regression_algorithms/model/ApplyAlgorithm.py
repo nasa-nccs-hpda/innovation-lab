@@ -141,10 +141,20 @@ class ApplyAlgorithm(object):
                     outDs.WriteRaster(col, row, 1, 1, hexValue)
 
                     if debugKey:
-                        
+                   
+                        if not debugKey in self.debugDict[0]:
+                            self.debugDict[0] = {}
+                            
                         self.debugDict[0][debugKey] = 'Mask'
+
+                        if not debugKey in self.debugDict[9]:
+                            self.debugDict[9] = {}
+                            
                         self.debugDict[9][debugKey] = bandCoefValueDict[9][1]
                         
+                        if not debugKey in self.debugDict[246]:
+                            self.debugDict[246] = {}
+                            
                         self.debugDict[246][debugKey] = \
                             bandCoefValueDict[245][1]
                         
