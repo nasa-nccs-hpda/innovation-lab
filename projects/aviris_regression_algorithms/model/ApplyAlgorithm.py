@@ -220,7 +220,7 @@ class ApplyAlgorithm(object):
     # -------------------------------------------------------------------------
     def _isDebugPixel(self, row, col):
         
-        if self.debugDict and \
+        if self.debugDict != None and \
             row >= ApplyAlgorithm.DEBUG_START[0] and \
             row <= self.rowEnd and \
             col >= ApplyAlgorithm.DEBUG_START[1] and \
