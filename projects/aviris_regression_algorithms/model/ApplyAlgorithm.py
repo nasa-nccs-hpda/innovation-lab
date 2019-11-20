@@ -152,7 +152,7 @@ class ApplyAlgorithm(object):
                             
                         self.debugDict[9][debugKey] = bandCoefValueDict[9][1]
                         
-                        if not 246 in self.debugDict[:
+                        if not 246 in self.debugDict:
                             self.debugDict[246] = {}
                             
                         self.debugDict[246][debugKey] = \
