@@ -15,7 +15,7 @@ from model.GeospatialImageFile import GeospatialImageFile
 # -----------------------------------------------------------------------------
 # class ApplyAlgorithm
 #
-# /att/pubrepo/ORNL/ABoVE_Archive/daac.ornl.gov/daacdata/above/ABoVE_Airborne_AVIRIS_NG/data/ang20170709t224839_rfl_v2p9/ang20170709t224839_corr_v2p9_img
+# gdallocationinfo -b 10 projects/aviris_regression_algorithms/model/tests/clip.img 0 0 
 # -----------------------------------------------------------------------------
 class ApplyAlgorithm(object):
 
@@ -113,8 +113,6 @@ class ApplyAlgorithm(object):
         # ---
         # Iterate through the raster, pixel by pixel.
         # ---
-        import pdb
-        pdb.set_trace()
         for row in range(self.imageFile._getDataset().RasterYSize):
             for col in range(self.imageFile._getDataset().RasterXSize):
 
@@ -131,7 +129,7 @@ class ApplyAlgorithm(object):
                     outDs.WriteRaster(col, row, 1, 1, hexValue)
 
                     if debugKey:
-                        self.debugDict[0] = {debugKey: pixelStack[0]}
+                        self._addDebugDictItem(0, debugKey, 'No data')
                         
                     continue
 
@@ -154,11 +152,11 @@ class ApplyAlgorithm(object):
                    
                         self._addDebugDictItem(0, debugKey, 'Mask')
                         
-                        self._addDebugDictItem(9,
+                        self._addDebugDictItem(10,
                                                debugKey, 
                                                bandCoefValueDict[9][1])
                         
-                        self._addDebugDictItem(245,
+                        self._addDebugDictItem(246,
                                                debugKey, 
                                                bandCoefValueDict[245][1])
                         
@@ -169,6 +167,8 @@ class ApplyAlgorithm(object):
                 # reflectances between 397nm and 898nm.  Those reflectances 
                 # translate to bands 6 - 105.
                 # ---
+                import pdb
+                pdb.set_trace()
                 divisor = self._computeDivisor(bandCoefValueDict)
                 
                 # Compute the result, normalizing pixel values as we go.
