@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import os
 import glob
+import pandas
 from osgeo.osr import SpatialReference
 
 from stratus.app.core import StratusCore
@@ -33,15 +34,13 @@ class EdasDevRetriever(RetrieverInterface):
 
 
     # -------------------------------------------------------------------------
-    # initialize Edas Client
+    # initialize Edas-Slurm Client
     # -------------------------------------------------------------------------
     def _setClient(self):
         settings = dict(
-            stratus=dict(type="zeromq",
-                         client_address="127.0.0.1",
-                         request_port="4556",
-                         response_port="4557",
-                         certificate_path="/att/nobackup/tpmaxwel/.stratus/zmq/"
+            stratus=dict(type="endpoint",
+                         module="edas.stratus.endpoint",
+                         object="EDASEndpoint"
                          )
         )
         core = StratusCore(settings)
@@ -117,7 +116,12 @@ class EdasDevRetriever(RetrieverInterface):
 
         if not all(elem in existed for elem in required):
             self.client = self._setClient()
-            domain = [self.addDomain("d0", self.envelope, self.dateRange)]
+            #Adding extra months for worldClim request
+            offset = pandas.DateOffset(months=1)
+            period = pandas.date_range(self.dateRange[0]-offset, self.dateRange[-1]+offset, freq='MS')
+
+            domain = [self.addDomain("d0", self.envelope, period)]
+
             inputs = [self.addInput(collection, "tasmin", "minTemp", "d0"),
                       self.addInput(collection, "tasmax", "maxTemp", "d0"),
                       self.addInput(collection, "pr",  "moist", "d0")]

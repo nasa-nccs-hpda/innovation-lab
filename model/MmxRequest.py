@@ -241,7 +241,7 @@ class MmxRequest(object):
     # -------------------------------------------------------------------------
     # prepareTrials
     # -------------------------------------------------------------------------
-    def prepareTrials(self, images, listOfIndexesInEachTrial, trailCount):
+    def prepareTrials(self, images, listOfIndexesInEachTrial):
         # ---
         # Prepare the trials.
         #
@@ -256,7 +256,7 @@ class MmxRequest(object):
         #     - trial-2
         #     ...
         # ---
-        trialNum = trailCount
+        trialNum = 0
         trials = []
 
         for trialImageIndexes in listOfIndexesInEachTrial:
