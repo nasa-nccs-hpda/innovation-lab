@@ -1,6 +1,6 @@
 ENVI
 description = {
-clip.img}
+clip-ul-25.img}
 samples = 5
 lines   = 5
 bands   = 425
@@ -9,7 +9,7 @@ file type = ENVI Standard
 data type = 4
 interleave = bsq
 byte order = 0
-map info = {UTM, 1, 1, 577410.131086818, 7912666.07477249, 5.1, 5.1, 4, North,WGS-84, rotation=41}
+map info = {UTM, 1, 1, 583067.284685237, 7917730.90952699, 5.2, 5.2, 4, North,WGS-84, rotation=42}
 coordinate system string = {PROJCS["WGS_1984_UTM_Zone_4N",GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]],PROJECTION["Transverse_Mercator"],PARAMETER["latitude_of_origin",0],PARAMETER["central_meridian",-159],PARAMETER["scale_factor",0.9996],PARAMETER["false_easting",500000],PARAMETER["false_northing",0],UNIT["Meter",1]]}
 band names = {
 376.86 Nanometers,
