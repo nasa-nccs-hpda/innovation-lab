@@ -99,10 +99,10 @@ class MaxEntRequest(object):
         try:
             image = self._imagesToProcess.pop()
 
-            self.prepareImage(image.fileName(),
-                              self._imageSRS.ExportToProj4(),
-                              pickle.dumps(self._observationFile.envelope()),
-                              self._ascDir)
+            MaxEntRequest.prepareImage(image,
+                                       self._imageSRS,
+                                       self._observationFile.envelope(),
+                                       self._ascDir)
 
         except IndexError:
             return 0
@@ -118,20 +118,17 @@ class MaxEntRequest(object):
     # instead of preparing a new set for each trial.
     # -------------------------------------------------------------------------
     @staticmethod
-    def prepareImage(imageFileName, srsProj4, envelopePickle, ascDir):
+    def prepareImage(imageFile, srs, envelope, ascDir):
 
         # ---
         # First, to preserve the original files, copy the input file to the
         # output directory.
         # ---
-        baseName = os.path.basename(imageFileName)
+        baseName = os.path.basename(imageFile.fileName())
         copyPath = os.path.join(ascDir, baseName)
         print ('Processing ' + copyPath)
-        shutil.copy(imageFileName, copyPath)
-        srs = SpatialReference()
-        srs.ImportFromProj4(srsProj4)
+        shutil.copy(imageFile.fileName(), copyPath)
         imageCopy = GeospatialImageFile(copyPath, srs)
-        envelope = pickle.loads(envelopePickle)
         imageCopy.clipReproject(envelope)
 
         squareScale = imageCopy.getSquareScale()
