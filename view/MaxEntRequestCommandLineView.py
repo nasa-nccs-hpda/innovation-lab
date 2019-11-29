@@ -18,10 +18,7 @@ from model.ObservationFile import ObservationFile
 # cd innovation-lab
 # export PYTHONPATH=`pwd`
 # mkdir ~/SystemTesting/testMaxEnt
-# view/MaxEntRequestCommandLineView.py -e 32612
-# -f ~/SystemTesting/MaxEntData/GSENM_cheat_pres_abs_2001.csv
-# -s "Cheat Grass" -i ~/SystemTesting/MaxEntData/images/
-# -o ~/SystemTesting/testMaxEnt/
+# view/MaxEntRequestCommandLineView.py -e 32612 -f ~/SystemTesting/MaxEntData/GSENM_cheat_pres_abs_2001.csv -s "Cheat Grass" -i ~/SystemTesting/MaxEntData/images/ -o ~/SystemTesting/testMaxEnt/
 # -----------------------------------------------------------------------------
 def main():
 
@@ -61,8 +58,7 @@ def main():
     observationFile = ObservationFile(args.f, args.s)
     maxEntReq = MaxEntRequest(observationFile, geoImages, args.o)
     maxEntReq.run()
-
-
+                    
 # ------------------------------------------------------------------------------
 # Invoke the main
 # ------------------------------------------------------------------------------
