@@ -228,7 +228,7 @@ class ApplyAlgorithm(object):
         tally = 0.0
         
         for band in bandCoefValueDict.iterkeys():
-            if band >= 6 and band <= 105:
+            if band >= 5 and band <= 105:
                 tally += bandCoefValueDict[band][1]**2
                 
         return math.sqrt(tally)
