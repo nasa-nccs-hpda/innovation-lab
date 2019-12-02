@@ -139,12 +139,22 @@ class Envelope(ogr.Geometry):
         self.AssignSpatialReference(srs)
         
     # -------------------------------------------------------------------------
-    # __reduce__
+    # __getstate__
     # -------------------------------------------------------------------------
-    def __reduce__(self):
-        
+    def __getstate__(self):
+
         state = {Envelope.MULTIPOINT_KEY: self.ExportToWkt(),
                  Envelope.SRS_KEY: self.GetSpatialReference().ExportToWkt()}
+                 
+        return state
         
-        return (self.__class__, (), state)
+    # -------------------------------------------------------------------------
+    # __reduce__
+    # -------------------------------------------------------------------------
+    # def __reduce__(self):
+    #
+    #     state = {Envelope.MULTIPOINT_KEY: self.ExportToWkt(),
+    #              Envelope.SRS_KEY: self.GetSpatialReference().ExportToWkt()}
+    #
+    #     return (self.__class__, (), state)
         
