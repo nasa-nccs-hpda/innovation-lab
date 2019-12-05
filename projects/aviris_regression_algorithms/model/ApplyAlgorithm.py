@@ -48,7 +48,7 @@ class ApplyAlgorithm(object):
         # Set up debugging.
         self.debugRow = None
         self.debugCol = None
-        self.debugDict = None
+        self.debugDict = None   # {'Band': [0, value]}
         
     # -------------------------------------------------------------------------
     # _addDebugDictItem
@@ -107,7 +107,7 @@ class ApplyAlgorithm(object):
                     # if debugKey:
                     #     self._addDebugDictItem(0, debugKey, 'No data')
                     if self.debugRow == row and self.debugCol == col:
-                        self.debugDict['0'] = 'No data'
+                        self.debugDict[0] = 'No data'
                     
                     continue
 
@@ -139,9 +139,9 @@ class ApplyAlgorithm(object):
                     #                            bandCoefValueDict[245][1])
                     if self.debugRow == row and self.debugCol == col:
                             
-                        self.debugDict['0'] = 'Mask'
-                        self.debugDict['10'] = bandCoefValueDict[9][1]
-                        self.debugDict['246'] = bandCoefValueDict[245][1]
+                        self.debugDict[0] = 'Mask'
+                        self.debugDict[10] = bandCoefValueDict[9][1]
+                        self.debugDict[246] = bandCoefValueDict[245][1]
                         
                     continue
 
@@ -283,7 +283,7 @@ class ApplyAlgorithm(object):
     # -------------------------------------------------------------------------
     def _writeDebugDict(self):
         
-        fieldNames = ['Band']
+        fieldNames = ['Band', 'Value']
         
         # for row in range(ApplyAlgorithm.DEBUG_START[0], self.rowEnd):
         #     for col in range(ApplyAlgorithm.DEBUG_START[1], self.colEnd):
@@ -295,12 +295,14 @@ class ApplyAlgorithm(object):
 
         with open(outFile, 'w') as f:
 
-            writer = csv.DictWriter(f, fieldnames=fieldNames)
-            writer.writeheader()
+            # writer = csv.DictWriter(f, fieldnames=fieldNames)
+            # writer.writeheader()
+            writer = csv.writer(f)
         
             import pdb
             pdb.set_trace()
             for bandKey in self.debugDict:
             
-                bandRow = self.debugDict[bandKey]
-                writer.writerow(bandRow)
+                # bandRow = self.debugDict[bandKey]
+                # writer.write(bandRow)
+                writer.writerow[bandKey, self.debugDict[bandKey]]
