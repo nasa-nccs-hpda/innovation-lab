@@ -12,10 +12,9 @@ from projects.aviris_regression_algorithms.model.ApplyAlgorithm \
 # -----------------------------------------------------------------------------
 # main
 #
-# docker run -it -v /Users/rlgill/Desktop/Source/innovation-lab:/home/ilUser/hostFiles -v /Users/rlgill/Desktop/SystemTesting:/home/ilUser/SystemTesting innovation-lab:1.0
-# cd ~/hostFiles
+# cd /att/nobackup/rlgill/innovation-lab/
 # export PYTHONPATH=`pwd`
-# projects/aviris_regression_algorithms/view/AvirisCommandLineView.py
+# projects/aviris_regression_algorithms/view/AvirisCommandLineView.py -a 'Avg Chl' -c /att/nobackup/rlgill/AVIRIS/Chl_Coeff_input.csv -i /att/nobackup/rlgill/AVIRIS/test/ang20170624t181530_rdn_v2p9/clipTest.img -o /att/nobackup/rlgill/AVIRIS/test/output -d 1 1
 # -----------------------------------------------------------------------------
 def main():
 
@@ -49,7 +48,7 @@ def main():
     
     aa = ApplyAlgorithm(args.c, args.i, args.o)
     
-    if d in args:
+    if args.d:
         aa.debug(args.d[0], args.d[1])
         
     aa.applyAlgorithm(args.a)
