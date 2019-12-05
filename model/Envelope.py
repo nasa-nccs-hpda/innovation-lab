@@ -133,28 +133,28 @@ class Envelope(ogr.Geometry):
         copy = ogr.CreateGeometryFromWkt(multipointWkt)
         self.__dict__.update(copy.__dict__)
 
-        srsWkt = state[Envelope.SRS_KEY]
+        srsProj4 = state[Envelope.SRS_KEY]
         srs = SpatialReference()
-        srs.ImportFromWkt(srsWkt)
+        srs.ImportFromProj4(srsProj4)
         self.AssignSpatialReference(srs)
         
     # -------------------------------------------------------------------------
     # __getstate__
     # -------------------------------------------------------------------------
-    def __getstate__(self):
-
-        state = {Envelope.MULTIPOINT_KEY: self.ExportToWkt(),
-                 Envelope.SRS_KEY: self.GetSpatialReference().ExportToWkt()}
-                 
-        return state
+    # def __getstate__(self):
+    #
+    #     state = {Envelope.MULTIPOINT_KEY: self.ExportToWkt(),
+    #              Envelope.SRS_KEY: self.GetSpatialReference().ExportToProj4()}
+    #
+    #     return state
         
     # -------------------------------------------------------------------------
     # __reduce__
     # -------------------------------------------------------------------------
-    # def __reduce__(self):
-    #
-    #     state = {Envelope.MULTIPOINT_KEY: self.ExportToWkt(),
-    #              Envelope.SRS_KEY: self.GetSpatialReference().ExportToWkt()}
-    #
-    #     return (self.__class__, (), state)
+    def __reduce__(self):
+
+        state = {Envelope.MULTIPOINT_KEY: self.ExportToWkt(),
+                 Envelope.SRS_KEY: self.GetSpatialReference().ExportToProj4()}
+
+        return (self.__class__, (), state)
         
