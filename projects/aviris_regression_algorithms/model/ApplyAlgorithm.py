@@ -305,4 +305,4 @@ class ApplyAlgorithm(object):
             
                 # bandRow = self.debugDict[bandKey]
                 # writer.write(bandRow)
-                writer.writerow[bandKey, self.debugDict[bandKey]]
+                writer.writerow([bandKey, self.debugDict[bandKey]])
