@@ -92,6 +92,9 @@ class ApplyAlgorithm(object):
         for row in range(self.imageFile._getDataset().RasterYSize):
             for col in range(self.imageFile._getDataset().RasterXSize):
 
+                import pdb
+                pdb.set_trace()
+
                 # Read the stack of pixels at this col, row location.
                 pixelStack = self._readStack(col, row)
                 
@@ -298,8 +301,6 @@ class ApplyAlgorithm(object):
             writer = csv.DictWriter(f, fieldnames=fieldNames)
             writer.writeheader()
         
-            import pdb
-            pdb.set_trace()
             for bandKey in self.debugDict:
             
                 bandRow = self.debugDict[bandKey]
