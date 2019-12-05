@@ -298,6 +298,8 @@ class ApplyAlgorithm(object):
             writer = csv.DictWriter(f, fieldnames=fieldNames)
             writer.writeheader()
         
+            import pdb
+            pdb.set_trace()
             for bandKey in self.debugDict:
             
                 bandRow = self.debugDict[bandKey]
