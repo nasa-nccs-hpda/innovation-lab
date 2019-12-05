@@ -92,9 +92,6 @@ class ApplyAlgorithm(object):
         for row in range(self.imageFile._getDataset().RasterYSize):
             for col in range(self.imageFile._getDataset().RasterXSize):
 
-                import pdb
-                pdb.set_trace()
-
                 # Read the stack of pixels at this col, row location.
                 pixelStack = self._readStack(col, row)
                 
@@ -223,16 +220,16 @@ class ApplyAlgorithm(object):
     # -------------------------------------------------------------------------
     # debug
     # -------------------------------------------------------------------------
-    def debug(self, x, y):
+    def debug(self, row, col):
         
-        if x < 0 or x >= self.imageFile._getDataset().RasterXSize:
-            raise RuntimeError('Debug x value is not within the image.')
+        if row < 0 or row >= self.imageFile._getDataset().RasterYSize:
+            raise RuntimeError('Debug row value is not within the image.')
             
-        if y < 0 or y >= self.imageFile._getDataset().RasterYSize:
-            raise RuntimeError('Debug y value is not within the image.')
+        if col < 0 or col >= self.imageFile._getDataset().RasterXSize:
+            raise RuntimeError('Debug column value is not within the image.')
             
-        self.debugX = x
-        self.debugY = y
+        self.debugRow = row
+        self.debugCol = col
         self.debugDict = {}
             
     # -------------------------------------------------------------------------
