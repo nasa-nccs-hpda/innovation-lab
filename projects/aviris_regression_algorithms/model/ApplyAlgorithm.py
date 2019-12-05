@@ -19,9 +19,6 @@ from model.GeospatialImageFile import GeospatialImageFile
 # -----------------------------------------------------------------------------
 class ApplyAlgorithm(object):
 
-    DEBUG_START = (0, 0)  # Set to (-1, -1) to debug no pixels.
-    DEBUG_END = (-1, -1)  # Set to (-1, -1) to debug all pixels from start.
-    
     NO_DATA_VALUE = -9999.0
     
     # -------------------------------------------------------------------------
@@ -48,41 +45,20 @@ class ApplyAlgorithm(object):
             for row in reader:
                 self.coefs.append(row)
                 
-        # ---
         # Set up debugging.
-        #
-        # Debug dictionary:  
-        # Band, (0, 0), (0, 1), ...
-        # 0     value,  value, ...
-        # ---
-        if ApplyAlgorithm.DEBUG_START[0] != -1 and \
-            ApplyAlgorithm.DEBUG_START[1] != -1:
-
-            if ApplyAlgorithm.DEBUG_END[0] < 0 and \
-                ApplyAlgorithm.DEBUG_END[1] < 0:
-
-                self.rowEnd = self.imageFile._getDataset().RasterYSize
-                self.colEnd = self.imageFile._getDataset().RasterXSize
-
-            else:
-
-                self.rowEnd = ApplyAlgorithm.DEBUG_END[0]
-                self.colEnd = ApplyAlgorithm.DEBUG_END[1]
-
-            self.debugDict = {}
-
-        else:
-            self.debugDict = None
-                
+        self.debugRow = None
+        self.debugCol = None
+        self.debugDict = None
+        
     # -------------------------------------------------------------------------
     # _addDebugDictItem
     # -------------------------------------------------------------------------
-    def _addDebugDictItem(self, band, coord, value):
-        
-        if not band in self.debugDict:
-            self.debugDict[band] = {'Band': band}
-            
-        self.debugDict[band][coord] = value
+    # def _addDebugDictItem(self, band, coord, value):
+    #
+    #     if not band in self.debugDict:
+    #         self.debugDict[band] = {'Band': band}
+    #
+    #     self.debugDict[band][coord] = value
         
     # -------------------------------------------------------------------------
     # applyAlgorithm
@@ -119,8 +95,8 @@ class ApplyAlgorithm(object):
                 # Read the stack of pixels at this col, row location.
                 pixelStack = self._readStack(col, row)
                 
-                debugKey = self._makeRowColKey(row, col) \
-                    if self._isDebugPixel(row, col) else None
+                # debugKey = self._makeRowColKey(row, col) \
+                #     if self._isDebugPixel(row, col) else None
                     
                 # Check for no-data in the first pixel of the stack.
                 if pixelStack[0] == ApplyAlgorithm.NO_DATA_VALUE:
@@ -128,9 +104,11 @@ class ApplyAlgorithm(object):
                     hexValue = struct.pack('f', ApplyAlgorithm.NO_DATA_VALUE)
                     outDs.WriteRaster(col, row, 1, 1, hexValue)
 
-                    if debugKey:
-                        self._addDebugDictItem(0, debugKey, 'No data')
-                        
+                    # if debugKey:
+                    #     self._addDebugDictItem(0, debugKey, 'No data')
+                    if self.debugRow == row and self.debugCol == col:
+                        self.debugDict['0'] = 'No data'
+                    
                     continue
 
                 # ---
@@ -148,17 +126,22 @@ class ApplyAlgorithm(object):
                     hexValue = struct.pack('f', ApplyAlgorithm.NO_DATA_VALUE)
                     outDs.WriteRaster(col, row, 1, 1, hexValue)
 
-                    if debugKey:
-                   
-                        self._addDebugDictItem(0, debugKey, 'Mask')
-                        
-                        self._addDebugDictItem(10,
-                                               debugKey, 
-                                               bandCoefValueDict[9][1])
-                        
-                        self._addDebugDictItem(246,
-                                               debugKey, 
-                                               bandCoefValueDict[245][1])
+                    # if debugKey:
+                    #
+                    #     self._addDebugDictItem(0, debugKey, 'Mask')
+                    #
+                    #     self._addDebugDictItem(10,
+                    #                            debugKey,
+                    #                            bandCoefValueDict[9][1])
+                    #
+                    #     self._addDebugDictItem(246,
+                    #                            debugKey,
+                    #                            bandCoefValueDict[245][1])
+                    if self.debugRow == row and self.debugCol == col:
+                            
+                        self.debugDict['0'] = 'Mask'
+                        self.debugDict['10'] = bandCoefValueDict[9][1]
+                        self.debugDict['246'] = bandCoefValueDict[245][1]
                         
                     continue
 
@@ -176,8 +159,9 @@ class ApplyAlgorithm(object):
                         value = bandCoefValueDict[band][1]
                         self._addDebugDictItem(band, debugKey, value)
                         
-                    self._addDebugDictItem('Divisor', debugKey, divisor)
-                    
+                    # self._addDebugDictItem('Divisor', debugKey, divisor)
+                    if self.debugRow == row and self.debugCol == col:
+                        self.debugDict['Divisor'] = divisor
                         
                 # Compute the result, normalizing pixel values as we go.
                 p = 0.0
@@ -234,26 +218,41 @@ class ApplyAlgorithm(object):
         return math.sqrt(tally)
         
     # -------------------------------------------------------------------------
+    # debug
+    # -------------------------------------------------------------------------
+    def debug(self, x, y):
+        
+        if x < 0 or x >= self.imageFile._getDataset().RasterXSize:
+            raise RuntimeError('Debug x value is not within the image.')
+            
+        if y < 0 or y >= self.imageFile._getDataset().RasterYSize:
+            raise RuntimeError('Debug y value is not within the image.')
+            
+        self.debugX = x
+        self.debugY = y
+        self.debugDict = {}
+            
+    # -------------------------------------------------------------------------
     # _isDebugPixel
     # -------------------------------------------------------------------------
-    def _isDebugPixel(self, row, col):
-        
-        if self.debugDict != None and \
-            row >= ApplyAlgorithm.DEBUG_START[0] and \
-            row <= self.rowEnd and \
-            col >= ApplyAlgorithm.DEBUG_START[1] and \
-            col <= self.colEnd:
-            
-            return True
-            
-        return False
+    # def _isDebugPixel(self, row, col):
+    #
+    #     if self.debugDict != None and \
+    #         row >= ApplyAlgorithm.DEBUG_START[0] and \
+    #         row <= self.rowEnd and \
+    #         col >= ApplyAlgorithm.DEBUG_START[1] and \
+    #         col <= self.colEnd:
+    #
+    #         return True
+    #
+    #     return False
         
     # -------------------------------------------------------------------------
     # _makeRowColKey
     # -------------------------------------------------------------------------
-    def _makeRowColKey(self, row, col):
-        
-        return '(' + str(row) + ', ' + str(col) + ')'
+    # def _makeRowColKey(self, row, col):
+    #
+    #     return '(' + str(row) + ', ' + str(col) + ')'
         
     # -------------------------------------------------------------------------
     # _pixelStackToCsv
@@ -286,9 +285,9 @@ class ApplyAlgorithm(object):
         
         fieldNames = ['Band']
         
-        for row in range(ApplyAlgorithm.DEBUG_START[0], self.rowEnd):
-            for col in range(ApplyAlgorithm.DEBUG_START[1], self.colEnd):
-                fieldNames.append(self._makeRowColKey(row, col))
+        # for row in range(ApplyAlgorithm.DEBUG_START[0], self.rowEnd):
+        #     for col in range(ApplyAlgorithm.DEBUG_START[1], self.colEnd):
+        #         fieldNames.append(self._makeRowColKey(row, col))
 
         outFile = \
             os.path.join(self.outDir,
