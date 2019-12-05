@@ -47,8 +47,6 @@ def main():
     args = parser.parse_args()
     aa = ApplyAlgorithm(args.c, args.i, args.o)
     
-    import pdb
-    pdb.set_trace()
     if args.d:
         aa.debug(args.d[0], args.d[1])
         
