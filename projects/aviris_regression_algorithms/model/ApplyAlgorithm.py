@@ -299,8 +299,6 @@ class ApplyAlgorithm(object):
             # writer.writeheader()
             writer = csv.writer(f)
         
-            import pdb
-            pdb.set_trace()
             for bandKey in self.debugDict:
             
                 # bandRow = self.debugDict[bandKey]
