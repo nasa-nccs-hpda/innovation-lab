@@ -34,7 +34,7 @@ def main():
                         nargs=2,
                         type=int,
                         help='Produce debugging output for the given ' + \
-                             'pixel, defined as "x y".')
+                             'pixel, defined as "row column".')
 
     parser.add_argument('-i',
                         default='.',
