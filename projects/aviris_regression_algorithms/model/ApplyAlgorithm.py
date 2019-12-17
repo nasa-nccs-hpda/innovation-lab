@@ -51,16 +51,6 @@ class ApplyAlgorithm(object):
         self.debugDict = None   # {'Band': [0, value]}
         
     # -------------------------------------------------------------------------
-    # _addDebugDictItem
-    # -------------------------------------------------------------------------
-    # def _addDebugDictItem(self, band, coord, value):
-    #
-    #     if not band in self.debugDict:
-    #         self.debugDict[band] = {'Band': band}
-    #
-    #     self.debugDict[band][coord] = value
-        
-    # -------------------------------------------------------------------------
     # applyAlgorithm
     #
     # P = a0 + a1b1 + a2b2 …
@@ -95,17 +85,12 @@ class ApplyAlgorithm(object):
                 # Read the stack of pixels at this col, row location.
                 pixelStack = self._readStack(col, row)
                 
-                # debugKey = self._makeRowColKey(row, col) \
-                #     if self._isDebugPixel(row, col) else None
-                    
                 # Check for no-data in the first pixel of the stack.
                 if pixelStack[0] == ApplyAlgorithm.NO_DATA_VALUE:
 
                     hexValue = struct.pack('f', ApplyAlgorithm.NO_DATA_VALUE)
                     outDs.WriteRaster(col, row, 1, 1, hexValue)
 
-                    # if debugKey:
-                    #     self._addDebugDictItem(0, debugKey, 'No data')
                     if self.debugRow == row and self.debugCol == col:
                         self.debugDict[0] = 'No data'
                     
@@ -126,17 +111,6 @@ class ApplyAlgorithm(object):
                     hexValue = struct.pack('f', ApplyAlgorithm.NO_DATA_VALUE)
                     outDs.WriteRaster(col, row, 1, 1, hexValue)
 
-                    # if debugKey:
-                    #
-                    #     self._addDebugDictItem(0, debugKey, 'Mask')
-                    #
-                    #     self._addDebugDictItem(10,
-                    #                            debugKey,
-                    #                            bandCoefValueDict[9][1])
-                    #
-                    #     self._addDebugDictItem(246,
-                    #                            debugKey,
-                    #                            bandCoefValueDict[245][1])
                     if self.debugRow == row and self.debugCol == col:
                             
                         self.debugDict[0] = 'Mask'
@@ -159,7 +133,6 @@ class ApplyAlgorithm(object):
                         value = bandCoefValueDict[band][1]
                         self._addDebugDictItem(band, debugKey, value)
                         
-                    # self._addDebugDictItem('Divisor', debugKey, divisor)
                     if self.debugRow == row and self.debugCol == col:
                         self.debugDict['Divisor'] = divisor
                         
@@ -233,28 +206,6 @@ class ApplyAlgorithm(object):
         self.debugDict = {}
             
     # -------------------------------------------------------------------------
-    # _isDebugPixel
-    # -------------------------------------------------------------------------
-    # def _isDebugPixel(self, row, col):
-    #
-    #     if self.debugDict != None and \
-    #         row >= ApplyAlgorithm.DEBUG_START[0] and \
-    #         row <= self.rowEnd and \
-    #         col >= ApplyAlgorithm.DEBUG_START[1] and \
-    #         col <= self.colEnd:
-    #
-    #         return True
-    #
-    #     return False
-        
-    # -------------------------------------------------------------------------
-    # _makeRowColKey
-    # -------------------------------------------------------------------------
-    # def _makeRowColKey(self, row, col):
-    #
-    #     return '(' + str(row) + ', ' + str(col) + ')'
-        
-    # -------------------------------------------------------------------------
     # _pixelStackToCsv
     # -------------------------------------------------------------------------
     def _pixelStackToCsv(self, key, pixelStack):
@@ -285,22 +236,13 @@ class ApplyAlgorithm(object):
         
         fieldNames = ['Band', 'Value']
         
-        # for row in range(ApplyAlgorithm.DEBUG_START[0], self.rowEnd):
-        #     for col in range(ApplyAlgorithm.DEBUG_START[1], self.colEnd):
-        #         fieldNames.append(self._makeRowColKey(row, col))
-
         outFile = \
             os.path.join(self.outDir,
                          os.path.basename(self.imageFile.fileName()) + '.csv')
 
         with open(outFile, 'w') as f:
 
-            # writer = csv.DictWriter(f, fieldnames=fieldNames)
-            # writer.writeheader()
             writer = csv.writer(f)
         
             for bandKey in self.debugDict:
-            
-                # bandRow = self.debugDict[bandKey]
-                # writer.write(bandRow)
                 writer.writerow([bandKey, self.debugDict[bandKey]])
