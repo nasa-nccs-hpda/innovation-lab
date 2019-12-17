@@ -12,9 +12,13 @@ from projects.aviris_regression_algorithms.model.ApplyAlgorithm \
 # -----------------------------------------------------------------------------
 # main
 #
+# /att/pubrepo/ABoVE/archived_data/ORNL/ABoVE_Airborne_AVIRIS_NG/data
+#
 # cd /att/nobackup/rlgill/innovation-lab/
 # export PYTHONPATH=`pwd`
 # projects/aviris_regression_algorithms/view/AvirisCommandLineView.py -a 'Avg Chl' -c /att/nobackup/rlgill/AVIRIS/Chl_Coeff_input.csv -i /att/nobackup/rlgill/AVIRIS/test/ang20170624t181530_rdn_v2p9/clipTest.img -o /att/nobackup/rlgill/AVIRIS/test/output -d 1 1
+#
+# projects/aviris_regression_algorithms/view/AvirisCommandLineView.py -a 'Avg Chl' -c /att/nobackup/rlgill/AVIRIS/Chl_Coeff_input.csv -i /att/pubrepo/ABoVE/archived_data/ORNL/ABoVE_Airborne_AVIRIS_NG/data/ang20180819t010027/ang20180819t010027_rdn_v2r2/ang20180819t010027_rdn_v2r2_img -o /att/nobackup/rlgill/AVIRIS/test/output
 # -----------------------------------------------------------------------------
 def main():
 
