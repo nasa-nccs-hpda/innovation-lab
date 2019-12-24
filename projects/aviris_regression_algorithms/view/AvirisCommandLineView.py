@@ -37,7 +37,7 @@ def main():
     parser.add_argument('-d',
                         nargs=2,
                         type=int,
-                        help='Produce debugging output for the given ' + \
+                        help='Produce debugging output for the given ' +
                              'pixel, defined as "row column".')
 
     parser.add_argument('-i',
@@ -50,12 +50,12 @@ def main():
 
     args = parser.parse_args()
     aa = ApplyAlgorithm(args.c, args.i, args.o)
-    
+
     if args.d:
         aa.debug(args.d[0], args.d[1])
-        
+
     aa.applyAlgorithm(args.a)
-    
+
 
 # ------------------------------------------------------------------------------
 # Invoke the main
