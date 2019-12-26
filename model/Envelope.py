@@ -10,6 +10,9 @@ from osgeo.osr import SpatialReference
 # -----------------------------------------------------------------------------
 class Envelope(ogr.Geometry):
 
+    MULTIPOINT_KEY = 'Multipoint'
+    SRS_KEY = 'SpatialReference'
+
     # -------------------------------------------------------------------------
     # __init__
     # -------------------------------------------------------------------------
@@ -52,15 +55,15 @@ class Envelope(ogr.Geometry):
             raise RuntimeError('Added points must be of type wkbPoint.')
 
         if not self.GetSpatialReference():
-            
-            self.AssignSpatialReference( \
+
+            self.AssignSpatialReference(
                 ogrPoint.GetSpatialReference().Clone())
 
         if not ogrPoint.GetSpatialReference(). \
-            IsSame(self.GetSpatialReference()):
+           IsSame(self.GetSpatialReference()):
 
             raise RuntimeError('Added points must be in the SRS: ' +
-                               str(self.GetSpatialReference(). \
+                               str(self.GetSpatialReference().
                                    ExportToPrettyWkt()))
 
         self.AddGeometry(ogrPoint)
@@ -72,12 +75,12 @@ class Envelope(ogr.Geometry):
     # for envelopes.
     # -------------------------------------------------------------------------
     def Equals(self, otherEnvelope):
-        
+
         return self.ulx() == otherEnvelope.ulx() and \
                self.uly() == otherEnvelope.uly() and \
                self.lrx() == otherEnvelope.lrx() and \
                self.lry() == otherEnvelope.lry() and \
-               self.GetSpatialReference().IsSame( \
+               self.GetSpatialReference().IsSame(
                    otherEnvelope.GetSpatialReference())
 
     # -------------------------------------------------------------------------
@@ -117,3 +120,39 @@ class Envelope(ogr.Geometry):
     def uly(self):
 
         return self._getOrdinate(3)
+
+    # -------------------------------------------------------------------------
+    # __setstate__
+    #
+    # e2 = pickle.loads(pickle.dumps(env))
+    # -------------------------------------------------------------------------
+    def __setstate__(self, state):
+
+        multipointWkt = state[Envelope.MULTIPOINT_KEY]
+        copy = ogr.CreateGeometryFromWkt(multipointWkt)
+        self.__dict__.update(copy.__dict__)
+
+        srsProj4 = state[Envelope.SRS_KEY]
+        srs = SpatialReference()
+        srs.ImportFromProj4(srsProj4)
+        self.AssignSpatialReference(srs)
+
+    # -------------------------------------------------------------------------
+    # __getstate__
+    # -------------------------------------------------------------------------
+    # def __getstate__(self):
+    #
+    #     state = {Envelope.MULTIPOINT_KEY: self.ExportToWkt(),
+    #             Envelope.SRS_KEY: self.GetSpatialReference().ExportToProj4()}
+    #
+    #     return state
+
+    # -------------------------------------------------------------------------
+    # __reduce__
+    # -------------------------------------------------------------------------
+    def __reduce__(self):
+
+        state = {Envelope.MULTIPOINT_KEY: self.ExportToWkt(),
+                 Envelope.SRS_KEY: self.GetSpatialReference().ExportToProj4()}
+
+        return (self.__class__, (), state)
