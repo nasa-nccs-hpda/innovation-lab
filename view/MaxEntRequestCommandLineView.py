@@ -9,6 +9,7 @@ from osgeo.osr import SpatialReference
 
 from model.GeospatialImageFile import GeospatialImageFile
 from model.MaxEntRequest import MaxEntRequest
+from model.MaxEntRequestCelery import MaxEntRequestCelery
 from model.ObservationFile import ObservationFile
 
 
@@ -25,6 +26,10 @@ def main():
     # Process command-line args.
     desc = 'This application runs Maximum Entropy.'
     parser = argparse.ArgumentParser(description=desc)
+
+    parser.add_argument('-c',
+                        action='store_true',
+                        help='Use Celery for distributed processing.')
 
     parser.add_argument('-e',
                         required=True,
@@ -56,7 +61,15 @@ def main():
     imageFiles = glob.glob(args.i + '/*.nc')
     geoImages = [GeospatialImageFile(i, srs) for i in imageFiles]
     observationFile = ObservationFile(args.f, args.s)
-    maxEntReq = MaxEntRequest(observationFile, geoImages, args.o)
+    maxEntReq = None
+    
+    if args.c:
+        
+        maxEntReq = MaxEntRequestCelery(observationFile, geoImages, args.o)
+    
+    else:
+        maxEntReq = MaxEntRequest(observationFile, geoImages, args.o)
+
     maxEntReq.run()
 
 
