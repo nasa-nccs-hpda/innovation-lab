@@ -8,6 +8,7 @@ from celery import group
 from CeleryConfiguration import app
 from model.MaxEntRequest import MaxEntRequest
 
+
 # -----------------------------------------------------------------------------
 # class MaxEntRequestCelery
 # -----------------------------------------------------------------------------
@@ -19,10 +20,10 @@ class MaxEntRequestCelery(MaxEntRequest):
     def __init__(self, observationFile, listOfImages, outputDirectory):
 
         # Initialize the base class.
-        super(MaxEntRequestCelery, self).__init__(observationFile, 
-                                                  listOfImages, 
+        super(MaxEntRequestCelery, self).__init__(observationFile,
+                                                  listOfImages,
                                                   outputDirectory)
-        
+
     # -------------------------------------------------------------------------
     # prepareImage
     #
@@ -30,8 +31,8 @@ class MaxEntRequestCelery(MaxEntRequest):
     #
     # This method is distributed using Celery, which requires serialized
     # arguments.  The Innovation Lab serialized with Python's Pickle.  The
-    # IL classes representing imageFile and envelope arguments were 
-    # modified for Pickle serialization.  The ascDir argument, a string, is 
+    # IL classes representing imageFile and envelope arguments were
+    # modified for Pickle serialization.  The ascDir argument, a string, is
     # serialized natively by Pickle.  The SRS argument is neither natively
     # serializable or available for us to add serialization; therefore,
     # it is passed in proj4 form, a string.
@@ -42,15 +43,15 @@ class MaxEntRequestCelery(MaxEntRequest):
 
         srs = SpatialReference()
         srs.ImportFromProj4(srsProj4)
-    
+
         MaxEntRequest.prepareImage(imageFile, srs, envelope, ascDir)
 
     # -------------------------------------------------------------------------
     # prepareImages
     # -------------------------------------------------------------------------
     def prepareImages(self):
-        
-        wpi = group(MaxEntRequestCelery.prepareImage.s( \
+
+        wpi = group(MaxEntRequestCelery.prepareImage.s(
                                     image,
                                     self._imageSRS.ExportToProj4(),
                                     self._observationFile.envelope(),
@@ -58,9 +59,9 @@ class MaxEntRequestCelery(MaxEntRequest):
 
         result = wpi.apply_async()
         result.get()    # Waits for wpi to finish.
-        
+
         return result
-        
+
     # -------------------------------------------------------------------------
     # run
     # -------------------------------------------------------------------------
@@ -70,5 +71,3 @@ class MaxEntRequestCelery(MaxEntRequest):
 
         if result.successful():
             self.runMaxEntJar()
-
-        

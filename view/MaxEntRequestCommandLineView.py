@@ -62,11 +62,11 @@ def main():
     geoImages = [GeospatialImageFile(i, srs) for i in imageFiles]
     observationFile = ObservationFile(args.f, args.s)
     maxEntReq = None
-    
+
     if args.c:
-        
+
         maxEntReq = MaxEntRequestCelery(observationFile, geoImages, args.o)
-    
+
     else:
         maxEntReq = MaxEntRequest(observationFile, geoImages, args.o)
 
