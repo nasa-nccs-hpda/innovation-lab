@@ -18,10 +18,7 @@ from model.ObservationFile import ObservationFile
 # cd innovation-lab
 # export PYTHONPATH=`pwd`
 # mkdir ~/SystemTesting/testMaxEnt
-# view/MaxEntRequestCommandLineView.py -e 32612
-# -f ~/SystemTesting/MaxEntData/GSENM_cheat_pres_abs_2001.csv
-# -s "Cheat Grass" -i ~/SystemTesting/MaxEntData/images/
-# -o ~/SystemTesting/testMaxEnt/
+# view/MaxEntRequestCommandLineView.py -e 4326 -f ~/SystemTesting/maxEntData/ebd_Cassins_1989.csv -s "Cheat Grass" -i ~/SystemTesting/maxEntData/images/ -o ~/SystemTesting/testMaxEnt/
 # -----------------------------------------------------------------------------
 def main():
 
@@ -56,7 +53,7 @@ def main():
     srs = SpatialReference()
     srs.ImportFromEPSG(args.e)
 
-    imageFiles = glob.glob(args.i + '/*')
+    imageFiles = glob.glob(args.i + '/*.nc')
     geoImages = [GeospatialImageFile(i, srs) for i in imageFiles]
     observationFile = ObservationFile(args.f, args.s)
     maxEntReq = MaxEntRequest(observationFile, geoImages, args.o)
