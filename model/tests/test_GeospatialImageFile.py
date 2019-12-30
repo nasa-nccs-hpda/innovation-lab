@@ -17,6 +17,10 @@ from model.GeospatialImageFile import GeospatialImageFile
 # -----------------------------------------------------------------------------
 # class GeospatialImageFileTestCase
 #
+# docker run -it -v /Users/rlgill/Desktop/Source/innovation-lab:/home/ilUser/hostFiles -v /Users/rlgill/Desktop/SystemTesting:/home/ilUser/SystemTesting innovation-lab:1.0
+# cd ~/hostFiles
+# export PYTHONPATH=`pwd`
+#
 # python -m unittest discover model/tests/
 # python -m unittest model.tests.test_GeospatialImageFile
 # -----------------------------------------------------------------------------
