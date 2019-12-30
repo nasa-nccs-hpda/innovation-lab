@@ -140,7 +140,7 @@ class EnvelopeTestCase(unittest.TestCase):
 
         state = env.__reduce__()
         env2 = Envelope()
-        env2.__setstate__(state)
+        env2.__setstate__(state[2])
 
         self.assertEqual(env.ulx(), env2.ulx())
         self.assertEqual(env.uly(), env2.uly())
