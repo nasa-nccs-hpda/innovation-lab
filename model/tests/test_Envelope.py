@@ -12,6 +12,10 @@ from model.Envelope import Envelope
 # -----------------------------------------------------------------------------
 # class EnvelopeTestCase
 #
+# docker run -it -v /Users/rlgill/Desktop/Source/innovation-lab:/home/ilUser/hostFiles -v /Users/rlgill/Desktop/SystemTesting:/home/ilUser/SystemTesting innovation-lab:1.0
+# cd ~/hostFiles
+# export PYTHONPATH=`pwd`
+#
 # python -m unittest discover model/tests/
 # python -m unittest model.tests.test_Envelope
 # -----------------------------------------------------------------------------
@@ -134,7 +138,7 @@ class EnvelopeTestCase(unittest.TestCase):
         env.addPoint(ulx, uly, 0, srs)
         env.addPoint(lrx, lry, 0, srs)
 
-        state = env.__getstate__()
+        state = env.__reduce__()
         env2 = Envelope()
         env2.__setstate__(state)
 
