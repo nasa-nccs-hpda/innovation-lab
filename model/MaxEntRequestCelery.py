@@ -61,13 +61,3 @@ class MaxEntRequestCelery(MaxEntRequest):
         result.get()    # Waits for wpi to finish.
 
         return result
-
-    # -------------------------------------------------------------------------
-    # run
-    # -------------------------------------------------------------------------
-    def run(self):
-
-        result = self.prepareImages()
-
-        if result.successful():
-            self.runMaxEntJar()
