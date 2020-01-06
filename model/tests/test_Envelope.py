@@ -12,6 +12,10 @@ from model.Envelope import Envelope
 # -----------------------------------------------------------------------------
 # class EnvelopeTestCase
 #
+# docker run -it -v /Users/rlgill/Desktop/Source/innovation-lab:/home/ilUser/hostFiles -v /Users/rlgill/Desktop/SystemTesting:/home/ilUser/SystemTesting innovation-lab:1.0
+# cd ~/hostFiles
+# export PYTHONPATH=`pwd`
+#
 # python -m unittest discover model/tests/
 # python -m unittest model.tests.test_Envelope
 # -----------------------------------------------------------------------------
@@ -118,3 +122,27 @@ class EnvelopeTestCase(unittest.TestCase):
         self.assertEqual(uly, env.uly())
         self.assertEqual(lrx, env.lrx())
         self.assertEqual(lry, env.lry())
+
+    # -------------------------------------------------------------------------
+    # testGetSetState
+    # -------------------------------------------------------------------------
+    def testGetSetState(self):
+
+        ulx = 374187
+        uly = 4202663
+        lrx = 501598
+        lry = 4100640
+        srs = SpatialReference()
+        srs.ImportFromEPSG(32612)
+        env = Envelope()
+        env.addPoint(ulx, uly, 0, srs)
+        env.addPoint(lrx, lry, 0, srs)
+
+        state = env.__reduce__()
+        env2 = Envelope()
+        env2.__setstate__(state[2])
+
+        self.assertEqual(env.ulx(), env2.ulx())
+        self.assertEqual(env.uly(), env2.uly())
+        self.assertEqual(env.lrx(), env2.lrx())
+        self.assertEqual(env.lry(), env2.lry())

@@ -17,6 +17,10 @@ from model.GeospatialImageFile import GeospatialImageFile
 # -----------------------------------------------------------------------------
 # class GeospatialImageFileTestCase
 #
+# docker run -it -v /Users/rlgill/Desktop/Source/innovation-lab:/home/ilUser/hostFiles -v /Users/rlgill/Desktop/SystemTesting:/home/ilUser/SystemTesting innovation-lab:1.0
+# cd ~/hostFiles
+# export PYTHONPATH=`pwd`
+#
 # python -m unittest discover model/tests/
 # python -m unittest model.tests.test_GeospatialImageFile
 # -----------------------------------------------------------------------------
@@ -164,6 +168,38 @@ class GeospatialImageFileTestCase(unittest.TestCase):
         os.remove(imageFile.fileName())
 
     # -------------------------------------------------------------------------
+    # testGetSetState
+    # -------------------------------------------------------------------------
+    def testGetSetState(self):
+
+        imageFile = self._createTestFile()
+
+        testFile = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                'TSURF.nc')
+
+        workingCopy = tempfile.mkstemp(suffix='.nc')[1]
+        shutil.copyfile(testFile, workingCopy)
+        srs = SpatialReference()
+        srs.ImportFromEPSG(32612)
+        imageFile2 = GeospatialImageFile(workingCopy, srs)
+
+        self.assertNotEqual(imageFile.fileName(), imageFile2.fileName())
+
+        self.assertNotEqual(imageFile.srs().ExportToProj4(),
+                            imageFile2.srs().ExportToProj4())
+
+        imageFileDump = imageFile.__getstate__()
+        imageFile2.__setstate__(imageFileDump)
+
+        self.assertEqual(imageFile.fileName(), imageFile2.fileName())
+
+        self.assertEqual(imageFile.srs().ExportToProj4(),
+                         imageFile2.srs().ExportToProj4())
+
+        os.remove(imageFile.fileName())
+        os.remove(workingCopy)
+
+    # -------------------------------------------------------------------------
     # testInvalidSpatialReference
     # -------------------------------------------------------------------------
     def testInvalidSpatialReference(self):
@@ -174,7 +210,7 @@ class GeospatialImageFileTestCase(unittest.TestCase):
         workingCopy = tempfile.mkstemp(suffix='.nc')[1]
         shutil.copyfile(testFile, workingCopy)
 
-        with self.assertRaisesRegexp(RuntimeError, 'Spatial reference for'):
+        with self.assertRaisesRegexp(RuntimeError, 'Spatial reference for '):
             GeospatialImageFile(workingCopy, SpatialReference())
 
         os.remove(workingCopy)

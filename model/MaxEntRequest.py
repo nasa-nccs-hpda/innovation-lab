@@ -4,9 +4,13 @@
 import csv
 import fileinput
 import os
+import pickle
 import shutil
 import sys
 
+from osgeo.osr import SpatialReference
+
+from model.Envelope import Envelope
 from model.GeospatialImageFile import GeospatialImageFile
 from model.SystemCommand import SystemCommand
 
@@ -95,10 +99,10 @@ class MaxEntRequest(object):
         try:
             image = self._imagesToProcess.pop()
 
-            self.prepareImage(image,
-                              self._imageSRS,
-                              self._observationFile.envelope(),
-                              self._ascDir)
+            MaxEntRequest.prepareImage(image,
+                                       self._imageSRS,
+                                       self._observationFile.envelope(),
+                                       self._ascDir)
 
         except IndexError:
             return 0
@@ -114,16 +118,16 @@ class MaxEntRequest(object):
     # instead of preparing a new set for each trial.
     # -------------------------------------------------------------------------
     @staticmethod
-    def prepareImage(image, srs, envelope, ascDir):
+    def prepareImage(imageFile, srs, envelope, ascDir):
 
         # ---
         # First, to preserve the original files, copy the input file to the
         # output directory.
         # ---
-        baseName = os.path.basename(image.fileName())
+        baseName = os.path.basename(imageFile.fileName())
         copyPath = os.path.join(ascDir, baseName)
         print ('Processing ' + copyPath)
-        shutil.copy(image.fileName(), copyPath)
+        shutil.copy(imageFile.fileName(), copyPath)
         imageCopy = GeospatialImageFile(copyPath, srs)
         imageCopy.clipReproject(envelope)
 
@@ -153,7 +157,6 @@ class MaxEntRequest(object):
     # -------------------------------------------------------------------------
     def run(self):
 
-#        imagesLeft = sys.maxint  (Python 2x, replaced in 3x by maxsize)
         imagesLeft = sys.maxsize
         while imagesLeft > 0:
 

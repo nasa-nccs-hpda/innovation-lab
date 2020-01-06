@@ -9,6 +9,7 @@ from osgeo.osr import SpatialReference
 
 from model.GeospatialImageFile import GeospatialImageFile
 from model.MaxEntRequest import MaxEntRequest
+from model.MaxEntRequestCelery import MaxEntRequestCelery
 from model.ObservationFile import ObservationFile
 
 
@@ -18,16 +19,17 @@ from model.ObservationFile import ObservationFile
 # cd innovation-lab
 # export PYTHONPATH=`pwd`
 # mkdir ~/SystemTesting/testMaxEnt
-# view/MaxEntRequestCommandLineView.py -e 32612
-# -f ~/SystemTesting/MaxEntData/GSENM_cheat_pres_abs_2001.csv
-# -s "Cheat Grass" -i ~/SystemTesting/MaxEntData/images/
-# -o ~/SystemTesting/testMaxEnt/
+# view/MaxEntRequestCommandLineView.py -e 4326 -f ~/SystemTesting/maxEntData/ebd_Cassins_1989.csv -s "Cheat Grass" -i ~/SystemTesting/maxEntData/images/ -o ~/SystemTesting/testMaxEnt/
 # -----------------------------------------------------------------------------
 def main():
 
     # Process command-line args.
     desc = 'This application runs Maximum Entropy.'
     parser = argparse.ArgumentParser(description=desc)
+
+    parser.add_argument('-c',
+                        action='store_true',
+                        help='Use Celery for distributed processing.')
 
     parser.add_argument('-e',
                         required=True,
@@ -56,10 +58,18 @@ def main():
     srs = SpatialReference()
     srs.ImportFromEPSG(args.e)
 
-    imageFiles = glob.glob(args.i + '/*')
+    imageFiles = glob.glob(args.i + '/*.nc')
     geoImages = [GeospatialImageFile(i, srs) for i in imageFiles]
     observationFile = ObservationFile(args.f, args.s)
-    maxEntReq = MaxEntRequest(observationFile, geoImages, args.o)
+    maxEntReq = None
+
+    if args.c:
+
+        maxEntReq = MaxEntRequestCelery(observationFile, geoImages, args.o)
+
+    else:
+        maxEntReq = MaxEntRequest(observationFile, geoImages, args.o)
+
     maxEntReq.run()
 
 

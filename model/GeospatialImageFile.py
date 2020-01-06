@@ -5,6 +5,8 @@ import math
 import shutil
 import tempfile
 
+from osgeo.osr import SpatialReference
+
 from model.Envelope import Envelope
 from model.ImageFile import ImageFile
 from model.SystemCommand import SystemCommand
@@ -15,13 +17,26 @@ from model.SystemCommand import SystemCommand
 # -----------------------------------------------------------------------------
 class GeospatialImageFile(ImageFile):
 
+    FILE_KEY = 'PathToFile'
+    SRS_KEY = 'SpatialReference'
+
     # -------------------------------------------------------------------------
     # __init__
     # -------------------------------------------------------------------------
-    def __init__(self, pathToFile, spatialReference):
+    def __init__(self,
+                 pathToFile,
+                 spatialReference=None,
+                 extension=ImageFile.EXTENSION):
 
         # Initialize the base class.
-        super(GeospatialImageFile, self).__init__(pathToFile)
+        super(GeospatialImageFile, self).__init__(pathToFile, extension)
+
+        # Initialize the spatial reference.
+        if not spatialReference:
+
+            spatialReferenceWkt = self._getDataset().GetProjection()
+            spatialReference = SpatialReference()
+            spatialReference.ImportFromWkt(spatialReferenceWkt)
 
         if spatialReference.Validate() != 0:
 
@@ -163,3 +178,24 @@ class GeospatialImageFile(ImageFile):
     def srs(self):
 
         return self._srs
+
+    # -------------------------------------------------------------------------
+    # __getstate__
+    # -------------------------------------------------------------------------
+    def __getstate__(self):
+
+        state = {GeospatialImageFile.FILE_KEY: self.fileName(),
+                 GeospatialImageFile.SRS_KEY: self._srs.ExportToProj4()}
+
+        return state
+
+    # -------------------------------------------------------------------------
+    # __setstate__
+    #
+    # e2 = pickle.loads(pickle.dumps(env))
+    # -------------------------------------------------------------------------
+    def __setstate__(self, state):
+
+        srs = SpatialReference()
+        srs.ImportFromProj4(state[GeospatialImageFile.SRS_KEY])
+        self.__init__(state[GeospatialImageFile.FILE_KEY], srs)
