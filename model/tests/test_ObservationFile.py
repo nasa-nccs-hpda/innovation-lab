@@ -16,6 +16,10 @@ from model.ObservationFile import ObservationFile
 # -----------------------------------------------------------------------------
 # class ObservationFileTestCase
 #
+# docker run -it -v /Users/rlgill/Desktop/Source/innovation-lab:/home/ilUser/hostFiles -v /Users/rlgill/Desktop/SystemTesting:/home/ilUser/SystemTesting innovation-lab:1.0
+# cd ~/hostFiles
+# export PYTHONPATH=`pwd`
+#
 # python -m unittest discover model/tests/
 # python -m unittest model.tests.test_ObservationFile
 # -----------------------------------------------------------------------------
@@ -25,17 +29,14 @@ class ObservationFileTestCase(unittest.TestCase):
     _testObsFile = None
 
     # -------------------------------------------------------------------------
-    # setUpClass
+    # createObsFile
     # -------------------------------------------------------------------------
     @classmethod
-    def setUpClass(cls):
+    def createObsFile(cls):
+        
+        obsFile = tempfile.mkstemp(suffix='.csv')[1]
 
-        ObservationFileTestCase._testObsFile = \
-            tempfile.mkstemp(suffix='.csv')[1]
-
-        print '_testObsFile: ' + str(ObservationFileTestCase._testObsFile)
-
-        with open(ObservationFileTestCase._testObsFile, 'w') as csvFile:
+        with open(obsFile, 'w') as csvFile:
 
             fields = ['x', 'y', 'pres/abs', 'epsg:32612']
             writer = csv.writer(csvFile, fields)
@@ -45,7 +46,18 @@ class ObservationFileTestCase(unittest.TestCase):
             writer.writerow((395099, 4130094, 0))
             writer.writerow((486130, 4202663, 1))
             writer.writerow((501598, 4142175, 0))
+            
+        return obsFile
+        
+    # -------------------------------------------------------------------------
+    # setUpClass
+    # -------------------------------------------------------------------------
+    @classmethod
+    def setUpClass(cls):
 
+        ObservationFileTestCase._testObsFile = \
+            ObservationFileTestCase.createObsFile()
+            
     # -------------------------------------------------------------------------
     # tearDownClass
     # -------------------------------------------------------------------------
@@ -69,6 +81,28 @@ class ObservationFileTestCase(unittest.TestCase):
                               ObservationFileTestCase._species)
 
         self.assertTrue(testEnv.Equals(obs.envelope()))
+
+    # -------------------------------------------------------------------------
+    # testGetSetState
+    # -------------------------------------------------------------------------
+    def testGetSetState(self):
+
+        obs = ObservationFile(ObservationFileTestCase._testObsFile,
+                              ObservationFileTestCase._species)
+                              
+        testFile = ObservationFileTestCase.createObsFile()
+        obs2 = ObservationFile(testFile, 'dummySpecies')
+
+        self.assertNotEqual(obs.fileName(), obs2.fileName())
+        self.assertNotEqual(obs.species(), obs2.species())
+
+        obsDump = obs.__getstate__()
+        obs2.__setstate__(obsDump)
+        
+        self.assertEqual(obs.fileName(), obs2.fileName())
+        self.assertEqual(obs.species(), obs2.species())
+
+        os.remove(testFile)
 
     # -------------------------------------------------------------------------
     # testNotA_CSV_File
