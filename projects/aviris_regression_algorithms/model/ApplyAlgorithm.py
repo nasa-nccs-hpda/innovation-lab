@@ -7,6 +7,7 @@ import re
 import struct
 
 from osgeo import gdal
+from osgeo import gdalconst
 
 from model.BaseFile import BaseFile
 from model.GeospatialImageFile import GeospatialImageFile
@@ -72,7 +73,9 @@ class ApplyAlgorithm(object):
 
         outDs = driver.Create(outName,
                               self.imageFile._getDataset().RasterXSize,
-                              self.imageFile._getDataset().RasterYSize)
+                              self.imageFile._getDataset().RasterYSize,
+                              1,
+                              gdalconst.GDT_Float32)
 
         outDs.SetProjection(self.imageFile._getDataset().GetProjection())
         outDs.SetGeoTransform(self.imageFile._getDataset().GetGeoTransform())
