@@ -23,6 +23,9 @@ from model.Envelope import Envelope
 # -----------------------------------------------------------------------------
 class ObservationFile(BaseFile):
 
+    FILE_KEY = 'PathToFile'
+    SPECIES_KEY = 'Species'
+
     # -------------------------------------------------------------------------
     # __init__
     # -------------------------------------------------------------------------
@@ -148,3 +151,23 @@ class ObservationFile(BaseFile):
 
         for obs in self._observations:
             obs[0].TransformTo(newSRS)
+
+    # -------------------------------------------------------------------------
+    # __getstate__
+    # -------------------------------------------------------------------------
+    def __getstate__(self):
+
+        state = {ObservationFile.FILE_KEY: self.fileName(),
+                 ObservationFile.SPECIES_KEY: self._species}
+
+        return state
+
+    # -------------------------------------------------------------------------
+    # __setstate__
+    #
+    # e2 = pickle.loads(pickle.dumps(env))
+    # -------------------------------------------------------------------------
+    def __setstate__(self, state):
+
+        self.__init__(state[ObservationFile.FILE_KEY], 
+                      state[ObservationFile.SPECIES_KEY])
