@@ -18,14 +18,12 @@ from model.GeospatialImageFile import GeospatialImageFile
 # class MmxRequest
 # -----------------------------------------------------------------------------
 class MmxRequest(object):
+    
     Trial = namedtuple('Trial', ['directory', 'obsFile', 'images'])
 
     # -------------------------------------------------------------------------
     # __init__
     # -------------------------------------------------------------------------
-    #    def __init__(self, observationFile, dateRange, numTrials=10,
-    #                 outputDirectory):
-
     def __init__(self, observationFile, dateRange, collection, variables,
                  operation, numTrials, outputDirectory):
 
@@ -101,18 +99,19 @@ class MmxRequest(object):
             return contributions
 
     # -------------------------------------------------------------------------
-    # getListofMerraImages
+    # getGeospatialImageFiles
     # -------------------------------------------------------------------------
-    def getListofMerraImages(self, files):
+    def getGeospatialImageFiles(self, files):
 
-        # Convert the list of NetCDF files to GeospatialImageFiles
-        list = []
+        imageFiles = []
         tgt_srs = SpatialReference()
         tgt_srs.ImportFromEPSG(4326)
-        for file in files:
-            list.append(GeospatialImageFile
-                        (os.path.join(self._merraDir, file), tgt_srs))
-        return list
+        
+        for ncFile in files:
+            
+            imageFiles.append(GeospatialImageFile
+                              (os.path.join(self._merraDir, ncFile), tgt_srs))
+        return imageFiles
 
     # -------------------------------------------------------------------------
     # getTopTen
@@ -189,10 +188,12 @@ class MmxRequest(object):
         trialObs = ObservationFile(trialObsPath,
                                    self._observationFile.species())
 
+        # This does not copy images, as it states.
+        #
         # Copy the images to the trial.
-        trailAscDir = os.path.join(TRIAL_DIR, 'asc')
-        if not os.path.exists(trailAscDir):
-            os.mkdir(trailAscDir)
+        # trailAscDir = os.path.join(TRIAL_DIR, 'asc')
+        # if not os.path.exists(trailAscDir):
+        #     os.mkdir(trailAscDir)
 
         # Build the Trial structure to use later.
         trial = MmxRequest.Trial(directory=TRIAL_DIR,
@@ -224,15 +225,16 @@ class MmxRequest(object):
         #
         # - outputDirectory
         #   - merra
+        #
+        # If required NetCDFs already exist, skip data preparation
         # ---
-        # Check if required NetCDFs already existing,
-        #       then skip data preparation
-        existedVars = os.listdir(self._merraDir)
+        existingVars = os.listdir(self._merraDir)
         requiredVars = [v + '.nc' for v in self._variables]
-        if not all(elem in existedVars for elem in requiredVars):
+        
+        if not all(elem in existingVars for elem in requiredVars):
             self.requestMerra()
 
-        images = self.getListofMerraImages(requiredVars)
+        images = self.getGeospatialImageFiles(requiredVars)
 
         # Get the random lists of indexes into Images for each trial.
         listOfIndexesInEachTrial = self.getTrialImagesIndexes(images)
@@ -255,6 +257,7 @@ class MmxRequest(object):
         trials = []
 
         for trialImageIndexes in listOfIndexesInEachTrial:
+            
             trials.append(self.prepareOneTrial(images,
                                                trialImageIndexes,
                                                trialNum + 1))
@@ -262,6 +265,7 @@ class MmxRequest(object):
 
         # Run the trials.
         for trial in trials:
+            
             mer = MaxEntRequest(trial.obsFile, trial.images, trial.directory)
             mer.run()
 
@@ -269,7 +273,9 @@ class MmxRequest(object):
         topTen = self.getTopTen(trials)
 
         # Run the final model.
-        final = self.prepareOneTrial(topTen, range(0, len(topTen) - 1),
+        final = self.prepareOneTrial(topTen, 
+                                     range(0, len(topTen) - 1),
                                      'final')
+                                     
         finalMer = MaxEntRequest(final.obsFile, final.images, final.directory)
         finalMer.run()
