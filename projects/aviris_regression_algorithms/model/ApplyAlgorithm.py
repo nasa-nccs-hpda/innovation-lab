@@ -76,7 +76,7 @@ class ApplyAlgorithm(object):
             for col in range(self.imageFile._getDataset().RasterXSize):
 
                 # Provide a hint of the progress.
-                if row % 100 == 0:
+                if row % 100 == 0 and col == 0:
                     
                     print 'Row ' + str(row) + ' of ' + \
                         str(self.imageFile._getDataset().RasterYSize)
