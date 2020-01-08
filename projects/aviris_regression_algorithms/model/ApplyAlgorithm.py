@@ -22,6 +22,10 @@ from model.GeospatialImageFile import GeospatialImageFile
 class ApplyAlgorithm(object):
 
     NO_DATA_VALUE = -9999.0
+    QA_COMPUTED = 0
+    QA_CLOUD = 1
+    QA_WATER = 2
+    QA_NO_DATA = 3
 
     # -------------------------------------------------------------------------
     # __init__
@@ -47,11 +51,6 @@ class ApplyAlgorithm(object):
             for row in reader:
                 self.coefs.append(row)
 
-        # Set up debugging.
-        self.debugRow = None
-        self.debugCol = None
-        self.debugDict = None   # {'Band': [0, value]}
-
     # -------------------------------------------------------------------------
     # applyAlgorithm
     #
@@ -67,19 +66,9 @@ class ApplyAlgorithm(object):
                                ' not in coeffient file, ' +
                                self.coefFile)
 
-        # Create the output raster.
-        outName = os.path.join(self.outDir, algorithmName + '.tif')
-        driver = gdal.GetDriverByName('GTiff')
-
-        outDs = driver.Create(outName,
-                              self.imageFile._getDataset().RasterXSize,
-                              self.imageFile._getDataset().RasterYSize,
-                              1,
-                              gdalconst.GDT_Float32)
-
-        outDs.SetProjection(self.imageFile._getDataset().GetProjection())
-        outDs.SetGeoTransform(self.imageFile._getDataset().GetGeoTransform())
-
+        # Create the output raster and QA image.
+        outDs, qa = self._createOutputImages(algorithmName)
+        
         # ---
         # Iterate through the raster, pixel by pixel.
         # ---
@@ -94,10 +83,7 @@ class ApplyAlgorithm(object):
 
                     hexValue = struct.pack('f', ApplyAlgorithm.NO_DATA_VALUE)
                     outDs.WriteRaster(col, row, 1, 1, hexValue)
-
-                    if self.debugRow == row and self.debugCol == col:
-                        self.debugDict[0] = 'No data'
-
+                    qa.WriteRaster(col, row, 1, 1, ApplyAlgorithm.QA_NO_DATA)
                     continue
 
                 # ---
@@ -114,31 +100,24 @@ class ApplyAlgorithm(object):
 
                     hexValue = struct.pack('f', ApplyAlgorithm.NO_DATA_VALUE)
                     outDs.WriteRaster(col, row, 1, 1, hexValue)
+                    
+                    if bandCoefValueDict[9][1] > 0.8:
 
-                    if self.debugRow == row and self.debugCol == col:
-
-                        self.debugDict[0] = 'Mask'
-                        self.debugDict[10] = bandCoefValueDict[9][1]
-                        self.debugDict[246] = bandCoefValueDict[245][1]
-
+                        qa.WriteRaster(col, row, 1, 1, ApplyAlgorithm.QA_CLOUD)
+                        
+                    else:
+                        qa.WriteRaster(col, row, 1, 1, ApplyAlgorithm.QA_WATER)
+                    
                     continue
 
+                qa.WriteRaster(col, row, 1, 1, ApplyAlgorithm.QA_COMPUTED)
+                
                 # ---
                 # Compute the square root of the sum of the squares of all band
                 # reflectances between 397nm and 898nm.  Those reflectances
                 # translate to bands 6 - 105.
                 # ---
                 divisor = self._computeDivisor(bandCoefValueDict)
-
-                if debugKey:
-
-                    for band in bandCoefValueDict.iterkeys():
-
-                        value = bandCoefValueDict[band][1]
-                        self._addDebugDictItem(band, debugKey, value)
-
-                    if self.debugRow == row and self.debugCol == col:
-                        self.debugDict['Divisor'] = divisor
 
                 # Compute the result, normalizing pixel values as we go.
                 p = 0.0
@@ -161,7 +140,7 @@ class ApplyAlgorithm(object):
                 outDs.WriteRaster(col, row, 1, 1, hexValue)
 
         outDs = None
-        self._writeDebugDict()
+        qa = None
 
     # -------------------------------------------------------------------------
     # _associateValuesWithCoefs
@@ -195,34 +174,38 @@ class ApplyAlgorithm(object):
         return math.sqrt(tally)
 
     # -------------------------------------------------------------------------
-    # debug
+    # createOutputImages
     # -------------------------------------------------------------------------
-    def debug(self, row, col):
+    def _createOutputImages(self, algorithmName):
+        
+        outName = os.path.join(self.outDir, algorithmName + '.tif')
+        driver = gdal.GetDriverByName('GTiff')
 
-        if row < 0 or row >= self.imageFile._getDataset().RasterYSize:
-            raise RuntimeError('Debug row value is not within the image.')
+        outDs = driver.Create(outName,
+                              self.imageFile._getDataset().RasterXSize,
+                              self.imageFile._getDataset().RasterYSize,
+                              1,
+                              gdalconst.GDT_Float32)
 
-        if col < 0 or col >= self.imageFile._getDataset().RasterXSize:
-            raise RuntimeError('Debug column value is not within the image.')
+        outDs.SetProjection(self.imageFile._getDataset().GetProjection())
+        outDs.SetGeoTransform(self.imageFile._getDataset().GetGeoTransform())
 
-        self.debugRow = row
-        self.debugCol = col
-        self.debugDict = {}
+        # ---
+        # Create the quality assurance (QA) layer.  At each pixel location:
+        # 0: expect a computed output value
+        # 1: expect a no-data value due to clouds
+        # 2: expect a no-data value due to water
+        # 3: expect a no-data value due to a no-data value in the input
+        # ---
+        qaName = os.path.join(self.outDir, algorithmName + '_qa.tif')
+        driver = gdal.GetDriverByName('GTiff')
 
-    # -------------------------------------------------------------------------
-    # _pixelStackToCsv
-    # -------------------------------------------------------------------------
-    def _pixelStackToCsv(self, key, pixelStack):
-
-        band = -1
-
-        for pixel in pixelStack:
-
-            band += 1
-            self.debugWriter.writerow({'Band': band, key: pixel})
-
-        return writer
-
+        outDs = driver.Create(outName,
+                              self.imageFile._getDataset().RasterXSize,
+                              self.imageFile._getDataset().RasterYSize)
+        
+        return outDs, qa
+        
     # -------------------------------------------------------------------------
     # _readStack
     # -------------------------------------------------------------------------
@@ -232,21 +215,3 @@ class ApplyAlgorithm(object):
         pixelsAsFloats = [p[0][0] for p in numpyPixels]
 
         return pixelsAsFloats
-
-    # -------------------------------------------------------------------------
-    # _writeDebugDict
-    # -------------------------------------------------------------------------
-    def _writeDebugDict(self):
-
-        fieldNames = ['Band', 'Value']
-
-        outFile = \
-            os.path.join(self.outDir,
-                         os.path.basename(self.imageFile.fileName()) + '.csv')
-
-        with open(outFile, 'w') as f:
-
-            writer = csv.writer(f)
-
-            for bandKey in self.debugDict:
-                writer.writerow([bandKey, self.debugDict[bandKey]])
