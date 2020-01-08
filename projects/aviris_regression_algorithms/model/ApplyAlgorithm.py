@@ -200,9 +200,9 @@ class ApplyAlgorithm(object):
         qaName = os.path.join(self.outDir, algorithmName + '_qa.tif')
         driver = gdal.GetDriverByName('GTiff')
 
-        outDs = driver.Create(outName,
-                              self.imageFile._getDataset().RasterXSize,
-                              self.imageFile._getDataset().RasterYSize)
+        qa = driver.Create(outName,
+                           self.imageFile._getDataset().RasterXSize,
+                           self.imageFile._getDataset().RasterYSize)
         
         return outDs, qa
         
