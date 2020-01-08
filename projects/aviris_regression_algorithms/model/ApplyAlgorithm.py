@@ -79,7 +79,7 @@ class ApplyAlgorithm(object):
                 if row % 100 == 0:
                     
                     print 'Row ' + str(row) + ' of ' + \
-                        self.imageFile._getDataset().RasterYSize
+                        str(self.imageFile._getDataset().RasterYSize)
                     
                 # Read the stack of pixels at this col, row location.
                 pixelStack = self._readStack(col, row)
