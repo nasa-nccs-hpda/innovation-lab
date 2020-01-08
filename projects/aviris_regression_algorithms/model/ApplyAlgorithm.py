@@ -75,6 +75,12 @@ class ApplyAlgorithm(object):
         for row in range(self.imageFile._getDataset().RasterYSize):
             for col in range(self.imageFile._getDataset().RasterXSize):
 
+                # Provide a hint of the progress.
+                if row % 100 == 0:
+                    
+                    print 'Row ' + str(row) + ' of ' + \
+                        self.imageFile._getDataset().RasterYSize
+                    
                 # Read the stack of pixels at this col, row location.
                 pixelStack = self._readStack(col, row)
 
