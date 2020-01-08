@@ -198,9 +198,8 @@ class ApplyAlgorithm(object):
         # 3: expect a no-data value due to a no-data value in the input
         # ---
         qaName = os.path.join(self.outDir, algorithmName + '_qa.tif')
-        driver = gdal.GetDriverByName('GTiff')
 
-        qa = driver.Create(outName,
+        qa = driver.Create(qaName,
                            self.imageFile._getDataset().RasterXSize,
                            self.imageFile._getDataset().RasterYSize)
         
