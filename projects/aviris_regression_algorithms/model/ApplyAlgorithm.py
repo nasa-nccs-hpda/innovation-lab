@@ -22,10 +22,10 @@ from model.GeospatialImageFile import GeospatialImageFile
 class ApplyAlgorithm(object):
 
     NO_DATA_VALUE = -9999.0
-    QA_COMPUTED = 0
-    QA_CLOUD = 1
-    QA_WATER = 2
-    QA_NO_DATA = 3
+    QA_COMPUTED = struct.pack('i', 0)
+    QA_CLOUD = struct.pack('i', 1)
+    QA_WATER = struct.pack('i', 2)
+    QA_NO_DATA = struct.pack('i', 3)
 
     # -------------------------------------------------------------------------
     # __init__
