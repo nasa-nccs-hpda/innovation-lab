@@ -207,7 +207,7 @@ class ApplyAlgorithm(object):
 
         qa = driver.Create(qaName,
                            self.imageFile._getDataset().RasterXSize,
-                           self.imageFile._getDataset().RasterYSize
+                           self.imageFile._getDataset().RasterYSize,
                            1,
                            gdalconst.GDT_int16)
         
