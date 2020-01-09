@@ -209,7 +209,7 @@ class ApplyAlgorithm(object):
                            self.imageFile._getDataset().RasterXSize,
                            self.imageFile._getDataset().RasterYSize,
                            1,
-                           gdalconst.GDT_int16)
+                           gdalconst.GDT_Int16)
         
         return outDs, qa
         
