@@ -256,7 +256,7 @@ class ApplyAlgorithm(object):
         cols = self.imageFile._getDataset().RasterXSize
         numPixels = rows * cols
         threshold = numPixels * pctThreshold
-        validPixels = 0
+        invalidPixels = 0
         
         for row in range(rows):
             for col in range(cols):
@@ -282,24 +282,22 @@ class ApplyAlgorithm(object):
                 b10Value = struct.unpack('f', bValues[0:4])[0]
                 b246Value = struct.unpack('f', bValues[4:8])[0]
                                                                    
-                if not (self._isNoData(b10Value) or \
-                        self._isCloudMask(b10Value) or \
-                        self._isWaterMask(b246Value)):
+                if self._isNoData(b10Value) or \
+                    self._isCloudMask(b10Value) or \
+                    self._isWaterMask(b246Value):
                    
                     print 'Valid pixel found.'
-                    import pdb
-                    pdb.set_trace()
-                    validPixels += 1
+                    invalidPixels += 1
                     
-                    if validPixels >= threshold:
+                    if invalidPixels >= threshold:
                         
                         print 'The validity threshold, ' + str(threshold) + \
-                              ' is met.'
+                              ' is unmet.'
                    
                         break
                         
-        if validPixels < threshold:
+        if invalidPixels < threshold:
 
             print 'The validity threshold, ' + str(threshold) + \
-                  ' is unmet.'
+                  ' is met.'
         
