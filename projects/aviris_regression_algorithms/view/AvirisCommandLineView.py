@@ -49,7 +49,8 @@ def main():
 
     group.add_argument('-s',
                        nargs='?',
-                       default=0.1,
+                       const=0.1,
+                       default=0.0,
                        help='Screen the image to determine if it has ' + 
                             'pixels that are not masked and not ' +
                             'no-data valued.  The value for this argument ' +
@@ -64,11 +65,13 @@ def main():
     import pdb
     pdb.set_trace()
     
-    if args.s:
+    if args.s > 0:
         aa.screen(args.s)
         
     else:
-        aa.applyAlgorithm(args.a)
+        
+        pass
+        # aa.applyAlgorithm(args.a)
 
 
 # ------------------------------------------------------------------------------
