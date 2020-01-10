@@ -255,7 +255,18 @@ class ApplyAlgorithm(object):
         rows = self.imageFile._getDataset().RasterYSize
         cols = self.imageFile._getDataset().RasterXSize
         numPixels = rows * cols
-        threshold = numPixels * pctThreshold
+        
+        # ---
+        # Count both the valid and invalid pixels and compare their number
+        # against the threshold and its inverse, so this method can quit as
+        # soon as possible.  For example, if the validity threshold is 90% and
+        # the first 10% of the image contains invalid pixels, quit because the
+        # invalidity threshold is met.  Otherwise, the validity threshold 
+        # would not be met until the entire image was scanned.
+        # ---
+        validityThreshold = numPixels * pctThreshold
+        invalidityThreshold = numPixels - validityThreshold
+        validPixels = 0
         invalidPixels = 0
         
         for row in range(rows):
@@ -288,18 +299,24 @@ class ApplyAlgorithm(object):
                    
                     invalidPixels += 1
                     
-                    if invalidPixels >= threshold:
+                    if invalidPixels >= invalidityThreshold:
                         
-                        print 'The validity threshold, ' + str(threshold) + \
-                              ' is unmet.'
+                        print 'The invalidity threshold, ' + 
+                              str(invalidityThreshold) +
+                              ' is met.'
                    
                         break
                         
                 else:
+                    
                     print 'Valid pixel found.'
+                    validPixels += 1
+                    
+                    if validPixels >= validityThreshold:
                         
-        if invalidPixels < threshold:
-
-            print 'The validity threshold, ' + str(threshold) + \
-                  ' is met.'
-        
+                        print 'The validity threshold, ' + 
+                              str(validityThreshold) +
+                              ' is met.'
+                   
+                        break
+                                
