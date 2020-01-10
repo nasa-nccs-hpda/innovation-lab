@@ -286,7 +286,6 @@ class ApplyAlgorithm(object):
                     self._isCloudMask(b10Value) or \
                     self._isWaterMask(b246Value):
                    
-                    print 'Valid pixel found.'
                     invalidPixels += 1
                     
                     if invalidPixels >= threshold:
@@ -295,6 +294,9 @@ class ApplyAlgorithm(object):
                               ' is unmet.'
                    
                         break
+                        
+                else:
+                    print 'Valid pixel found.'
                         
         if invalidPixels < threshold:
 
