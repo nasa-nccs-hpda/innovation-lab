@@ -62,9 +62,6 @@ def main():
     args = parser.parse_args()
     aa = ApplyAlgorithm(args.c, args.i, args.o)
 
-    import pdb
-    pdb.set_trace()
-    
     if args.s > 0:
         aa.screen(args.s)
         
