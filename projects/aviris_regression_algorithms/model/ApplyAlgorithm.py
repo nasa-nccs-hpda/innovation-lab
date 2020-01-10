@@ -261,6 +261,9 @@ class ApplyAlgorithm(object):
         for row in range(rows):
             for col in range(cols):
         
+                if row % 100 == 0 and col == 0:
+                    print 'Row ' + str(row) + ' of ' + str(rows)
+
                 # ---
                 # Every band will contain the no-data value, if the pixel
                 # is designated "no data".  To eliminated a read operation,
@@ -279,6 +282,7 @@ class ApplyAlgorithm(object):
                         self._isCloudMask(bValues[0]) and \
                         self._isWaterMask(bValues[1])):
                    
+                    print 'Valid pixel found.'
                     validPixels += 1
                     
                     if validPixels >= threshold:
