@@ -47,6 +47,9 @@ def main():
                        default='.',
                        help='Path to output directory')
 
+    import pdb
+    pdb.set_trace()
+    
     group.add_argument('-s',
                        nargs='?',
                        default=0.1,
@@ -58,9 +61,6 @@ def main():
                             'and declare the image useful.  This does not ' +
                             'produce an output file.')
 
-    import pdb
-    pdb.set_trace()
-    
     args = parser.parse_args()
     aa = ApplyAlgorithm(args.c, args.i, args.o)
 
