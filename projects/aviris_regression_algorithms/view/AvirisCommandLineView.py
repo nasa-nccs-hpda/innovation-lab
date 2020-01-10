@@ -58,11 +58,12 @@ def main():
                             'and declare the image useful.  This does not ' +
                             'produce an output file.')
 
+    import pdb
+    pdb.set_trace()
+    
     args = parser.parse_args()
     aa = ApplyAlgorithm(args.c, args.i, args.o)
 
-    import pdb
-    pdb.set_trace()
     if args.s > 0:
         aa.screen(args.s)
         
