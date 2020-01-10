@@ -305,7 +305,7 @@ class ApplyAlgorithm(object):
                               str(invalidityThreshold) + \
                               ' is met.'
                    
-                        break
+                        return
                         
                 else:
                     
@@ -318,5 +318,5 @@ class ApplyAlgorithm(object):
                               str(validityThreshold) + \
                               ' is met.'
                    
-                        break
+                        return
                                 
