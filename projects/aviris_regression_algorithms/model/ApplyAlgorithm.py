@@ -102,8 +102,10 @@ class ApplyAlgorithm(object):
                     self._associateValuesWithCoefs(pixelStack, algorithmName)
 
                 # Apply masks.
-                if bandCoefValueDict[9][1] > 0.8 or \
-                   bandCoefValueDict[245][1] < 0.01:
+                # if bandCoefValueDict[9][1] > 0.8 or \
+                #    bandCoefValueDict[245][1] < 0.01:
+                if self._isCloudMask(bandCoefValueDict[9][1]) or \
+                    self._isWaterMask(bandCoefValueDict[245][1]):
 
                     hexValue = struct.pack('f', ApplyAlgorithm.NO_DATA_VALUE)
                     outDs.WriteRaster(col, row, 1, 1, hexValue)
@@ -215,11 +217,25 @@ class ApplyAlgorithm(object):
         return outDs, qa
         
     # -------------------------------------------------------------------------
+    # _isCloudMask
+    # -------------------------------------------------------------------------
+    def _isCloudMask(self, value):
+        
+        return value > 0.8   
+        
+    # -------------------------------------------------------------------------
     # _isNoData
     # -------------------------------------------------------------------------
     def _isNoData(self, value):
         
         return value == ApplyAlgorithm.NO_DATA_VALUE
+        
+    # -------------------------------------------------------------------------
+    # _isWaterMask
+    # -------------------------------------------------------------------------
+    def _isWaterMask(self, value):
+        
+        return value < 0.01  
         
     # -------------------------------------------------------------------------
     # _readStack
@@ -255,11 +271,11 @@ class ApplyAlgorithm(object):
                                                                   1,
                                                                   1,
                                                                   None,
-                                                                  [9, 245])
+                                                                  (9, 245))
                                                                    
                 if not (self._isNoData(bValues[0]) and \
-                        self._isMask(bValues[0]) and \
-                        self._isMask(bValues[1])):
+                        self._isCloudMask(bValues[0]) and \
+                        self._isWaterMask(bValues[1])):
                    
                     validPixels += 1
                     
