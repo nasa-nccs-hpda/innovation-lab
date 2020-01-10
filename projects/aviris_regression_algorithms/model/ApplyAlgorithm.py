@@ -282,8 +282,8 @@ class ApplyAlgorithm(object):
                 b10Value = struct.unpack('f', bValues[0:4])[0]
                 b246Value = struct.unpack('f', bValues[4:8])[0]
                                                                    
-                if not (self._isNoData(b10Value) and \
-                        self._isCloudMask(b10Value) and \
+                if not (self._isNoData(b10Value) or \
+                        self._isCloudMask(b10Value) or \
                         self._isWaterMask(b246Value)):
                    
                     print 'Valid pixel found.'
