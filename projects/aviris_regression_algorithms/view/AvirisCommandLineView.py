@@ -49,7 +49,7 @@ def main():
 
     group.add_argument('-s',
                        nargs='?',
-                       default=0.0,
+                       default=0.1,
                        help='Screen the image to determine if it has ' + 
                             'pixels that are not masked and not ' +
                             'no-data valued.  The value for this argument ' +
