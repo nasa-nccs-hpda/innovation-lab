@@ -282,9 +282,6 @@ class ApplyAlgorithm(object):
                 b10Value = struct.unpack('f', bValues[0:4])
                 b246Value = struct.unpack('f', bValues[4:8])
                                                                    
-                import pdb
-                pdb.set_trace()
-
                 if not (self._isNoData(b10Value) and \
                         self._isCloudMask(b10Value) and \
                         self._isWaterMask(b246Value)):
