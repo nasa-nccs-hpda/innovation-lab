@@ -271,7 +271,9 @@ class ApplyAlgorithm(object):
                                                                   1,
                                                                   1,
                                                                   None,
-                                                                  (9, 245))
+                                                                  None,
+                                                                  None,
+                                                                  [9, 245])
                                                                    
                 if not (self._isNoData(bValues[0]) and \
                         self._isCloudMask(bValues[0]) and \
