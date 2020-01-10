@@ -278,14 +278,18 @@ class ApplyAlgorithm(object):
                                None,
                                gdalconst.GDT_Float32,
                                [9, 245])
+                               
+                b10Value = struct.unpack('f', bValues[0:4])
+                b246Value = struct.unpack('f', bValues[4:8])
                                                                    
-                if not (self._isNoData(bValues[0]) and \
-                        self._isCloudMask(bValues[0]) and \
-                        self._isWaterMask(bValues[1])):
+                import pdb
+                pdb.set_trace()
+
+                if not (self._isNoData(b10Value) and \
+                        self._isCloudMask(b10Value) and \
+                        self._isWaterMask(b246Value)):
                    
                     print 'Valid pixel found.'
-                    import pdb
-                    pdb.set_trace()
                     validPixels += 1
                     
                     if validPixels >= threshold:
