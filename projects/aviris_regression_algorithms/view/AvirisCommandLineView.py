@@ -19,6 +19,9 @@ from projects.aviris_regression_algorithms.model.ApplyAlgorithm \
 # projects/aviris_regression_algorithms/view/AvirisCommandLineView.py -a 'Avg Chl' -c /att/nobackup/rlgill/AVIRIS/Chl_Coeff_input.csv -i /att/nobackup/rlgill/AVIRIS/test/ang20170624t181530_rdn_v2p9/clipTest.img -o /att/nobackup/rlgill/AVIRIS/test/output
 #
 # projects/aviris_regression_algorithms/view/AvirisCommandLineView.py -a 'Avg Chl' -c /att/nobackup/rlgill/AVIRIS/Chl_Coeff_input.csv -i /att/pubrepo/ABoVE/archived_data/ORNL/ABoVE_Airborne_AVIRIS_NG/data/ang20180819t010027/ang20180819t010027_rdn_v2r2/ang20180819t010027_rdn_v2r2_img -o /att/nobackup/rlgill/AVIRIS/test/output
+#
+# To screen
+# projects/aviris_regression_algorithms/view/AvirisCommandLineView.py -a 'Avg Chl' -c /att/nobackup/rlgill/AVIRIS/Chl_Coeff_input.csv -i /att/pubrepo/ABoVE/archived_data/ORNL/ABoVE_Airborne_AVIRIS_NG/data/ang20180819t010027/ang20180819t010027_rdn_v2r2/ang20180819t010027_rdn_v2r2_img -o /att/nobackup/rlgill/AVIRIS/test/output
 # -----------------------------------------------------------------------------
 def main():
 
@@ -38,19 +41,21 @@ def main():
                         default='.',
                         help='Path to image file')
 
-    parser.add_argument('-o',
-                        default='.',
-                        help='Path to output directory')
+    group = parser.add_mutually_exclusive_group()
 
-    parser.add_argument('-s',
-                        default=0.1,
-                        help='Screen the image to determine if it has ' + 
-                             'pixels that are not masked and not ' +
-                             'no-data valued.  The value for this argument ' +
-                             'is a percentage, expressed as a decimal, ' +
-                             'indicating the threshold to stop screening ' + 
-                             'and declare the image useful.  This does not ' +
-                             'produce an output file.')
+    group.add_argument('-o',
+                       default='.',
+                       help='Path to output directory')
+
+    group.add_argument('-s',
+                       default=0.1,
+                       help='Screen the image to determine if it has ' + 
+                            'pixels that are not masked and not ' +
+                            'no-data valued.  The value for this argument ' +
+                            'is a percentage, expressed as a decimal, ' +
+                            'indicating the threshold to stop screening ' + 
+                            'and declare the image useful.  This does not ' +
+                            'produce an output file.')
 
     args = parser.parse_args()
     aa = ApplyAlgorithm(args.c, args.i, args.o)
