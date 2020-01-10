@@ -63,12 +63,11 @@ def main():
     aa = ApplyAlgorithm(args.c, args.i, args.o)
 
     if args.s > 0:
+
         aa.screen(args.s)
         
     else:
-        
-        pass
-        # aa.applyAlgorithm(args.a)
+        aa.applyAlgorithm(args.a)
 
 
 # ------------------------------------------------------------------------------
