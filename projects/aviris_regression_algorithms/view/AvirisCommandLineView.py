@@ -48,6 +48,7 @@ def main():
                        help='Path to output directory')
 
     group.add_argument('-s',
+                       nargs='?',
                        default=0.1,
                        help='Screen the image to determine if it has ' + 
                             'pixels that are not masked and not ' +
