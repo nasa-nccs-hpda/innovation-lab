@@ -283,6 +283,8 @@ class ApplyAlgorithm(object):
                         self._isWaterMask(bValues[1])):
                    
                     print 'Valid pixel found.'
+                    import pdb
+                    pdb.set_trace()
                     validPixels += 1
                     
                     if validPixels >= threshold:
