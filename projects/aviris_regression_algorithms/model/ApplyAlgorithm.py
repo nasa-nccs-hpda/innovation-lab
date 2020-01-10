@@ -85,7 +85,8 @@ class ApplyAlgorithm(object):
                 pixelStack = self._readStack(col, row)
 
                 # Check for no-data in the first pixel of the stack.
-                if pixelStack[0] == ApplyAlgorithm.NO_DATA_VALUE:
+                # if pixelStack[0] == ApplyAlgorithm.NO_DATA_VALUE:
+                if self._isNoData(pixelStack[0]):
 
                     hexValue = struct.pack('f', ApplyAlgorithm.NO_DATA_VALUE)
                     outDs.WriteRaster(col, row, 1, 1, hexValue)
@@ -214,6 +215,13 @@ class ApplyAlgorithm(object):
         return outDs, qa
         
     # -------------------------------------------------------------------------
+    # _isNoData
+    # -------------------------------------------------------------------------
+    def _isNoData(self, value):
+        
+        return value == ApplyAlgorithm.NO_DATA_VALUE
+        
+    # -------------------------------------------------------------------------
     # _readStack
     # -------------------------------------------------------------------------
     def _readStack(self, col, row):
@@ -222,3 +230,48 @@ class ApplyAlgorithm(object):
         pixelsAsFloats = [p[0][0] for p in numpyPixels]
 
         return pixelsAsFloats
+
+    # -------------------------------------------------------------------------
+    # screen
+    # -------------------------------------------------------------------------
+    def screen(self, pctThreshold=0.1):
+        
+        rows = self.imageFile._getDataset().RasterYSize
+        cols = self.imageFile._getDataset().RasterXSize
+        numPixels = rows * cols
+        threshold = numPixels * pctThreshold
+        validPixels = 0
+        
+        for row in range(rows):
+            for col in range(cols):
+        
+                # ---
+                # Every band will contain the no-data value, if the pixel
+                # is designated "no data".  To eliminated a read operation,
+                # read bands that will be used later to screen for masks.
+                # ---
+                bValues = self.imageFile._getDataset().ReadRaster(col,
+                                                                  row,
+                                                                  1,
+                                                                  1,
+                                                                  None,
+                                                                  [9, 245])
+                                                                   
+                if not (self._isNoData(bValues[0]) and \
+                        self._isMask(bValues[0]) and \
+                        self._isMask(bValues[1])):
+                   
+                    validPixels += 1
+                    
+                    if validPixels >= threshold:
+                        
+                        print 'The validity threshold, ' + str(threshold) + \
+                              ' is met.'
+                   
+                        break
+                        
+        if validPixels < threshold:
+
+            print 'The validity threshold, ' + str(threshold) + \
+                  ' is unmet.'
+        
