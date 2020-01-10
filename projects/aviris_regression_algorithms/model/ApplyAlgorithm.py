@@ -301,8 +301,8 @@ class ApplyAlgorithm(object):
                     
                     if invalidPixels >= invalidityThreshold:
                         
-                        print 'The invalidity threshold, ' + 
-                              str(invalidityThreshold) +
+                        print 'The invalidity threshold, ' + \
+                              str(invalidityThreshold) + \
                               ' is met.'
                    
                         break
@@ -314,8 +314,8 @@ class ApplyAlgorithm(object):
                     
                     if validPixels >= validityThreshold:
                         
-                        print 'The validity threshold, ' + 
-                              str(validityThreshold) +
+                        print 'The validity threshold, ' + \
+                              str(validityThreshold) + \
                               ' is met.'
                    
                         break
