@@ -47,9 +47,6 @@ def main():
                        default='.',
                        help='Path to output directory')
 
-    import pdb
-    pdb.set_trace()
-    
     group.add_argument('-s',
                        nargs='?',
                        default=0.1,
@@ -64,7 +61,10 @@ def main():
     args = parser.parse_args()
     aa = ApplyAlgorithm(args.c, args.i, args.o)
 
-    if args.s > 0:
+    import pdb
+    pdb.set_trace()
+    
+    if args.s:
         aa.screen(args.s)
         
     else:
