@@ -269,14 +269,15 @@ class ApplyAlgorithm(object):
                 # is designated "no data".  To eliminated a read operation,
                 # read bands that will be used later to screen for masks.
                 # ---
-                bValues = self.imageFile._getDataset().ReadRaster(col,
-                                                                  row,
-                                                                  1,
-                                                                  1,
-                                                                  None,
-                                                                  None,
-                                                                  None,
-                                                                  [9, 245])
+                bValues = self.imageFile._getDataset(). \
+                    ReadRaster(col,
+                               row,
+                               1,
+                               1,
+                               None,
+                               None,
+                               gdalconst.GDT_Float32,
+                               [9, 245])
                                                                    
                 if not (self._isNoData(bValues[0]) and \
                         self._isCloudMask(bValues[0]) and \
