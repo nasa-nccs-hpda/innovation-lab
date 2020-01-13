@@ -55,9 +55,10 @@ def main():
                             'pixels that are not masked and not ' +
                             'no-data valued.  The value for this argument ' +
                             'is a percentage, expressed as a decimal, ' +
-                            'indicating the threshold to stop screening ' + 
-                            'and declare the image useful.  This does not ' +
-                            'produce an output file.')
+                            'indicating the threshold of valid pixels ' +
+                            'at which to stop screening and declare the ' +
+                            'image useful.  This does not produce an ' +
+                            'output file.')
 
     args = parser.parse_args()
     aa = ApplyAlgorithm(args.c, args.i, args.o)
