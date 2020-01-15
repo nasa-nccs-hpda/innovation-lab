@@ -189,7 +189,7 @@ class ApplyAlgorithm(object):
         
         # outName = os.path.join(self.outDir, algorithmName + '.tif')
         
-        outNameBaseName = \
+        outBaseName = \
             os.path.basename(self.imageFile.fileName()).split('_')[0]
 
         outName = os.path.join(self.outDir, outBaseName + \
