@@ -187,7 +187,17 @@ class ApplyAlgorithm(object):
     # -------------------------------------------------------------------------
     def _createOutputImages(self, algorithmName):
         
-        outName = os.path.join(self.outDir, algorithmName + '.tif')
+        # outName = os.path.join(self.outDir, algorithmName + '.tif')
+        
+        outNameBaseName = \
+            os.path.basename(self.imageFile.fileName()).split('_')[0]
+
+        outName = os.path.join(self.outDir, outBaseName + \
+                                            '_' + \
+                                            algorithmName.replace(' ', '-') + \
+                                            '.tif')
+        
+        
         driver = gdal.GetDriverByName('GTiff')
 
         outDs = driver.Create(outName,
