@@ -102,8 +102,6 @@ class ApplyAlgorithm(object):
                     self._associateValuesWithCoefs(pixelStack, algorithmName)
 
                 # Apply masks.
-                # if bandCoefValueDict[9][1] > 0.8 or \
-                #    bandCoefValueDict[245][1] < 0.01:
                 if self._isCloudMask(bandCoefValueDict[9][1]) or \
                     self._isWaterMask(bandCoefValueDict[245][1]):
 
@@ -128,6 +126,9 @@ class ApplyAlgorithm(object):
                 # ---
                 divisor = self._computeDivisor(bandCoefValueDict)
 
+                import pdb
+                pdb.set_trace()
+                
                 # Compute the result, normalizing pixel values as we go.
                 p = 0.0
 

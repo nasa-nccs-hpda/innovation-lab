@@ -14,15 +14,18 @@ from projects.aviris_regression_algorithms.model.ApplyAlgorithm \
 #
 # /att/pubrepo/ABoVE/archived_data/ORNL/ABoVE_Airborne_AVIRIS_NG/data
 #
+# gdal_translate -srcwin 333 983 5 5 -of ENVI /att/pubrepo/ABoVE/archived_data/ORNL/ABoVE_Airborne_AVIRIS_NG_CORRUPT/data/ang20170714t213741rfl/ang20170714t213741_rfl_v2p9/ang20170714t213741_corr_v2p9_img /att/nobackup/rlgill/AVIRIS/test/ang20170714t213741/clip
+#
+# gdallocationinfo /att/pubrepo/ABoVE/archived_data/ORNL/ABoVE_Airborne_AVIRIS_NG_CORRUPT/data/ang20170714t213741rfl/ang20170714t213741_rfl_v2p9/ang20170714t213741_corr_v2p9_img 333 983
+#
 # cd /att/nobackup/rlgill/innovation-lab/
 # export PYTHONPATH=`pwd`
-# projects/aviris_regression_algorithms/view/AvirisCommandLineView.py -a 'Avg Chl' -c /att/nobackup/rlgill/AVIRIS/Chl_Coeff_input.csv -i /att/nobackup/rlgill/AVIRIS/test/ang20170624t181530_rdn_v2p9/clipTest.img -o /att/nobackup/rlgill/AVIRIS/test/output
 #
-# projects/aviris_regression_algorithms/view/AvirisCommandLineView.py -a 'Avg Chl' -c /att/nobackup/rlgill/AVIRIS/Chl_Coeff_input.csv -i /att/pubrepo/ABoVE/archived_data/ORNL/ABoVE_Airborne_AVIRIS_NG/data/ang20170714t213741/ang20170714t213741_rdn_v2p9/ang20170714t213741_rdn_v2p9_img -o /att/nobackup/rlgill/AVIRIS/test/output
+# projects/aviris_regression_algorithms/view/AvirisCommandLineView.py -a 'Avg Chl' -c /att/nobackup/rlgill/AVIRIS/Chl_Coeff_input.csv -i /att/nobackup/rlgill/AVIRIS/test/ang20170714t213741/clip -o /att/nobackup/rlgill/AVIRIS/test/output
 #
 # To screen
 # export PYTHONPATH=`pwd`
-# projects/aviris_regression_algorithms/view/AvirisCommandLineView.py -a 'Avg Chl' -c /att/nobackup/rlgill/AVIRIS/Chl_Coeff_input.csv -i /att/pubrepo/ABoVE/archived_data/ORNL/ABoVE_Airborne_AVIRIS_NG/data/ang20170714t213741/ang20170714t213741_rdn_v2p9/ang20170714t213741_rdn_v2p9_img -s
+# projects/aviris_regression_algorithms/view/AvirisCommandLineView.py -a 'Avg Chl' -c /att/nobackup/rlgill/AVIRIS/Chl_Coeff_input.csv -i /att/nobackup/rlgill/AVIRIS/test/ang20170714t213741/clip -s
 # -----------------------------------------------------------------------------
 def main():
 
