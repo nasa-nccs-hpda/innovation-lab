@@ -214,9 +214,9 @@ class ApplyAlgorithm(object):
         qaName = os.path.join(self.outDir, algorithmName + '_qa.tif')
 
         qaName = os.path.join(self.outDir, outBaseName + \
-                                           '-qa_' + \
+                                           '_' + \
                                            algorithmName.replace(' ', '-') + \
-                                           '.tif')
+                                           '-qa.tif')
 
         qa = driver.Create(qaName,
                            self.imageFile._getDataset().RasterXSize,
