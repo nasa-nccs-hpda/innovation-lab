@@ -143,9 +143,6 @@ class ApplyAlgorithm(object):
                         normalizedValue = coefValue[1] / divisor
                         p += coef * normalizedValue
 
-                import pdb
-                pdb.set_trace()
-                
                 hexValue = struct.pack('f', p)
                 outDs.WriteRaster(col, row, 1, 1, hexValue)
 
