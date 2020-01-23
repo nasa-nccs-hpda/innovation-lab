@@ -126,9 +126,6 @@ class ApplyAlgorithm(object):
                 # ---
                 divisor = self._computeDivisor(bandCoefValueDict)
 
-                import pdb
-                pdb.set_trace()
-                
                 # Compute the result, normalizing pixel values as we go.
                 p = 0.0
 
@@ -146,15 +143,9 @@ class ApplyAlgorithm(object):
                         normalizedValue = coefValue[1] / divisor
                         p += coef * normalizedValue
 
-
-                    # if band == 0:
-                    #
-                    #     p = normalizedValue
-                    #
-                    # else:
-                    #
-                    #     p += coef * normalizedValue
-
+                import pdb
+                pdb.set_trace()
+                
                 hexValue = struct.pack('f', p)
                 outDs.WriteRaster(col, row, 1, 1, hexValue)
 
