@@ -136,15 +136,24 @@ class ApplyAlgorithm(object):
 
                     coefValue = bandCoefValueDict[band]
                     coef = coefValue[0]
-                    normalizedValue = coefValue[1] / divisor
-
+                    
                     if band == 0:
-
-                        p = normalizedValue
-
-                    else:
-
+                        
+                        p = coef
+                        
+                    elif coef != 0:
+                        
+                        normalizedValue = coefValue[1] / divisor
                         p += coef * normalizedValue
+
+
+                    # if band == 0:
+                    #
+                    #     p = normalizedValue
+                    #
+                    # else:
+                    #
+                    #     p += coef * normalizedValue
 
                 hexValue = struct.pack('f', p)
                 outDs.WriteRaster(col, row, 1, 1, hexValue)
