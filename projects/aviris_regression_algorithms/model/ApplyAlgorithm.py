@@ -214,7 +214,7 @@ class ApplyAlgorithm(object):
         qaName = os.path.join(self.outDir, algorithmName + '_qa.tif')
 
         qaName = os.path.join(self.outDir, outBaseName + \
-                                           '-clip_' + \
+                                           '-qa_' + \
                                            algorithmName.replace(' ', '-') + \
                                            '.tif')
 
