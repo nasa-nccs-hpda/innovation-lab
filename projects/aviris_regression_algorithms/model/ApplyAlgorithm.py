@@ -317,7 +317,6 @@ class ApplyAlgorithm(object):
                         
                 else:
                     
-                    print 'Valid pixel found.'
                     validPixels += 1
                     
                     if validPixels >= validityThreshold:
