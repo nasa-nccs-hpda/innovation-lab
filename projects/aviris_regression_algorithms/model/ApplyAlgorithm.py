@@ -68,7 +68,7 @@ class ApplyAlgorithm(object):
 
         # Create the output raster and QA image.
         outDs, qa = self._createOutputImages(algorithmName)
-        
+
         # ---
         # Iterate through the raster, pixel by pixel.
         # ---
@@ -77,10 +77,10 @@ class ApplyAlgorithm(object):
 
                 # Provide a hint of the progress.
                 if row % 100 == 0 and col == 0:
-                    
+
                     print 'Row ' + str(row) + ' of ' + \
                         str(self.imageFile._getDataset().RasterYSize)
-                    
+
                 # Read the stack of pixels at this col, row location.
                 pixelStack = self._readStack(col, row)
 
@@ -103,22 +103,22 @@ class ApplyAlgorithm(object):
 
                 # Apply masks.
                 if self._isCloudMask(bandCoefValueDict[9][1]) or \
-                    self._isWaterMask(bandCoefValueDict[245][1]):
+                   self._isWaterMask(bandCoefValueDict[245][1]):
 
                     hexValue = struct.pack('f', ApplyAlgorithm.NO_DATA_VALUE)
                     outDs.WriteRaster(col, row, 1, 1, hexValue)
-                    
+
                     if bandCoefValueDict[9][1] > 0.8:
 
                         qa.WriteRaster(col, row, 1, 1, ApplyAlgorithm.QA_CLOUD)
-                        
+
                     else:
                         qa.WriteRaster(col, row, 1, 1, ApplyAlgorithm.QA_WATER)
-                    
+
                     continue
 
                 qa.WriteRaster(col, row, 1, 1, ApplyAlgorithm.QA_COMPUTED)
-                
+
                 # ---
                 # Compute the square root of the sum of the squares of all band
                 # reflectances between 397nm and 898nm.  Those reflectances
@@ -133,13 +133,13 @@ class ApplyAlgorithm(object):
 
                     coefValue = bandCoefValueDict[band]
                     coef = coefValue[0]
-                    
+
                     if band == 0:
-                        
+
                         p = coef
-                        
+
                     elif coef != 0:
-                        
+
                         normalizedValue = coefValue[1] / divisor
                         p += coef * normalizedValue
 
@@ -184,15 +184,16 @@ class ApplyAlgorithm(object):
     # createOutputImages
     # -------------------------------------------------------------------------
     def _createOutputImages(self, algorithmName):
-        
+
         outBaseName = \
             os.path.basename(self.imageFile.fileName()).split('_')[0]
 
-        outName = os.path.join(self.outDir, outBaseName + \
-                                            '_' + \
-                                            algorithmName.replace(' ', '-') + \
-                                            '.tif')        
-        
+        outName = os.path.join(self.outDir,
+                               outBaseName +
+                               '_' +
+                               algorithmName.replace(' ', '-') +
+                               '.tif')
+
         driver = gdal.GetDriverByName('GTiff')
 
         outDs = driver.Create(outName,
@@ -213,43 +214,44 @@ class ApplyAlgorithm(object):
         # ---
         qaName = os.path.join(self.outDir, algorithmName + '_qa.tif')
 
-        qaName = os.path.join(self.outDir, outBaseName + \
-                                           '_' + \
-                                           algorithmName.replace(' ', '-') + \
-                                           '-qa.tif')
+        qaName = os.path.join(self.outDir,
+                              outBaseName +
+                              '_' +
+                              algorithmName.replace(' ', '-') +
+                              '-qa.tif')
 
         qa = driver.Create(qaName,
                            self.imageFile._getDataset().RasterXSize,
                            self.imageFile._getDataset().RasterYSize,
                            1,
                            gdalconst.GDT_Int16)
-        
+
         qa.SetProjection(self.imageFile._getDataset().GetProjection())
         qa.SetGeoTransform(self.imageFile._getDataset().GetGeoTransform())
 
         return outDs, qa
-        
+
     # -------------------------------------------------------------------------
     # _isCloudMask
     # -------------------------------------------------------------------------
     def _isCloudMask(self, value):
-        
-        return value > 0.8   
-        
+
+        return value > 0.8
+
     # -------------------------------------------------------------------------
     # _isNoData
     # -------------------------------------------------------------------------
     def _isNoData(self, value):
-        
+
         return value == ApplyAlgorithm.NO_DATA_VALUE
-        
+
     # -------------------------------------------------------------------------
     # _isWaterMask
     # -------------------------------------------------------------------------
     def _isWaterMask(self, value):
-        
-        return value < 0.01  
-        
+
+        return value < 0.01
+
     # -------------------------------------------------------------------------
     # _readStack
     # -------------------------------------------------------------------------
@@ -264,27 +266,27 @@ class ApplyAlgorithm(object):
     # screen
     # -------------------------------------------------------------------------
     def screen(self, pctThreshold=0.1):
-        
+
         rows = self.imageFile._getDataset().RasterYSize
         cols = self.imageFile._getDataset().RasterXSize
         numPixels = rows * cols
-        
+
         # ---
         # Count both the valid and invalid pixels and compare their number
         # against the threshold and its inverse, so this method can quit as
         # soon as possible.  For example, if the validity threshold is 90% and
         # the first 10% of the image contains invalid pixels, quit because the
-        # invalidity threshold is met.  Otherwise, the validity threshold 
+        # invalidity threshold is met.  Otherwise, the validity threshold
         # would not be met until the entire image was scanned.
         # ---
         validityThreshold = numPixels * pctThreshold
         invalidityThreshold = numPixels - validityThreshold
         validPixels = 0
         invalidPixels = 0
-        
+
         for row in range(rows):
             for col in range(cols):
-        
+
                 if row % 100 == 0 and col == 0:
                     print 'Row ' + str(row) + ' of ' + str(rows)
 
@@ -302,33 +304,32 @@ class ApplyAlgorithm(object):
                                None,
                                gdalconst.GDT_Float32,
                                [9, 245])
-                               
+
                 b10Value = struct.unpack('f', bValues[0:4])[0]
                 b246Value = struct.unpack('f', bValues[4:8])[0]
-                                                                   
+
                 if self._isNoData(b10Value) or \
-                    self._isCloudMask(b10Value) or \
-                    self._isWaterMask(b246Value):
-                   
+                   self._isCloudMask(b10Value) or \
+                   self._isWaterMask(b246Value):
+
                     invalidPixels += 1
-                    
+
                     if invalidPixels >= invalidityThreshold:
-                        
+
                         print 'The invalidity threshold, ' + \
                               str(invalidityThreshold) + \
                               ' is met.'
-                   
+
                         return
-                        
+
                 else:
-                    
+
                     validPixels += 1
-                    
+
                     if validPixels >= validityThreshold:
-                        
+
                         print 'The validity threshold, ' + \
                               str(validityThreshold) + \
                               ' is met.'
-                   
+
                         return
-                                
