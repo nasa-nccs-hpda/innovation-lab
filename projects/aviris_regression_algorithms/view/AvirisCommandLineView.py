@@ -21,11 +21,15 @@ from projects.aviris_regression_algorithms.model.ApplyAlgorithm \
 # cd /att/nobackup/rlgill/innovation-lab/
 # export PYTHONPATH=`pwd`
 #
-# projects/aviris_regression_algorithms/view/AvirisCommandLineView.py -a 'Avg Chl' -c /att/nobackup/rlgill/AVIRIS/Chl_Coeff_input.csv -i /att/nobackup/rlgill/AVIRIS/test/ang20170714t213741/clip -o /att/nobackup/rlgill/AVIRIS/test/output
+# projects/aviris_regression_algorithms/view/AvirisCommandLineView.py -a 'Avg Chl' -c /att/nobackup/rlgill/AVIRIS/Chl_Coeff_input.csv -i /att/nobackup/rlgill/AVIRIS/test/ang20170714t213741/ang20170714t213741-clip -o /att/nobackup/rlgill/AVIRIS/test/output
+#
+# projects/aviris_regression_algorithms/view/AvirisCommandLineView.py -a 'Avg Chl' -c /att/nobackup/rlgill/AVIRIS/Chl_Coeff_input.csv -i /att/pubrepo/ABoVE/archived_data/ORNL/ABoVE_Airborne_AVIRIS_NG_CORRUPT/data/ang20170714t213741rfl/ang20170714t213741_rfl_v2p9/ang20170714t213741_corr_v2p9_img -o /att/nobackup/rlgill/AVIRIS/test/output
 #
 # To screen
 # export PYTHONPATH=`pwd`
 # projects/aviris_regression_algorithms/view/AvirisCommandLineView.py -a 'Avg Chl' -c /att/nobackup/rlgill/AVIRIS/Chl_Coeff_input.csv -i /att/nobackup/rlgill/AVIRIS/test/ang20170714t213741/clip -s
+#
+# projects/aviris_regression_algorithms/view/AvirisCommandLineView.py -a 'Avg Chl' -c /att/nobackup/rlgill/AVIRIS/Chl_Coeff_input.csv -i /att/pubrepo/ABoVE/archived_data/ORNL/ABoVE_Airborne_AVIRIS_NG_CORRUPT/data/ang20170714t213741rfl/ang20170714t213741_rfl_v2p9/ang20170714t213741_corr_v2p9_img -s
 # -----------------------------------------------------------------------------
 def main():
 
@@ -55,7 +59,7 @@ def main():
                        nargs='?',
                        const=0.1,
                        default=0.0,
-                       help='Screen the image to determine if it has ' + 
+                       help='Screen the image to determine if it has ' +
                             'pixels that are not masked and not ' +
                             'no-data valued.  The value for this argument ' +
                             'is a percentage, expressed as a decimal, ' +
@@ -70,7 +74,7 @@ def main():
     if args.s > 0:
 
         aa.screen(args.s)
-        
+
     else:
         aa.applyAlgorithm(args.a)
 
