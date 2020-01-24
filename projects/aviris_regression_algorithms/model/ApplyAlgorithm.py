@@ -224,6 +224,9 @@ class ApplyAlgorithm(object):
                            1,
                            gdalconst.GDT_Int16)
         
+        qa.SetProjection(self.imageFile._getDataset().GetProjection())
+        qa.SetGeoTransform(self.imageFile._getDataset().GetGeoTransform())
+
         return outDs, qa
         
     # -------------------------------------------------------------------------
