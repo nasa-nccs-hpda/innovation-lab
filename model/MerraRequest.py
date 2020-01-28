@@ -49,7 +49,14 @@ class MerraRequest(object):
         for oneDate in monthlyRange:
             
             yearStr = str(oneDate.year)
-            globStr = collection + '.' + yearStr + str(oneDate.month)
+            
+            globStr = '*' + \
+                      collection + \
+                      '.' + \
+                      yearStr + \
+                      str(oneDate.month) + \
+                      '*'
+            
             globStr = os.path.join(MerraRequest.BASE_DIR, yearStr, globStr)
             files.append(glob.glob(globStr))
             
