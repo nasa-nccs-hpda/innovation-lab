@@ -61,7 +61,7 @@ class MerraRequest(object):
             globFiles = glob.glob(globStr)
             
             if globFiles:
-                files.append(globFiles)
+                files += globFiles
             
         return files
             
