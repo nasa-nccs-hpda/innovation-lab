@@ -58,7 +58,10 @@ class MerraRequest(object):
                       '*'
             
             globStr = os.path.join(MerraRequest.BASE_DIR, yearStr, globStr)
-            files.append(glob.glob(globStr))
+            globFiles = glob.glob(globStr)
+            
+            if globFiles:
+                files.append(globFiles)
             
         return files
             
