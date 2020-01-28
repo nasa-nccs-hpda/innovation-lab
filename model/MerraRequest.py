@@ -4,6 +4,8 @@
 import glob
 import os
 
+import pandas
+
 
 # -----------------------------------------------------------------------------
 # class MerraRequest
