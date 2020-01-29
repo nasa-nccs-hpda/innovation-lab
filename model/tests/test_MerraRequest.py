@@ -21,8 +21,6 @@ class MerraRequestTestCase(unittest.TestCase):
     # -------------------------------------------------------------------------
     def testQueryFiles(self):
 
-        import pdb
-        pdb.set_trace()
         dateRange = pandas.date_range('2010-10-10', '2012-12-12')
         files = MerraRequest.queryFiles(dateRange, 'tavgM_2d_slv_Nx')
 
