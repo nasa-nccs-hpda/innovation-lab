@@ -5,6 +5,7 @@ import glob
 import os
 
 import pandas
+from pandas.tseries.offsets import MonthEnd
 
 
 # -----------------------------------------------------------------------------
@@ -35,9 +36,13 @@ class MerraRequest(object):
         # Reduce the input date range frequency from days to months.
         # ['2000-08-02', '2000-08-03', ...] becomes
         # ['2000-08-31', '2000-09-30', ...]
+        #
+        # When converting to months, Pandas will exclude the final month
+        # unless the date is the last day of the month.  Round the end date
+        # to be the last day of the month.
         # ---
-        monthlyRange = \
-            pandas.date_range(dateRange[0], dateRange[-1], None, 'M')
+        endDate = dateRange[-1] + MonthEnd(0)        
+        monthlyRange = pandas.date_range(dateRange[0], endDate, None, 'M')
         
         # ---
         # Glob for each month in the requested range by building regular
