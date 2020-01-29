@@ -54,7 +54,7 @@ class MerraRequest(object):
                       collection + \
                       '.' + \
                       yearStr + \
-                      str(oneDate.month) + \
+                      str(oneDate.month).zfill(2) + \
                       '*'
             
             globStr = os.path.join(MerraRequest.BASE_DIR, yearStr, globStr)
@@ -62,11 +62,6 @@ class MerraRequest(object):
             
             if globFiles:
                 files += globFiles
-                
-            else:
-                import pdb
-                pdb.set_trace()
-                print 'No files.'
             
         return files
             
