@@ -62,6 +62,9 @@ class MerraRequest(object):
             
             if globFiles:
                 files += globFiles
+                
+            else:
+                print 'No files.'
             
         return files
             
