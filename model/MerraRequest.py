@@ -64,6 +64,8 @@ class MerraRequest(object):
                 files += globFiles
                 
             else:
+                import pdb
+                pdb.set_trace()
                 print 'No files.'
             
         return files
