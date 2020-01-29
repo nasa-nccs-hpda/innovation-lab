@@ -23,6 +23,8 @@ class MerraRequestTestCase(unittest.TestCase):
 
         dateRange = pandas.date_range('2010-10-10', '2012-12-12')
         files = MerraRequest.queryFiles(dateRange, 'tavgM_2d_slv_Nx')
+        
+        self.assertEqual(27, len(files))
 
         expectedFiles = ['/att/pubrepo/ILAB/data/MERRA2/Monthly/M2TMNXSLV.5.12.4/2010/MERRA2_300.tavgM_2d_slv_Nx.201010.nc4', 
                          '/att/pubrepo/ILAB/data/MERRA2/Monthly/M2TMNXSLV.5.12.4/2010/MERRA2_300.tavgM_2d_slv_Nx.201011.nc4', 
