@@ -4,6 +4,8 @@
 import glob
 import os
 
+from osgeo.osr import SpatialReference
+
 import pandas
 from pandas.tseries.offsets import MonthEnd
 
@@ -12,17 +14,31 @@ from pandas.tseries.offsets import MonthEnd
 # class MerraRequest
 #
 # MERRA description:  https://gmao.gsfc.nasa.gov/pubs/docs/Bosilovich785.pdf
+#
+# A request for a single month can return multiple files: one from each suite.
+# - collection obe, variable only, maintain internal table of collections and 
+# variables
+# - Single geotiff output
+# - New file name scheme indicating that it is a derivative, 
+#   like MERRA_SUBSET_YYYY_MM.
 # -----------------------------------------------------------------------------
 class MerraRequest(object):
     
     BASE_DIR = '/att/pubrepo/ILAB/data/MERRA2/Monthly/M2TMNXSLV.5.12.4'
-    EPSG = 'EPSG:4326'
-
+    MERRA_SRS = 'EPSG:4326'
+    OPERATION = ENUM('Operation', ['average', 'max', 'min', 'sum'])
+    
     # -------------------------------------------------------------------------
     # extractVariables
     # -------------------------------------------------------------------------
     @staticmethod
-    def extractVariables(files, variables):
+    def extractVariables(files, variables, envelope):
+        
+        merraSRS = SpatialReference()
+        merraSRS.ImportFromEPSG(MerraRequest.MERRA_SRS)
+        envelope.TransformTo(merraSRS)
+        
+        cmd = 'gdal_translate ' 
         
         pass
         
@@ -30,7 +46,7 @@ class MerraRequest(object):
     # query
     # -------------------------------------------------------------------------
     @staticmethod
-    def queryFiles(dateRange, collection):
+    def queryFiles(dateRange, variables):
 
         # ---
         # Reduce the input date range frequency from days to months.
@@ -74,14 +90,33 @@ class MerraRequest(object):
     # run
     # -------------------------------------------------------------------------
     @staticmethod
-    def run(self, envelope, dateRange, collection, variables, operation, 
-            outDir):
-                 
-        # Get the raw files.
-        files = MerraRequest.queryFiles(dateRange, collection)
+    def run(self, envelope, dateRange, variables, operation, outDir):
+         
+        # Validate the input.
+        MerraRequest._validateInput(outDir)        
 
-        # Extract the variables.
+        # Get the raw files.
+        files = MerraRequest.queryFiles(dateRange, variables)
+
+        # Extract the variables and clip.
         MerraRequest.extractVariables(files, variables)
         
-        # Perform the operation.
+    # -------------------------------------------------------------------------
+    # _validateInput
+    # -------------------------------------------------------------------------
+    @staticmethod
+    def _validateInput(self, outDir):
         
+        # Validate outdir.
+        if not os.path.exists(outDir):
+            
+            raise RuntimeError('Output directory' + 
+                               str(outDir) + 
+                               ' does not exist.')
+                               
+        if not os.path.isdir(outDir):
+            
+            raise RuntimeError('Output directory' + 
+                               str(outDir) + 
+                               ' must be a directory.')
+            
