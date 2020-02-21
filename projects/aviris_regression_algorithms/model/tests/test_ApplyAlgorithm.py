@@ -42,3 +42,4 @@ class ApplyAlgorithmTestCase(unittest.TestCase):
 
         aa = ApplyAlgorithm(coefFile, testImage, tempfile.gettempdir(), logger)
         aa.applyAlgorithm('Avg Chl')
+        aa.applyAlgorithm('Avg Chl', True)
