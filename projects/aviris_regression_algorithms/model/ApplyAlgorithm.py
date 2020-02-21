@@ -56,7 +56,7 @@ class ApplyAlgorithm(object):
     #
     # P = a0 + a1b1 + a2b2 …
     # -------------------------------------------------------------------------
-    def applyAlgorithm(self, algorithmName, normalizePixels):
+    def applyAlgorithm(self, algorithmName, normalizePixels=False):
 
         # Ensure the algorithm name is valid.
         if algorithmName not in self.coefs[0]:
