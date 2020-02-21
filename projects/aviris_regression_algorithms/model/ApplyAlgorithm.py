@@ -56,7 +56,7 @@ class ApplyAlgorithm(object):
     #
     # P = a0 + a1b1 + a2b2 …
     # -------------------------------------------------------------------------
-    def applyAlgorithm(self, algorithmName):
+    def applyAlgorithm(self, algorithmName, normalizePixels):
 
         # Ensure the algorithm name is valid.
         if algorithmName not in self.coefs[0]:
@@ -124,7 +124,8 @@ class ApplyAlgorithm(object):
                 # reflectances between 397nm and 898nm.  Those reflectances
                 # translate to bands 6 - 105.
                 # ---
-                divisor = self._computeDivisor(bandCoefValueDict)
+                if normalizePixels:    
+                    divisor = self._computeDivisor(bandCoefValueDict)
 
                 # Compute the result, normalizing pixel values as we go.
                 p = 0.0
@@ -140,8 +141,13 @@ class ApplyAlgorithm(object):
 
                     elif coef != 0:
 
-                        normalizedValue = coefValue[1] / divisor
-                        p += coef * normalizedValue
+                        if normalizePixels:
+
+                            normalizedValue = coefValue[1] / divisor
+                            p += coef * normalizedValue
+
+                        else:
+                            p += coef * coefValue[1]
 
                 hexValue = struct.pack('f', p)
                 outDs.WriteRaster(col, row, 1, 1, hexValue)
