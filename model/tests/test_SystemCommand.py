@@ -36,7 +36,7 @@ class SystemCommandTestCase(unittest.TestCase):
                          'No such file or directory\n')
 
         scmd = SystemCommand('gdal_merge.py abc.txt', logging.getLogger())
-        self.assertTrue('ERROR 4: abc.txt: No such file' in scmd.msg)
+        self.assertTrue('ERROR 4: \'abc.txt\': No such file' in scmd.msg)
 
         with self.assertRaisesRegexp(RuntimeError, 'A system command error'):
 
