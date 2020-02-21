@@ -49,6 +49,10 @@ def main():
                         default='.',
                         help='Path to image file')
 
+    parser.add_argument('-n',
+                        action='store_true',
+                        help='Use normalized pixel values')
+
     group = parser.add_mutually_exclusive_group()
 
     group.add_argument('-o',
@@ -76,7 +80,7 @@ def main():
         aa.screen(args.s)
 
     else:
-        aa.applyAlgorithm(args.a)
+        aa.applyAlgorithm(args.a, args.n)
 
 
 # ------------------------------------------------------------------------------
