@@ -12,6 +12,9 @@ from osgeo import gdalconst
 from model.BaseFile import BaseFile
 from model.GeospatialImageFile import GeospatialImageFile
 
+from projects.aviris_regression_algorithms.model.AvirisSpecFile \
+    import AvirisSpecFile
+
 
 # -----------------------------------------------------------------------------
 # class ApplyAlgorithm
@@ -30,7 +33,30 @@ class ApplyAlgorithm(object):
     # -------------------------------------------------------------------------
     # __init__
     # -------------------------------------------------------------------------
-    def __init__(self, coefFile, avirisImage, outDir, logger=None):
+    def __init__(self, csvFile, avirisImage, logger=None):
+
+        self.logger = logger
+        self.imageFile = GeospatialImageFile(avirisImage, None, None)
+
+        self.coefs = []
+
+        coefFile = BaseFile(csvFile, '.csv')
+
+        with open(coefFile.fileName()) as csvFile:
+
+            reader = csv.DictReader(csvFile)
+
+            for row in reader:
+                self.coefs.append(row)
+
+        self._specFile = self._createSpecFile(coefFile)
+
+    # -------------------------------------------------------------------------
+    # applyAlgorithm
+    #
+    # P = a0 + a1b1 + a2b2 …
+    # -------------------------------------------------------------------------
+    def applyAlgorithm(self, algorithmName, outDir, normalizePixels=False):
 
         if not outDir:
             raise RuntimeError('An output directory must be provided.')
@@ -38,36 +64,20 @@ class ApplyAlgorithm(object):
         if not os.path.exists(outDir) or not os.path.isdir(outDir):
             raise RuntimeError(str(outDir) + ' is not an existing directory.')
 
-        self.logger = logger
-        self.outDir = outDir
-        self.coefFile = BaseFile(coefFile, '.csv')
-        self.imageFile = GeospatialImageFile(avirisImage, None, None)
-        self.coefs = []
-
-        with open(self.coefFile.fileName()) as csvFile:
-
-            reader = csv.DictReader(csvFile)
-
-            for row in reader:
-                self.coefs.append(row)
-
-    # -------------------------------------------------------------------------
-    # applyAlgorithm
-    #
-    # P = a0 + a1b1 + a2b2 …
-    # -------------------------------------------------------------------------
-    def applyAlgorithm(self, algorithmName, normalizePixels=False):
+        self._coefsToSpec(algorithmName)
+        self._specFile.setField(AvirisSpecFile.NORMALIZE_KEY, normalizePixels)
+        self._specFile.setField(AvirisSpecFile.PLANT_TYPE_KEY, algorithmName)
+        self._specFile.write(outDir)
 
         # Ensure the algorithm name is valid.
         if algorithmName not in self.coefs[0]:
 
             raise RuntimeError('Algorithm ' +
                                str(algorithmName) +
-                               ' not in coeffient file, ' +
-                               self.coefFile)
+                               ' not in coeffients.')
 
         # Create the output raster and QA image.
-        outDs, qa = self._createOutputImages(algorithmName)
+        outDs, qa = self._createOutputImages(algorithmName, outDir)
 
         # ---
         # Iterate through the raster, pixel by pixel.
@@ -124,7 +134,7 @@ class ApplyAlgorithm(object):
                 # reflectances between 397nm and 898nm.  Those reflectances
                 # translate to bands 6 - 105.
                 # ---
-                if normalizePixels:    
+                if normalizePixels:
                     divisor = self._computeDivisor(bandCoefValueDict)
 
                 # Compute the result, normalizing pixel values as we go.
@@ -174,6 +184,20 @@ class ApplyAlgorithm(object):
         return bandCoefValueDict
 
     # -------------------------------------------------------------------------
+    # _coefsToSpec
+    # -------------------------------------------------------------------------
+    def _coefsToSpec(self, plantType):
+
+        filteredCoefs = {}
+
+        for coef in self.coefs:
+
+            wavelength = coef['AVIRIS Band Center'] or 'Intercept'
+            filteredCoefs[wavelength] = coef[plantType]
+
+        self._specFile.setField(AvirisSpecFile.COEFS_KEY, filteredCoefs)
+
+    # -------------------------------------------------------------------------
     # _computeDivisor
     # -------------------------------------------------------------------------
     def _computeDivisor(self, bandCoefValueDict):
@@ -189,12 +213,12 @@ class ApplyAlgorithm(object):
     # -------------------------------------------------------------------------
     # createOutputImages
     # -------------------------------------------------------------------------
-    def _createOutputImages(self, algorithmName):
+    def _createOutputImages(self, algorithmName, outDir):
 
         outBaseName = \
             os.path.basename(self.imageFile.fileName()).split('_')[0]
 
-        outName = os.path.join(self.outDir,
+        outName = os.path.join(outDir,
                                outBaseName +
                                '_' +
                                algorithmName.replace(' ', '-') +
@@ -218,9 +242,9 @@ class ApplyAlgorithm(object):
         # 2: expect a no-data value due to water
         # 3: expect a no-data value due to a no-data value in the input
         # ---
-        qaName = os.path.join(self.outDir, algorithmName + '_qa.tif')
+        qaName = os.path.join(outDir, algorithmName + '_qa.tif')
 
-        qaName = os.path.join(self.outDir,
+        qaName = os.path.join(outDir,
                               outBaseName +
                               '_' +
                               algorithmName.replace(' ', '-') +
@@ -236,6 +260,27 @@ class ApplyAlgorithm(object):
         qa.SetGeoTransform(self.imageFile._getDataset().GetGeoTransform())
 
         return outDs, qa
+
+    # -------------------------------------------------------------------------
+    # _createSpecFile
+    # -------------------------------------------------------------------------
+    def _createSpecFile(self, coefFile):
+
+        asf = AvirisSpecFile()
+        asf.setField(AvirisSpecFile.COEFS_FILE_KEY, coefFile)
+        asf.setField(AvirisSpecFile.IMAGE_FILE_KEY, self.imageFile.fileName())
+
+        asf.setField(AvirisSpecFile.MASK_VALUE_KEY,
+                     ApplyAlgorithm.NO_DATA_VALUE)
+
+        asf.setField(AvirisSpecFile.NO_DATA_KEY, ApplyAlgorithm.NO_DATA_VALUE)
+
+        asf.setField(AvirisSpecFile.WATER_MASK_KEY,
+                     ApplyAlgorithm.NO_DATA_VALUE)
+
+        asf.setField(AvirisSpecFile.CLOUD_MASK_KEY, 'B10 > 0.8')
+        asf.setField(AvirisSpecFile.WATER_MASK_KEY, 'B246 < 0.01')
+        return asf
 
     # -------------------------------------------------------------------------
     # _isCloudMask
