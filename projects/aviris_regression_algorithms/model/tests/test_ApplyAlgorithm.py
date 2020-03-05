@@ -21,8 +21,7 @@ logger.level = logging.DEBUG
 # /att/nobackup/rlgill/AVIRIS/ang20170709t224222_rfl_v2p9/
 # ang20170709t224222_corr_v2p9_img clip.img
 #
-# python -m unittest projects.aviris_regression_algorithms.
-# model.tests.test_ApplyAlgorithm
+# python -m unittest projects.aviris_regression_algorithms.model.tests.test_ApplyAlgorithm
 # -----------------------------------------------------------------------------
 class ApplyAlgorithmTestCase(unittest.TestCase):
 
@@ -42,3 +41,4 @@ class ApplyAlgorithmTestCase(unittest.TestCase):
 
         aa = ApplyAlgorithm(coefFile, testImage, tempfile.gettempdir(), logger)
         aa.applyAlgorithm('Avg Chl')
+        aa.applyAlgorithm('Avg Chl', True)

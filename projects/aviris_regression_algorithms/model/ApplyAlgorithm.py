@@ -12,6 +12,9 @@ from osgeo import gdalconst
 from model.BaseFile import BaseFile
 from model.GeospatialImageFile import GeospatialImageFile
 
+from projects.aviris_regression_algorithms.model.AvirisSpecFile \
+    import AvirisSpecFile
+
 
 # -----------------------------------------------------------------------------
 # class ApplyAlgorithm
@@ -22,11 +25,38 @@ from model.GeospatialImageFile import GeospatialImageFile
 class ApplyAlgorithm(object):
 
     NO_DATA_VALUE = -9999.0
+    QA_COMPUTED = struct.pack('i', 0)
+    QA_CLOUD = struct.pack('i', 1)
+    QA_WATER = struct.pack('i', 2)
+    QA_NO_DATA = struct.pack('i', 3)
 
     # -------------------------------------------------------------------------
     # __init__
     # -------------------------------------------------------------------------
-    def __init__(self, coefFile, avirisImage, outDir, logger=None):
+    def __init__(self, csvFile, avirisImage, logger=None):
+
+        self.logger = logger
+        self.imageFile = GeospatialImageFile(avirisImage, None, None)
+
+        self.coefs = []
+
+        coefFile = BaseFile(csvFile, '.csv')
+
+        with open(coefFile.fileName()) as csvFile:
+
+            reader = csv.DictReader(csvFile)
+
+            for row in reader:
+                self.coefs.append(row)
+
+        self._specFile = self._createSpecFile(coefFile)
+
+    # -------------------------------------------------------------------------
+    # applyAlgorithm
+    #
+    # P = a0 + a1b1 + a2b2 …
+    # -------------------------------------------------------------------------
+    def applyAlgorithm(self, algorithmName, outDir, normalizePixels=False):
 
         if not outDir:
             raise RuntimeError('An output directory must be provided.')
@@ -34,51 +64,20 @@ class ApplyAlgorithm(object):
         if not os.path.exists(outDir) or not os.path.isdir(outDir):
             raise RuntimeError(str(outDir) + ' is not an existing directory.')
 
-        self.logger = logger
-        self.outDir = outDir
-        self.coefFile = BaseFile(coefFile, '.csv')
-        self.imageFile = GeospatialImageFile(avirisImage, None, None)
-        self.coefs = []
-
-        with open(self.coefFile.fileName()) as csvFile:
-
-            reader = csv.DictReader(csvFile)
-
-            for row in reader:
-                self.coefs.append(row)
-
-        # Set up debugging.
-        self.debugRow = None
-        self.debugCol = None
-        self.debugDict = None   # {'Band': [0, value]}
-
-    # -------------------------------------------------------------------------
-    # applyAlgorithm
-    #
-    # P = a0 + a1b1 + a2b2 …
-    # -------------------------------------------------------------------------
-    def applyAlgorithm(self, algorithmName):
+        self._coefsToSpec(algorithmName)
+        self._specFile.setField(AvirisSpecFile.NORMALIZE_KEY, normalizePixels)
+        self._specFile.setField(AvirisSpecFile.PLANT_TYPE_KEY, algorithmName)
+        self._specFile.write(outDir)
 
         # Ensure the algorithm name is valid.
         if algorithmName not in self.coefs[0]:
 
             raise RuntimeError('Algorithm ' +
                                str(algorithmName) +
-                               ' not in coeffient file, ' +
-                               self.coefFile)
+                               ' not in coeffients.')
 
-        # Create the output raster.
-        outName = os.path.join(self.outDir, algorithmName + '.tif')
-        driver = gdal.GetDriverByName('GTiff')
-
-        outDs = driver.Create(outName,
-                              self.imageFile._getDataset().RasterXSize,
-                              self.imageFile._getDataset().RasterYSize,
-                              1,
-                              gdalconst.GDT_Float32)
-
-        outDs.SetProjection(self.imageFile._getDataset().GetProjection())
-        outDs.SetGeoTransform(self.imageFile._getDataset().GetGeoTransform())
+        # Create the output raster and QA image.
+        outDs, qa = self._createOutputImages(algorithmName, outDir)
 
         # ---
         # Iterate through the raster, pixel by pixel.
@@ -86,18 +85,22 @@ class ApplyAlgorithm(object):
         for row in range(self.imageFile._getDataset().RasterYSize):
             for col in range(self.imageFile._getDataset().RasterXSize):
 
+                # Provide a hint of the progress.
+                if row % 100 == 0 and col == 0:
+
+                    print 'Row ' + str(row) + ' of ' + \
+                        str(self.imageFile._getDataset().RasterYSize)
+
                 # Read the stack of pixels at this col, row location.
                 pixelStack = self._readStack(col, row)
 
                 # Check for no-data in the first pixel of the stack.
-                if pixelStack[0] == ApplyAlgorithm.NO_DATA_VALUE:
+                # if pixelStack[0] == ApplyAlgorithm.NO_DATA_VALUE:
+                if self._isNoData(pixelStack[0]):
 
                     hexValue = struct.pack('f', ApplyAlgorithm.NO_DATA_VALUE)
                     outDs.WriteRaster(col, row, 1, 1, hexValue)
-
-                    if self.debugRow == row and self.debugCol == col:
-                        self.debugDict[0] = 'No data'
-
+                    qa.WriteRaster(col, row, 1, 1, ApplyAlgorithm.QA_NO_DATA)
                     continue
 
                 # ---
@@ -109,36 +112,30 @@ class ApplyAlgorithm(object):
                     self._associateValuesWithCoefs(pixelStack, algorithmName)
 
                 # Apply masks.
-                if bandCoefValueDict[9][1] > 0.8 or \
-                   bandCoefValueDict[245][1] < 0.01:
+                if self._isCloudMask(bandCoefValueDict[9][1]) or \
+                   self._isWaterMask(bandCoefValueDict[245][1]):
 
                     hexValue = struct.pack('f', ApplyAlgorithm.NO_DATA_VALUE)
                     outDs.WriteRaster(col, row, 1, 1, hexValue)
 
-                    if self.debugRow == row and self.debugCol == col:
+                    if bandCoefValueDict[9][1] > 0.8:
 
-                        self.debugDict[0] = 'Mask'
-                        self.debugDict[10] = bandCoefValueDict[9][1]
-                        self.debugDict[246] = bandCoefValueDict[245][1]
+                        qa.WriteRaster(col, row, 1, 1, ApplyAlgorithm.QA_CLOUD)
+
+                    else:
+                        qa.WriteRaster(col, row, 1, 1, ApplyAlgorithm.QA_WATER)
 
                     continue
+
+                qa.WriteRaster(col, row, 1, 1, ApplyAlgorithm.QA_COMPUTED)
 
                 # ---
                 # Compute the square root of the sum of the squares of all band
                 # reflectances between 397nm and 898nm.  Those reflectances
                 # translate to bands 6 - 105.
                 # ---
-                divisor = self._computeDivisor(bandCoefValueDict)
-
-                if debugKey:
-
-                    for band in bandCoefValueDict.iterkeys():
-
-                        value = bandCoefValueDict[band][1]
-                        self._addDebugDictItem(band, debugKey, value)
-
-                    if self.debugRow == row and self.debugCol == col:
-                        self.debugDict['Divisor'] = divisor
+                if normalizePixels:
+                    divisor = self._computeDivisor(bandCoefValueDict)
 
                 # Compute the result, normalizing pixel values as we go.
                 p = 0.0
@@ -147,21 +144,26 @@ class ApplyAlgorithm(object):
 
                     coefValue = bandCoefValueDict[band]
                     coef = coefValue[0]
-                    normalizedValue = coefValue[1] / divisor
 
                     if band == 0:
 
-                        p = normalizedValue
+                        p = coef
 
-                    else:
+                    elif coef != 0:
 
-                        p += coef * normalizedValue
+                        if normalizePixels:
+
+                            normalizedValue = coefValue[1] / divisor
+                            p += coef * normalizedValue
+
+                        else:
+                            p += coef * coefValue[1]
 
                 hexValue = struct.pack('f', p)
                 outDs.WriteRaster(col, row, 1, 1, hexValue)
 
         outDs = None
-        self._writeDebugDict()
+        qa = None
 
     # -------------------------------------------------------------------------
     # _associateValuesWithCoefs
@@ -182,6 +184,20 @@ class ApplyAlgorithm(object):
         return bandCoefValueDict
 
     # -------------------------------------------------------------------------
+    # _coefsToSpec
+    # -------------------------------------------------------------------------
+    def _coefsToSpec(self, plantType):
+
+        filteredCoefs = {}
+
+        for coef in self.coefs:
+
+            wavelength = coef['AVIRIS Band Center'] or 'Intercept'
+            filteredCoefs[wavelength] = coef[plantType]
+
+        self._specFile.setField(AvirisSpecFile.COEFS_KEY, filteredCoefs)
+
+    # -------------------------------------------------------------------------
     # _computeDivisor
     # -------------------------------------------------------------------------
     def _computeDivisor(self, bandCoefValueDict):
@@ -195,33 +211,97 @@ class ApplyAlgorithm(object):
         return math.sqrt(tally)
 
     # -------------------------------------------------------------------------
-    # debug
+    # createOutputImages
     # -------------------------------------------------------------------------
-    def debug(self, row, col):
+    def _createOutputImages(self, algorithmName, outDir):
 
-        if row < 0 or row >= self.imageFile._getDataset().RasterYSize:
-            raise RuntimeError('Debug row value is not within the image.')
+        outBaseName = \
+            os.path.basename(self.imageFile.fileName()).split('_')[0]
 
-        if col < 0 or col >= self.imageFile._getDataset().RasterXSize:
-            raise RuntimeError('Debug column value is not within the image.')
+        outName = os.path.join(outDir,
+                               outBaseName +
+                               '_' +
+                               algorithmName.replace(' ', '-') +
+                               '.tif')
 
-        self.debugRow = row
-        self.debugCol = col
-        self.debugDict = {}
+        driver = gdal.GetDriverByName('GTiff')
+
+        outDs = driver.Create(outName,
+                              self.imageFile._getDataset().RasterXSize,
+                              self.imageFile._getDataset().RasterYSize,
+                              1,
+                              gdalconst.GDT_Float32)
+
+        outDs.SetProjection(self.imageFile._getDataset().GetProjection())
+        outDs.SetGeoTransform(self.imageFile._getDataset().GetGeoTransform())
+
+        # ---
+        # Create the quality assurance (QA) layer.  At each pixel location:
+        # 0: expect a computed output value
+        # 1: expect a no-data value due to clouds
+        # 2: expect a no-data value due to water
+        # 3: expect a no-data value due to a no-data value in the input
+        # ---
+        qaName = os.path.join(outDir, algorithmName + '_qa.tif')
+
+        qaName = os.path.join(outDir,
+                              outBaseName +
+                              '_' +
+                              algorithmName.replace(' ', '-') +
+                              '-qa.tif')
+
+        qa = driver.Create(qaName,
+                           self.imageFile._getDataset().RasterXSize,
+                           self.imageFile._getDataset().RasterYSize,
+                           1,
+                           gdalconst.GDT_Int16)
+
+        qa.SetProjection(self.imageFile._getDataset().GetProjection())
+        qa.SetGeoTransform(self.imageFile._getDataset().GetGeoTransform())
+
+        return outDs, qa
 
     # -------------------------------------------------------------------------
-    # _pixelStackToCsv
+    # _createSpecFile
     # -------------------------------------------------------------------------
-    def _pixelStackToCsv(self, key, pixelStack):
+    def _createSpecFile(self, coefFile):
 
-        band = -1
+        asf = AvirisSpecFile()
+        asf.setField(AvirisSpecFile.COEFS_FILE_KEY, coefFile)
+        asf.setField(AvirisSpecFile.IMAGE_FILE_KEY, self.imageFile.fileName())
 
-        for pixel in pixelStack:
+        asf.setField(AvirisSpecFile.MASK_VALUE_KEY,
+                     ApplyAlgorithm.NO_DATA_VALUE)
 
-            band += 1
-            self.debugWriter.writerow({'Band': band, key: pixel})
+        asf.setField(AvirisSpecFile.NO_DATA_KEY, ApplyAlgorithm.NO_DATA_VALUE)
 
-        return writer
+        asf.setField(AvirisSpecFile.WATER_MASK_KEY,
+                     ApplyAlgorithm.NO_DATA_VALUE)
+
+        asf.setField(AvirisSpecFile.CLOUD_MASK_KEY, 'B10 > 0.8')
+        asf.setField(AvirisSpecFile.WATER_MASK_KEY, 'B246 < 0.01')
+        return asf
+
+    # -------------------------------------------------------------------------
+    # _isCloudMask
+    # -------------------------------------------------------------------------
+    def _isCloudMask(self, value):
+
+        return value > 0.8
+
+    # -------------------------------------------------------------------------
+    # _isNoData
+    # -------------------------------------------------------------------------
+    def _isNoData(self, value):
+
+        return value == ApplyAlgorithm.NO_DATA_VALUE
+
+    # -------------------------------------------------------------------------
+    # _isWaterMask
+    # -------------------------------------------------------------------------
+    def _isWaterMask(self, value):
+
+        return value < 0.01
 
     # -------------------------------------------------------------------------
     # _readStack
@@ -234,19 +314,73 @@ class ApplyAlgorithm(object):
         return pixelsAsFloats
 
     # -------------------------------------------------------------------------
-    # _writeDebugDict
+    # screen
     # -------------------------------------------------------------------------
-    def _writeDebugDict(self):
+    def screen(self, pctThreshold=0.1):
 
-        fieldNames = ['Band', 'Value']
+        rows = self.imageFile._getDataset().RasterYSize
+        cols = self.imageFile._getDataset().RasterXSize
+        numPixels = rows * cols
 
-        outFile = \
-            os.path.join(self.outDir,
-                         os.path.basename(self.imageFile.fileName()) + '.csv')
+        # ---
+        # Count both the valid and invalid pixels and compare their number
+        # against the threshold and its inverse, so this method can quit as
+        # soon as possible.  For example, if the validity threshold is 90% and
+        # the first 10% of the image contains invalid pixels, quit because the
+        # invalidity threshold is met.  Otherwise, the validity threshold
+        # would not be met until the entire image was scanned.
+        # ---
+        validityThreshold = numPixels * pctThreshold
+        invalidityThreshold = numPixels - validityThreshold
+        validPixels = 0
+        invalidPixels = 0
 
-        with open(outFile, 'w') as f:
+        for row in range(rows):
+            for col in range(cols):
 
-            writer = csv.writer(f)
+                if row % 100 == 0 and col == 0:
+                    print 'Row ' + str(row) + ' of ' + str(rows)
 
-            for bandKey in self.debugDict:
-                writer.writerow([bandKey, self.debugDict[bandKey]])
+                # ---
+                # Every band will contain the no-data value, if the pixel
+                # is designated "no data".  To eliminated a read operation,
+                # read bands that will be used later to screen for masks.
+                # ---
+                bValues = self.imageFile._getDataset(). \
+                    ReadRaster(col,
+                               row,
+                               1,
+                               1,
+                               None,
+                               None,
+                               gdalconst.GDT_Float32,
+                               [9, 245])
+
+                b10Value = struct.unpack('f', bValues[0:4])[0]
+                b246Value = struct.unpack('f', bValues[4:8])[0]
+
+                if self._isNoData(b10Value) or \
+                   self._isCloudMask(b10Value) or \
+                   self._isWaterMask(b246Value):
+
+                    invalidPixels += 1
+
+                    if invalidPixels >= invalidityThreshold:
+
+                        print 'The invalidity threshold, ' + \
+                              str(invalidityThreshold) + \
+                              ' is met.'
+
+                        return
+
+                else:
+
+                    validPixels += 1
+
+                    if validPixels >= validityThreshold:
+
+                        print 'The validity threshold, ' + \
+                              str(validityThreshold) + \
+                              ' is met.'
+
+                        return
