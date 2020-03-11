@@ -1,8 +1,10 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
+import logging
 import os
 import shutil
+import sys
 import tempfile
 import unittest
 
@@ -12,6 +14,7 @@ from osgeo.osr import SpatialReference
 
 from model.Envelope import Envelope
 from model.GeospatialImageFile import GeospatialImageFile
+from model.ImageFile import ImageFile
 
 
 # -----------------------------------------------------------------------------
@@ -310,6 +313,71 @@ class GeospatialImageFileTestCase(unittest.TestCase):
         expectedSRS = SpatialReference()
         expectedSRS.ImportFromEPSG(4326)
         self.assertTrue(imageFile.srs().IsSame(expectedSRS))
+
+        # Delete the test file.
+        os.remove(imageFile.fileName())
+
+    # -------------------------------------------------------------------------
+    # testClipReprojectSubdatasets
+    # -------------------------------------------------------------------------
+    def testClipReprojectSubdatasets(self):
+
+        # Build the envelope.
+        ulx = -112
+        uly = 38
+        lrx = -110
+        lry = 36
+        srs = SpatialReference()
+        srs.ImportFromEPSG(4326)
+        env = Envelope()
+        env.addPoint(ulx, uly, 0, srs)
+        env.addPoint(lrx, lry, 0, srs)
+
+        # Build the test file.
+        inSrs = SpatialReference()
+        inSrs.ImportFromEPSG(4326)
+
+        repoCopy = '/att/pubrepo/ILAB/data/MERRA2/Monthly/' + \
+                   'm2t1nxslv_min_2017_month11.nc'
+
+        workingCopy = tempfile.mkstemp(suffix='.nc')[1]
+        print 'Working copy: ' + workingCopy
+        shutil.copyfile(repoCopy, workingCopy)
+
+        logger = \
+            logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+
+        imageFile = GeospatialImageFile(workingCopy,
+                                        inSrs,
+                                        ImageFile.EXTENSION,
+                                        logger)
+
+        # Clip, reproject and resample.
+        imageFile.clipReproject(env)
+
+        # Check the results.
+        fullDataset = gdal.Open(imageFile.fileName(), gdalconst.GA_ReadOnly)
+
+        if not fullDataset:
+            raise RuntimeError('Unable to read ' + imageFile.fileName() + '.')
+
+        sub1 = fullDataset.GetSubDatasets()[0][0]
+        dataset = gdal.Open(sub1, gdalconst.GA_ReadOnly)
+
+        xform = dataset.GetGeoTransform()
+        xScale = xform[1]
+        yScale = xform[5]
+        width = dataset.RasterXSize
+        height = dataset.RasterYSize
+        clippedUlx = xform[0]
+        clippedUly = xform[3]
+        clippedLrx = clippedUlx + width * xScale
+        clippedLry = clippedUly + height * yScale
+
+        self.assertAlmostEqual(clippedUlx, -112)
+        self.assertAlmostEqual(clippedUly, 38)
+        self.assertAlmostEqual(clippedLrx, -110)
+        self.assertAlmostEqual(clippedLry, 36)
 
         # Delete the test file.
         os.remove(imageFile.fileName())

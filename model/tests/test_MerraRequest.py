@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
+import os
 import tempfile
 import unittest
 
@@ -19,21 +20,21 @@ from model.MerraRequest import MerraRequest
 # python -m unittest model.tests.test_MerraRequest
 # -----------------------------------------------------------------------------
 class MerraRequestTestCase(unittest.TestCase):
-    
+
     # -------------------------------------------------------------------------
     # testQueryFiles
     # -------------------------------------------------------------------------
     def testQueryFiles(self):
-        
+
         existingFiles, missingFiles = \
-            MerraRequest.queryFiles(\
+            MerraRequest.queryFiles(
                 pandas.date_range('2010-10-10', '2011-02-12'),
-                                  MerraRequest.MONTHLY,
-                                  MerraRequest.COLLECTIONS,
-                                  MerraRequest.OPERATIONS)
-        
-        expectedExisting = \
-         ['/att/pubrepo/ILAB/data/MERRA2/Monthly/m2t1nxflx_avg_2010_month10.nc',
+                MerraRequest.MONTHLY,
+                MerraRequest.COLLECTIONS,
+                MerraRequest.OPERATIONS)
+
+        expectedExisting = [
+         '/att/pubrepo/ILAB/data/MERRA2/Monthly/m2t1nxflx_avg_2010_month10.nc',
          '/att/pubrepo/ILAB/data/MERRA2/Monthly/m2t1nxflx_avg_2010_month11.nc',
          '/att/pubrepo/ILAB/data/MERRA2/Monthly/m2t1nxflx_avg_2010_month12.nc',
          '/att/pubrepo/ILAB/data/MERRA2/Monthly/m2t1nxflx_avg_2011_month01.nc',
@@ -68,18 +69,18 @@ class MerraRequestTestCase(unittest.TestCase):
          '/att/pubrepo/ILAB/data/MERRA2/Monthly/m2t1nxslv_min_2010_month12.nc',
          '/att/pubrepo/ILAB/data/MERRA2/Monthly/m2t1nxslv_min_2011_month01.nc',
          '/att/pubrepo/ILAB/data/MERRA2/Monthly/m2t1nxslv_min_2011_month02.nc']
-        
+
         self.assertEqual(expectedExisting, existingFiles)
-        
-        expectedMissing = \
-          ['/att/pubrepo/ILAB/data/MERRA2/Monthly/m2t1nxslv_sum_2010_month10.nc',
-          '/att/pubrepo/ILAB/data/MERRA2/Monthly/m2t1nxslv_sum_2010_month11.nc',
-          '/att/pubrepo/ILAB/data/MERRA2/Monthly/m2t1nxslv_sum_2010_month12.nc',
-          '/att/pubrepo/ILAB/data/MERRA2/Monthly/m2t1nxslv_sum_2011_month01.nc',
-          '/att/pubrepo/ILAB/data/MERRA2/Monthly/m2t1nxslv_sum_2011_month02.nc']
-        
+
+        expectedMissing = [
+         '/att/pubrepo/ILAB/data/MERRA2/Monthly/m2t1nxslv_sum_2010_month10.nc',
+         '/att/pubrepo/ILAB/data/MERRA2/Monthly/m2t1nxslv_sum_2010_month11.nc',
+         '/att/pubrepo/ILAB/data/MERRA2/Monthly/m2t1nxslv_sum_2010_month12.nc',
+         '/att/pubrepo/ILAB/data/MERRA2/Monthly/m2t1nxslv_sum_2011_month01.nc',
+         '/att/pubrepo/ILAB/data/MERRA2/Monthly/m2t1nxslv_sum_2011_month02.nc']
+
         self.assertEqual(expectedMissing, missingFiles)
-    
+
     # -------------------------------------------------------------------------
     # testAdjustFrequency
     #
@@ -88,19 +89,19 @@ class MerraRequestTestCase(unittest.TestCase):
     # hurt anything to remain a unit test.
     # -------------------------------------------------------------------------
     def testAdjustFrequency(self):
-        
+
         # Request an invalid frequency.
         dateRange = pandas.date_range('2010-10-10', '2012-12-12')
-        
+
         with self.assertRaises(RuntimeError):
             MerraRequest._adjustFrequency(dateRange, 'fortnight')
-        
+
         # Request monthly.
         monthlyRange = MerraRequest._adjustFrequency(dateRange,
                                                      MerraRequest.MONTHLY)
-        
+
         self.assertEqual(27, len(monthlyRange))
-        
+
         expected = ['2010_month10', '2010_month11', '2010_month12',
                     '2011_month01', '2011_month02', '2011_month03',
                     '2011_month04', '2011_month05', '2011_month06',
@@ -110,15 +111,15 @@ class MerraRequestTestCase(unittest.TestCase):
                     '2012_month04', '2012_month05', '2012_month06',
                     '2012_month07', '2012_month08', '2012_month09',
                     '2012_month10', '2012_month11', '2012_month12']
-        
+
         self.assertEqual(expected, monthlyRange)
-        
+
         # Request weekly.
         weeklyRange = MerraRequest._adjustFrequency(dateRange,
                                                     MerraRequest.WEEKLY)
-        
+
         self.assertEqual(117, len(weeklyRange))
-        
+
         expected = ['2010_week40', '2010_week41', '2010_week42',
                     '2010_week43', '2010_week44', '2010_week45',
                     '2010_week46', '2010_week47', '2010_week48',
@@ -158,14 +159,14 @@ class MerraRequestTestCase(unittest.TestCase):
                     '2012_week44', '2012_week45', '2012_week46',
                     '2012_week47', '2012_week48', '2012_week49',
                     '2012_week50', '2012_week51', '2012_week52']
-        
+
         self.assertEqual(expected, weeklyRange)
-    
+
     # -------------------------------------------------------------------------
     # testRun
     # -------------------------------------------------------------------------
     def testRun(self):
-       
+
         ulx = -71
         uly = 40
         lrx = -70
@@ -180,8 +181,9 @@ class MerraRequestTestCase(unittest.TestCase):
         outDir = tempfile.mkdtemp()
         print 'od = ' + str(outDir)
 
-        MerraRequest.run(env, dateRange, MerraRequest.MONTHLY, ['m2t1nxslv'],
-                         ['avg'], outDir)
-                         
+        files = MerraRequest.run(env, dateRange, MerraRequest.MONTHLY,
+                                 ['m2t1nxslv'], ['avg'], outDir)
+
         # Delete the clipped files.
-        
+        for oneFile in files:
+            os.remove(oneFile)

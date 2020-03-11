@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import math
+import os
 import shutil
 import tempfile
 
@@ -26,7 +27,8 @@ class GeospatialImageFile(ImageFile):
     def __init__(self,
                  pathToFile,
                  spatialReference=None,
-                 extension=ImageFile.EXTENSION):
+                 extension=ImageFile.EXTENSION,
+                 logger=None):
 
         # Initialize the base class.
         super(GeospatialImageFile, self).__init__(pathToFile, extension)
@@ -47,8 +49,11 @@ class GeospatialImageFile(ImageFile):
         self._srs = spatialReference
 
         self._BASE_GDAL_CMD = 'gdalwarp ' + \
+                              ' -multi' + \
                               ' -of netCDF' + \
                               ' -s_srs "' + self.srs().ExportToProj4() + '"'
+
+        self.logger = logger
 
     # -------------------------------------------------------------------------
     # clipReproject
@@ -64,6 +69,31 @@ class GeospatialImageFile(ImageFile):
 
             raise RuntimeError('Clip envelope or output SRS must be ' +
                                'specified.')
+
+        # ---
+        # If the image has subdatasets, each must be extracted and processed
+        # individually, then merged into a single output file.
+        # ---
+        subs = self._getDataset().GetSubDatasets()
+        outFile = None
+
+        if subs:
+
+            outFile = self._clipReprojSubs(subs, envelope, outputSRS)
+
+        else:
+
+            outFile = self._clipReprojOne(self._filePath, envelope, outputSRS)
+
+        shutil.move(outFile, self._filePath)
+
+        # Update the dataset.
+        self._getDataset()
+
+    # -------------------------------------------------------------------------
+    # clipReprojOne
+    # -------------------------------------------------------------------------
+    def _clipReprojOne(self, inFile, envelope=None, outputSRS=None):
 
         # ---
         # Configure the base command.  Specify the output format.  Otherwise,
@@ -99,12 +129,36 @@ class GeospatialImageFile(ImageFile):
 
         # Finish the command.
         outFile = tempfile.mkstemp()[1]
-        cmd += ' ' + self._filePath + ' ' + outFile
-        SystemCommand(cmd, None, True)
-        shutil.move(outFile, self._filePath)
+        cmd += ' ' + inFile + ' ' + outFile
+        SystemCommand(cmd, self.logger, True)
 
-        # Update the dataset.
-        self._getDataset()
+        return outFile
+
+    # -------------------------------------------------------------------------
+    # clipReprojSubs
+    # -------------------------------------------------------------------------
+    def _clipReprojSubs(self, subs, envelope, outputSRS):
+
+        # Clip and reproject each subdataset.
+        dsFiles = []
+
+        for sub in subs:
+            dsFiles.append(self._clipReprojOne(sub[0], envelope, outputSRS))
+
+        # Merge the bands into a single output file.
+        outFile = tempfile.mkstemp(suffix='.nc')[1]
+
+        cmd = 'gdal_merge.py -separate -of netCDF -o ' + \
+              outFile + ' ' + \
+              ' '.join(dsFiles)
+
+        SystemCommand(cmd, self.logger, True)
+
+        # Delete the intermediate files.
+        for dsFile in dsFiles:
+            os.remove(dsFile)
+
+        return outFile
 
     # -------------------------------------------------------------------------
     # envelope
