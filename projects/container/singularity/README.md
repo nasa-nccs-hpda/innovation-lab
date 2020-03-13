@@ -22,8 +22,10 @@ This task formalizes an approach to container creation using Singularity on ADAP
 
 Build steps:
 
-
-
+1) time sudo -E SINGULARITY_NOHTTPS=1 singularity build cisto-data-science-1.0.0.simg cisto-data-science-1.0.0.def
+2) time sudo -E SINGULARITY_NOHTTPS=1 singularity build ilab-core-1.0.0.simg ilab-core-1.0.0.def
+3) time sudo -E SINGULARITY_NOHTTPS=1 singularity build ilab-apps-1.0.0.simg ilab-apps-1.0.0.def
+4) time sudo -E SINGULARITY_NOHTTPS=1 singularity build cisto-jupyter-lab-1.0.0.simg cisto-jupyter-lab-1.0.0.def
 
 DEMO SCRIPT (02/23/20) - BEGIN
 # Build ilab MMX base image from Singularity definition file:  Note:  1) requires sudo, 2) absolute path, 3) no sandbox/writable, 4) contains. MMX dependencies: python 3.7, gdal, etc.
