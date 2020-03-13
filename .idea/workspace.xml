@@ -2,19 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a4220738-ab08-4046-be29-127d65756b28" name="Default Changelist" comment="point to nosymlink path and create initial jupyter notebook">
-      <change afterPath="$PROJECT_DIR$/.idea/innovation-lab.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/projects/container/singularity/README.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/projects/container/singularity/cisto-data-science-1.0.0.def" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/projects/container/singularity/cisto-jupyter-lab-1.0.0.def" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/projects/container/singularity/git.def" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/projects/container/singularity/ilab-apps-1.0.0.def" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/projects/container/singularity/ilab-core-1.0.0.def" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/view/tests/MmxRequestCeleryView-adapt-gpfsfs.py" beforeDir="false" afterPath="$PROJECT_DIR$/view/tests/MmxRequestCeleryView-adapt-gpfsfs.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/view/tests/MmxRequestCeleryView.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/view/tests/MmxRequestCeleryView.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -79,17 +67,15 @@
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="165" />
-    <option name="y" value="19" />
-    <option name="width" value="1503" />
-    <option name="height" value="920" />
+    <option name="x" value="318" />
+    <option name="width" value="1265" />
+    <option name="height" value="826" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -139,6 +125,7 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -262,13 +249,41 @@
       <option name="project" value="LOCAL" />
       <updated>1583176560374</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="point to nosymlink path and create initial jupyter notebook">
+      <created>1584121846690</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1584121846690</updated>
+    </task>
+    <task id="LOCAL-00005" summary="initial version of MMX-based singularity container">
+      <created>1584122264401</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1584122264401</updated>
+    </task>
+    <task id="LOCAL-00006" summary="replaced symbolic links with file copies">
+      <created>1584122798551</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1584122798551</updated>
+    </task>
+    <task id="LOCAL-00007" summary="added build steps">
+      <created>1584123374061</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1584123374061</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="165" y="19" width="1503" height="920" extended-state="0" />
+    <frame x="318" y="0" width="1265" height="826" extended-state="0" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.23616734" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.2813505" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -291,7 +306,10 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="mods for container experiment - not final" />
     <MESSAGE value="point to nosymlink path and create initial jupyter notebook" />
-    <option name="LAST_COMMIT_MESSAGE" value="point to nosymlink path and create initial jupyter notebook" />
+    <MESSAGE value="initial version of MMX-based singularity container" />
+    <MESSAGE value="replaced symbolic links with file copies" />
+    <MESSAGE value="added build steps" />
+    <option name="LAST_COMMIT_MESSAGE" value="added build steps" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/view/tests/MmxRequestCeleryView-adapt-nobackup.py" />
