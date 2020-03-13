@@ -1,0 +1,57 @@
+FROM centos:7.6.1810
+FROM python:3.7
+
+RUN apt-get update
+RUN apt-get update && apt-get install --fix-missing -y \
+        vim \
+        sudo
+
+RUN apt-get install -y gdal-bin libgdal-dev
+
+RUN python -m pip install --upgrade pip==20.0.2
+RUN python -m pip install --upgrade pip setuptools
+RUN gdal-config --version
+
+RUN python -m pip install --upgrade celery==4.3.0
+RUN python -m pip install --upgrade pandas==0.25.3
+RUN python -m pip install --upgrade requests==2.22.0
+RUN python -m pip install --upgrade numpy==1.18.1
+RUN pip install --global-option=build_ext --global-option="-I/usr/include/gdal" GDAL==`gdal-config --version`
+
+#-------------------------------------------------------------------------------
+# Create a user (mmx).
+#-------------------------------------------------------------------------------
+#ARG ilPw=mmx
+
+#RUN useradd -U -ms /bin/bash mmx -p $(openssl passwd -crypt $ilPw) \
+#    && adduser mmx sudo
+
+#USER mmx
+#ARG homeDir="/home/mmx"
+#RUN echo "umask 0000" >> ~/.bashrc
+
+# Copy over MMX application and dependencies
+COPY SystemTesting /usr/local/mmx/SystemTesting
+COPY innovation-lab /usr/local/mmx/innovation-lab
+COPY bin /usr/local/mmx/bin
+COPY Dockerfile /usr/local/mmx/Dockerfile
+#COPY SystemTesting /home/centos/mmx/SystemTesting
+#COPY innovation-lab /home/centos/mmx/innovation-lab
+#COPY bin /home/centos/mmx/bin
+#COPY Dockerfile /home/centos/mmx/Dockerfile
+#COPY environment.yml /home/centos/mmx/environment.yml
+
+# Set paths
+ENV PATH /usr/local/mmx/bin/jre1.8.0_221/bin:$PATH
+ENV PYTHONPATH "/usr/local/mmx/innovation-lab/mmx/innovation-lab:$PYTHONPATH"
+#ENV PATH /home/centos/mmx/bin/jre1.8.0_221/bin:$PATH
+#ENV PYTHONPATH "/home/centos/mmx/innovation-lab/mmx/innovation-lab:$PYTHONPATH"
+
+RUN cd /usr/local/mmx
+RUN ls -alt /usr/local/mmx
+RUN env | grep PYTHONPATH
+
+# Open permissions
+#RUN echo $ilPw | sudo -S chown -R mmx /home/mmx
+#RUN echo $ilPw | sudo -S chgrp -R mmx /home/mmx
+~                                              
