@@ -36,7 +36,7 @@ def _nextStep(context, service, request):
     context['status'] = 'PENDING'
     print('\nExercise -> Service: ', service, ' Request: ', request, ' \nContext: ', context)
     #logger.info('Execute: %s %s %s', service, request, context)
-    os.system("rm -rf /att/gpfsfs/briskfs01/ppl/gtamkin/mmx-singularity/mmx/SystemTesting/testWorldClim/TMworldClim_fac/trials/*")
+    os.system("rm -rf /usr/local/mmx/SystemTesting/testWorldClim/TMworldClim_fac/trials/*")
     return context
 
 def asynch_func(context):
@@ -71,10 +71,10 @@ def chain_func(context):
 
 if __name__ == "__main__":
 
-        json_string = "{\"observation\":\"/att/gpfsfs/briskfs01/ppl/gtamkin/mmx-singularity/mmx/SystemTesting/CassinSparrowData/ebd_Cassins_2006.csv\", " \
+        json_string = "{\"observation\":\"/usr/local/mmx/SystemTesting/CassinSparrowData/ebd_Cassins_2006.csv\", " \
                         "\"species\":\"Cassins Sparrow\", \"startDate\":\"2006-01-01\", \"endDate\":\"2007-01-01\", \"collection\":\"merra2_t1nxslv\", " \
                         "\"vars\":\"U10M V10M\", \"operation\":\"ave\", \"EdasWorldClim\":\"True\", " \
-                        "\"outDir\":\"/att/gpfsfs/briskfs01/ppl/gtamkin/mmx-singularity/mmx/SystemTesting/testWorldClim/TMworldClim_fac\", \"numTrials\":\"2\", \"numPredictors\":\"3\", " \
+                        "\"outDir\":\"/usr/local/mmx/SystemTesting/testWorldClim/TMworldClim_fac\", \"numTrials\":\"2\", \"numPredictors\":\"3\", " \
                         "\"workflow\":\"Rm\"}"
         context = json.loads(json_string)
         print("\nMmx chain starting.  Initial Context:", context)
