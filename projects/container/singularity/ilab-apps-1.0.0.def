@@ -1,1 +1,64 @@
-/att/gpfsfs/briskfs01/ppl/gtamkin/mmx-singularity/ilab-apps-1.0.0.def
+## Generate container image using existing ilab MMX base image
+Bootstrap: localimage
+FROM: ./ilab-core-1.0.0.simg
+
+%labels
+    Author gtamkin
+    Version v1.0.0
+
+%help
+===========================================================================
+	- ilab-apps (extends -> ilab-infrastructure) – contains shared IL code and IL apps:
+		a.	Model
+		b.	View
+		c.	Controller
+		d.	Projects
+===========================================================================
+
+%environment
+    # set PYTHONPATH for access to MMX application
+    export PYTHONPATH="/usr/local/mmx/innovation-lab/mmx/innovation-lab:/att/gpfsfs/briskfs01/ppl/gtamkin/mmx-singularity/mmx/innovation-lab:$PYTHONPATH"
+
+%files 
+    # Insert mmx dependencies - TBD - replace with Git retrieval for ilab source branch
+    /att/nobackup/gtamkin/mmx-singularity/mmx /usr/local/mmx
+
+#    /att/nobackup/gtamkin/mmx-singularity/mmx/SystemTesting /usr/local/mmx
+
+%post
+
+    # open permissions
+    chmod a+rwx -R /usr/local/mmx
+
+##############################
+# mmx
+##############################
+
+%apprun mmx
+    exec echo "RUNNING mmx - python3.7  /usr/local/mmx/innovation-lab/view/tests/MmxRequestCeleryView-adapt-gpfsfs.py"
+    python3.7  /usr/local/mmx/innovation-lab/view/tests/MmxRequestCeleryView-adapt-gpfsfs.py
+
+%applabels mmx 
+    Author gtamkin
+    Version v1.0.0
+
+%appinstall mmx 
+    # open permissions
+    # /att/nobackup/gtamkin/mmx-singularity/mmx/SystemTesting /usr/local/mmx
+    # chmod a+rwx -R /usr/local/mmx 
+
+%appenv mmx 
+    # set JAVA_HOME
+    export JAVA_HOME=/usr/local/openjdk-8/bin
+
+%apphelp mmx
+===========================================================================
+	- ilab-mmx (extends -> ilab-core) – contains MMX:
+    		To run:  $ python3.7  /usr/local/mmx/innovation-lab/view/tests/MmxRequestCeleryView-adapt-gpfsfs.py
+===========================================================================
+
+#%appfiles mmx
+    # Insert mmx dependencies
+    #/att/nobackup/gtamkin/mmx-singularity/mmx/SystemTesting /usr/local/mmx
+
+
