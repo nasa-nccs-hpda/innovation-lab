@@ -40,6 +40,7 @@ def order(context):
 
     if 'numTrials' not in context.keys():  context['numTrials'] = 10
     if 'numPredictors' not in context.keys():  context['numPredictors'] = 10
+    if 'inDir' not in context.keys():  context['inDir'] = '.'
     if 'outDir' not in context.keys():  context['outDir'] = '.'
     if 'source' not in context.keys():  context['source'] = 'EdasDev'
     if 'workflow' not in context.keys():  context['workflow'] = ''

@@ -24,7 +24,10 @@ class MmxRmRequest(MmxRequest):
         super(MmxRmRequest, self).__init__(context)
 
         self._source = source
-        self._imageDir = os.path.join(context['outDir'], 'merra')
+        if 'inDir' not in context.keys():
+            self._imageDir = os.path.join(context['outDir'], 'merra')
+        else:
+            self._imageDir = context['inDir']
         if not os.path.exists(self._imageDir):
             os.mkdir(self._imageDir)
 
