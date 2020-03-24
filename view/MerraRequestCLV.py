@@ -4,7 +4,7 @@ import sys
 import pandas
 from osgeo.osr import SpatialReference
 from model.Envelope import Envelope
-from model.MasRequest import MasRequest
+from model.MerraRequest import MerraRequest
 
 
 # -----------------------------------------------------------------------------
@@ -12,21 +12,12 @@ from model.MasRequest import MasRequest
 #
 # cd innovation-lab
 # export PYTHONPATH=`pwd`
-# mkdir ~/SystemTesting/testMasReq
-#
-# view/MasRequestCommandLineView.py
-# -e -125 50 -66 24
-# --epsg 4326
-# --start_date 2013-02-03
-# --end_date 2013-03-12
-# -c tavg1_2d_lnd_Nx
-# --vars TSURF BASEFLOW ECHANGE
-# --opr avg
-# -o ~/SystemTesting/testMasReq/
+# view/MerraRequestCLV.py -e -125 50 -66 24 --epsg 4326 --start_date 2013-02-03 --end_date 2013-03-12 -c m2t1nxslv --vars QV2M TS --op avg -o /att/nobackup/rlgill/testMerraReq/
 # -----------------------------------------------------------------------------
 def main():
+    
     # Process command-line args.
-    desc = 'This application runs MAS Request for MMX.'
+    desc = 'Use this application to request MERRA files.'
     parser = argparse.ArgumentParser(description=desc)
 
     parser.add_argument('-e',
@@ -56,7 +47,7 @@ def main():
                         nargs='+',
                         help='List of variables in M2 collection')
 
-    parser.add_argument('--opr',
+    parser.add_argument('--op',
                         required=True,
                         help='Type of analysis')
 
@@ -77,13 +68,11 @@ def main():
     dateRange = pandas.date_range(args.start_date, args.end_date)
 
     # Mas Request
-    masReq = MasRequest(env, dateRange,
-                        args.c, args.vars, args.opr, args.o)
-    masReq.run()
+    MerraRequest.run(env, dateRange, MerraRequest.MONTHLY, [args.c],
+                     args.vars, [args.op], args.o)
 
-
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Invoke the main
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 if __name__ == "__main__":
     sys.exit(main())

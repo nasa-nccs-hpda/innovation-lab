@@ -86,25 +86,58 @@ class MerraRequest(object):
         return reformattedRange
 
     # -------------------------------------------------------------------------
-    # clip
+    # extractVars
     # -------------------------------------------------------------------------
     @staticmethod
-    def _clip(files, envelope, outDir):
-
+    def _extractVars(files, variables, envelope, outDir):
+        
         srs = SpatialReference()
         srs.ImportFromEPSG(4326)
-        clippedFiles = []
-
+        subFiles = []
+        
         for f in files:
+            
+            geoFile = GeospatialImageFile(f, srs)
+            subs = geoFile._getDataset().GetSubDatasets()
+            foundVariables = []
 
-            outFile = os.path.join(outDir, os.path.basename(f))
-            shutil.copyfile(f, outFile)
-            geoFile = GeospatialImageFile(outFile, srs)
-            geoFile.clipReproject(envelope, srs)
-            clippedFiles.append(outFile)
-
-        return clippedFiles
-
+            # Look for a variable name in the subdataset name.
+            for sub in subs:
+                
+                datasetName = sub[0]
+                var = datasetName.split(':')[2]
+            
+                if var in variables:
+                
+                    foundVariables.append(var)
+                    
+                    # Copy the original file before operating on it.
+                    name = os.path.basename(os.path.splitext(f)[0]) + \
+                           '_' + \
+                           var + \
+                           '.nc'
+                          
+                    workingCopy = os.path.join(outDir, name)
+                    shutil.copyfile(f, workingCopy)
+                    
+                    # Extract and clip the subdataset.
+                    copyGeoFile = GeospatialImageFile(workingCopy, srs)
+                    copyGeoFile.clipReproject(envelope, None, sub[0])
+                    subFiles.append(copyGeoFile.fileName())
+                    
+                    # Stop, when all variables are found.
+                    if len(foundVariables) == len(variables):
+                        break
+                        
+            # Are any variables missing?
+            if len(foundVariables) != len(variables):
+                
+                missing = [v for v in variables if v not in foundVariables]
+                msg = 'Variables not found in ' + str(f) + ': ' + str(missing)
+                raise RuntimeError(msg)
+            
+        return subFiles
+            
     # -------------------------------------------------------------------------
     # query
     # -------------------------------------------------------------------------
@@ -173,7 +206,7 @@ class MerraRequest(object):
     # run
     # -------------------------------------------------------------------------
     @staticmethod
-    def run(envelope, dateRange, frequency, collections, operations,
+    def run(envelope, dateRange, frequency, collections, variables, operations,
             outDir):
 
         # Validate the input.
@@ -193,9 +226,10 @@ class MerraRequest(object):
                           'files; however, they do not exist.\n' +
                           str(missingFiles))
 
-        # Extract the variables and clip.
-        clippedFiles = MerraRequest._clip(results, envelope, outDir)
-
+        # Extract the variables.
+        clippedFiles = MerraRequest._extractVars(results, variables, envelope,
+                                                 outDir)
+        
         return clippedFiles
 
     # -------------------------------------------------------------------------

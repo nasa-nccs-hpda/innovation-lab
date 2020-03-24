@@ -10,6 +10,7 @@ import pandas
 from osgeo.osr import SpatialReference
 
 from model.Envelope import Envelope
+from model.GeospatialImageFile import GeospatialImageFile
 from model.MerraRequest import MerraRequest
 
 
@@ -179,11 +180,26 @@ class MerraRequestTestCase(unittest.TestCase):
 
         dateRange = pandas.date_range('2010-11-11', '2011-01-12')
         outDir = tempfile.mkdtemp()
-        print 'od = ' + str(outDir)
 
         files = MerraRequest.run(env, dateRange, MerraRequest.MONTHLY,
-                                 ['m2t1nxslv'], ['avg'], outDir)
+                                 ['m2t1nxslv'], ['QV2M', 'TS'], ['avg'], 
+                                 outDir)
+
+        expected = [os.path.join(outDir, 'm2t1nxslv_avg_2010_month11_QV2M.nc'),
+                    os.path.join(outDir, 'm2t1nxslv_avg_2010_month11_TS.nc'),
+                    os.path.join(outDir, 'm2t1nxslv_avg_2010_month12_QV2M.nc'),
+                    os.path.join(outDir, 'm2t1nxslv_avg_2010_month12_TS.nc'),
+                    os.path.join(outDir, 'm2t1nxslv_avg_2011_month01_QV2M.nc'),
+                    os.path.join(outDir, 'm2t1nxslv_avg_2011_month01_TS.nc')]
+        
+        self.assertEqual(len(expected), len(files))
+        self.assertEqual(expected, sorted(files))
+        
+        clipped = GeospatialImageFile( \
+            os.path.join(outDir, 'm2t1nxslv_avg_2010_month11_QV2M.nc'))
+            
+        self.assertTrue(clipped.envelope().Equal(env))
 
         # Delete the clipped files.
-        for oneFile in files:
-            os.remove(oneFile)
+        for f in files:
+            os.remove(f)
