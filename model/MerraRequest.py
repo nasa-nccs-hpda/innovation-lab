@@ -90,54 +90,54 @@ class MerraRequest(object):
     # -------------------------------------------------------------------------
     @staticmethod
     def _extractVars(files, variables, envelope, outDir):
-        
+
         srs = SpatialReference()
         srs.ImportFromEPSG(4326)
         subFiles = []
-        
+
         for f in files:
-            
+
             geoFile = GeospatialImageFile(f, srs)
             subs = geoFile._getDataset().GetSubDatasets()
             foundVariables = []
 
             # Look for a variable name in the subdataset name.
             for sub in subs:
-                
+
                 datasetName = sub[0]
                 var = datasetName.split(':')[2]
-            
+
                 if var in variables:
-                
+
                     foundVariables.append(var)
-                    
+
                     # Copy the original file before operating on it.
                     name = os.path.basename(os.path.splitext(f)[0]) + \
-                           '_' + \
-                           var + \
-                           '.nc'
-                          
+                        '_' + \
+                        var + \
+                        '.nc'
+
                     workingCopy = os.path.join(outDir, name)
                     shutil.copyfile(f, workingCopy)
-                    
+
                     # Extract and clip the subdataset.
                     copyGeoFile = GeospatialImageFile(workingCopy, srs)
                     copyGeoFile.clipReproject(envelope, None, sub[0])
                     subFiles.append(copyGeoFile.fileName())
-                    
+
                     # Stop, when all variables are found.
                     if len(foundVariables) == len(variables):
                         break
-                        
+
             # Are any variables missing?
             if len(foundVariables) != len(variables):
-                
+
                 missing = [v for v in variables if v not in foundVariables]
                 msg = 'Variables not found in ' + str(f) + ': ' + str(missing)
                 raise RuntimeError(msg)
-            
+
         return subFiles
-            
+
     # -------------------------------------------------------------------------
     # query
     # -------------------------------------------------------------------------
@@ -229,7 +229,7 @@ class MerraRequest(object):
         # Extract the variables.
         clippedFiles = MerraRequest._extractVars(results, variables, envelope,
                                                  outDir)
-        
+
         return clippedFiles
 
     # -------------------------------------------------------------------------

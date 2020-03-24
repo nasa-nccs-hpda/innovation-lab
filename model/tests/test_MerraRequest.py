@@ -182,7 +182,7 @@ class MerraRequestTestCase(unittest.TestCase):
         outDir = tempfile.mkdtemp()
 
         files = MerraRequest.run(env, dateRange, MerraRequest.MONTHLY,
-                                 ['m2t1nxslv'], ['QV2M', 'TS'], ['avg'], 
+                                 ['m2t1nxslv'], ['QV2M', 'TS'], ['avg'],
                                  outDir)
 
         expected = [os.path.join(outDir, 'm2t1nxslv_avg_2010_month11_QV2M.nc'),
@@ -191,13 +191,13 @@ class MerraRequestTestCase(unittest.TestCase):
                     os.path.join(outDir, 'm2t1nxslv_avg_2010_month12_TS.nc'),
                     os.path.join(outDir, 'm2t1nxslv_avg_2011_month01_QV2M.nc'),
                     os.path.join(outDir, 'm2t1nxslv_avg_2011_month01_TS.nc')]
-        
+
         self.assertEqual(len(expected), len(files))
         self.assertEqual(expected, sorted(files))
-        
-        clipped = GeospatialImageFile( \
+
+        clipped = GeospatialImageFile(
             os.path.join(outDir, 'm2t1nxslv_avg_2010_month11_QV2M.nc'))
-            
+
         self.assertTrue(clipped.envelope().Equal(env))
 
         # Delete the clipped files.

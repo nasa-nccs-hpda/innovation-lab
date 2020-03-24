@@ -65,7 +65,7 @@ class GeospatialImageFile(ImageFile):
     def clipReproject(self, envelope=None, outputSRS=None, dataset=None):
 
         dataset = dataset or self._filePath
-        
+
         # At least one operation must be configured.
         if not envelope and not outputSRS:
 

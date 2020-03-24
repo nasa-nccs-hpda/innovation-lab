@@ -15,7 +15,7 @@ from model.MerraRequest import MerraRequest
 # view/MerraRequestCLV.py -e -125 50 -66 24 --epsg 4326 --start_date 2013-02-03 --end_date 2013-03-12 -c m2t1nxslv --vars QV2M TS --op avg -o /att/nobackup/rlgill/testMerraReq/
 # -----------------------------------------------------------------------------
 def main():
-    
+
     # Process command-line args.
     desc = 'Use this application to request MERRA files.'
     parser = argparse.ArgumentParser(description=desc)
