@@ -95,7 +95,6 @@ class ApplyAlgorithm(object):
                 pixelStack = self._readStack(col, row)
 
                 # Check for no-data in the first pixel of the stack.
-                # if pixelStack[0] == ApplyAlgorithm.NO_DATA_VALUE:
                 if self._isNoData(pixelStack[0]):
 
                     hexValue = struct.pack('f', ApplyAlgorithm.NO_DATA_VALUE)
@@ -177,7 +176,7 @@ class ApplyAlgorithm(object):
             bandIndex = \
                 int(re.search(r'\d{0,3}$', coefRow['Band Number']).group())
 
-            coef = float(coefRow[algorithmName])
+            coef = float(coefRow[algorithmName] or 0)
             value = pixelStack[bandIndex-1] if bandIndex > 0 else 0.0
             bandCoefValueDict[bandIndex] = (coef, value)
 
