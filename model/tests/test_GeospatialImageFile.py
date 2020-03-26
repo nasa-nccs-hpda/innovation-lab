@@ -1,8 +1,10 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
+import logging
 import os
 import shutil
+import sys
 import tempfile
 import unittest
 
@@ -12,6 +14,7 @@ from osgeo.osr import SpatialReference
 
 from model.Envelope import Envelope
 from model.GeospatialImageFile import GeospatialImageFile
+from model.ImageFile import ImageFile
 
 
 # -----------------------------------------------------------------------------

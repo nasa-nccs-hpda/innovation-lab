@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import math
+import os
 import shutil
 import tempfile
 
@@ -26,7 +27,8 @@ class GeospatialImageFile(ImageFile):
     def __init__(self,
                  pathToFile,
                  spatialReference=None,
-                 extension=ImageFile.EXTENSION):
+                 extension=ImageFile.EXTENSION,
+                 logger=None):
 
         # Initialize the base class.
         super(GeospatialImageFile, self).__init__(pathToFile, extension)
@@ -47,8 +49,11 @@ class GeospatialImageFile(ImageFile):
         self._srs = spatialReference
 
         self._BASE_GDAL_CMD = 'gdalwarp ' + \
+                              ' -multi' + \
                               ' -of netCDF' + \
                               ' -s_srs "' + self.srs().ExportToProj4() + '"'
+
+        self.logger = logger
 
     # -------------------------------------------------------------------------
     # clipReproject
@@ -57,7 +62,9 @@ class GeospatialImageFile(ImageFile):
     # single GDAL call.  This must be more efficient than invoking them
     # individually.
     # -------------------------------------------------------------------------
-    def clipReproject(self, envelope=None, outputSRS=None):
+    def clipReproject(self, envelope=None, outputSRS=None, dataset=None):
+
+        dataset = dataset or self._filePath
 
         # At least one operation must be configured.
         if not envelope and not outputSRS:
@@ -65,10 +72,6 @@ class GeospatialImageFile(ImageFile):
             raise RuntimeError('Clip envelope or output SRS must be ' +
                                'specified.')
 
-        # ---
-        # Configure the base command.  Specify the output format.  Otherwise,
-        # gdalwarp automatically converts to GeoTiff.
-        # ---
         cmd = self._BASE_GDAL_CMD
 
         # Clip?
@@ -99,8 +102,9 @@ class GeospatialImageFile(ImageFile):
 
         # Finish the command.
         outFile = tempfile.mkstemp()[1]
-        cmd += ' ' + self._filePath + ' ' + outFile
-        SystemCommand(cmd, None, True)
+        cmd += ' ' + dataset + ' ' + outFile
+        SystemCommand(cmd, self.logger, True)
+
         shutil.move(outFile, self._filePath)
 
         # Update the dataset.
