@@ -22,15 +22,6 @@ from GeospatialImageFile import GeospatialImageFile
 class MerraRequest(object):
 
     BASE_DIR = '/att/pubrepo/ILAB/data/MERRA2/'
-
-    # ---
-    # Collection attributes should be in their own class structure.  While
-    # collections are few, keep it simple, as represented here.  Without
-    # a class structure in which to encode the collections, frequencies,
-    # date ranges and operations, invalid queries will fail in real time,
-    # rather than being detected early.
-    # ---
-    COLLECTIONS = ['m2t1nxflx', 'm2t1nxslv']
     OPERATIONS = ['avg', 'max', 'min', 'sum']
     MONTHLY = 'monthly'
     WEEKLY = 'weekly'
@@ -174,9 +165,6 @@ class MerraRequest(object):
         missingFiles = []
 
         for coll in collections:
-
-            if coll not in MerraRequest.COLLECTIONS:
-                raise RuntimeError('Invalid collection: ' + str(coll))
 
             for op in operations:
 
