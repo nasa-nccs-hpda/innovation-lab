@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import os
@@ -11,8 +11,6 @@ import glob
 from model.MmxRequest import MmxRequest
 from model.GeospatialImageFile import GeospatialImageFile
 from model.RetrieverFactory import RetrieverFactory
-import pickle
-import json
 
 # -----------------------------------------------------------------------------
 # class MmxRequest

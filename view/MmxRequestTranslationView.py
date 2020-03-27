@@ -3,8 +3,6 @@
 
 import argparse
 import sys
-
-from model.MmxRequest import MmxRequest
 import json
 
 # -----------------------------------------------------------------------------

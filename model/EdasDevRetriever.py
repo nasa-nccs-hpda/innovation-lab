@@ -3,9 +3,6 @@ import os
 import glob
 from osgeo.osr import SpatialReference
 
-#from stratus.app.core import StratusCore
-#from stratus_endpoint.handler.base import TaskHandle
-
 from model.RetrieverInterface import RetrieverInterface
 
 # -----------------------------------------------------------------------------
