@@ -17,24 +17,22 @@ from model.GeospatialImageFile import GeospatialImageFile
 from model.MultiThreader import MultiThreader
 
 from model.ILServicesInterface import ILServicesInterface
-from typing import Dict
 
 # -------------------------------------------------------------------------
 # runMaxEnt
 # -------------------------------------------------------------------------
 # Aggregate process to prepare for and run a trial using MaxEnt
-def runMaxEnt(observationFile, listOfImages, outputDirectory):
-    mer = MaxEntRequest(observationFile, listOfImages, outputDirectory)
+def runMaxEnt(observationFile, listOfImages, outputDirectory, maxEntPath):
+    mer = MaxEntRequest(observationFile, listOfImages, outputDirectory, maxEntPath)
     mer.run()
     gridFile = observationFile.species().replace(' ', '_')+'.asc'
     mer.printModelPic(outputDirectory, gridFile)
-
 
 # -----------------------------------------------------------------------------
 # class MmxRequest
 # -----------------------------------------------------------------------------
 class MmxRequest(ILServicesInterface):
-    Trial = namedtuple('Trial', ['directory', 'obsFile', 'images'])
+    Trial = namedtuple('Trial', ['directory', 'obsFile', 'images', 'maxEntPath'])
 
     def __init__(self, context):
 
@@ -50,12 +48,12 @@ class MmxRequest(ILServicesInterface):
         self._numPredictors = context['numPredictors']
         self._observationFilePath = context['observation']
         self._species = context['species']
-#        self._images = []
+        self._maxEntPath = context['maxEntPath']
 
         self._observationFile = ObservationFile(self._observationFilePath, self._species)
 
         if not os.path.exists(self._outputDirectory):
-            raise RuntimeError(str(self._outputDirectory)) + ' does not exist.'
+            raise RuntimeError(str(self._outputDirectory)) + ' does not exist, wrong permissions, or symbolic link.'
 
         if not os.path.isdir(self._outputDirectory):
             raise RuntimeError(str(self._outputDirectory) + ' must be a directory.')
@@ -65,6 +63,9 @@ class MmxRequest(ILServicesInterface):
         
         if os.listdir(self._trialsDir):
             raise RuntimeError(str(self._trialsDir) + ' must be empty.')
+
+        if not os.path.exists(self._maxEntPath):
+            raise RuntimeError(str(self._maxEntPath)) + ' does not exist, wrong permissions, or symbolic link.'
 
     # -------------------------------------------------------------------------
     # validate incoming parameters
@@ -183,6 +184,7 @@ class MmxRequest(ILServicesInterface):
         # Create a directory for this trial.
         TRIAL_NAME = 'trial-' + str(trialNum)
         TRIAL_DIR = os.path.join(self._trialsDir, TRIAL_NAME)
+        MAXENT_DIR = self._maxEntPath
 
         if not os.path.exists(TRIAL_DIR):
             os.mkdir(TRIAL_DIR)
@@ -206,7 +208,8 @@ class MmxRequest(ILServicesInterface):
         # Build the Trial structure to use later.
         trial = self.Trial(directory=TRIAL_DIR,
                                      images=trialPredictors,
-                                     obsFile=trialObs)
+                                     obsFile=trialObs,
+                                     maxEntPath = MAXENT_DIR)
 
         return trial
 
@@ -250,7 +253,7 @@ class MmxRequest(ILServicesInterface):
         # final = self.prepareOneTrial(topTen, range(0, len(topTen) - 1),
         final = self.prepareOneTrial(topTen, range(0, len(topTen)),
                                      'final')
-        runMaxEnt(final.obsFile, final.images, final.directory)
+        runMaxEnt(final.obsFile, final.images, final.directory, final.maxEntPath)
 
     # -------------------------------------------------------------------------
     # determineRequiredImages

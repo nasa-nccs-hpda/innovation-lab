@@ -40,4 +40,8 @@ db.sqlite3
 .Trashes
 ehthumbs.db
 Thumbs.db
+.idea
 
+# Singularity images
+*.simg
+*.out

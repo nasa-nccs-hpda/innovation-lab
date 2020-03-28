@@ -19,7 +19,7 @@ class MaxEntRequest(object):
     # -------------------------------------------------------------------------
     # __init__
     # -------------------------------------------------------------------------
-    def __init__(self, observationFile, listOfImages, outputDirectory):
+    def __init__(self, observationFile, listOfImages, outputDirectory, maxEntPath):
 
         if not os.path.exists(outputDirectory):
 
@@ -45,6 +45,7 @@ class MaxEntRequest(object):
         self._observationFile = observationFile
         self._observationFile.transformTo(self._imageSRS)
         self._maxEntSpeciesFile = self._formatObservations()
+        self._maxEntPath = maxEntPath
 
         # Create a directory for the ASC files.
         self._ascDir = os.path.join(self._outputDirectory, 'asc')
@@ -169,10 +170,16 @@ class MaxEntRequest(object):
 
         print ('Running MaxEnt.')
         # Invoke maxent.jar.
-        MAX_ENT_JAR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                   'libraries',
-                                   'maxent.jar')
+        MAX_ENT_JAR = self._maxEntPath
+        if self._maxEntPath == "":
+            MAX_ENT_JAR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                       'libraries',
+                                       'maxent.jar')
 
+        if not os.path.exists(MAX_ENT_JAR):
+            raise RuntimeError('Maximim Entropy path, ' +
+                               str(MAX_ENT_JAR) +
+                               ' does not exist.')
         JAVA = os.path.join(os.getenv('JAVA_HOME', default=''), 'java')
 
         baseCmd = JAVA + ' -Xmx1024m -jar ' + \
@@ -193,9 +200,8 @@ class MaxEntRequest(object):
     # -------------------------------------------------------------------------
     def printModelPic(self, directory, file):
 
-        MAX_ENT_JAR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                   'libraries',
-                                   'maxent.jar')
+        MAX_ENT_JAR = self._maxEntPath
+
         GRID_FILE = os.path.join(directory,
                                  file)
 

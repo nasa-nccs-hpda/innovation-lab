@@ -73,9 +73,9 @@ def chain_func(context):
 # cd innovation-lab
 # export PYTHONPATH=`pwd`
 # view/MmxRequestCommandLineView.py
-#-f "/att/nobackup/iluser/mmx/input/ebd_Cassins_2006.csv"
-#-i "/att/nobackup/iluser/mmx/input"
-#-o "/att/nobackup/iluser/mmx/output"
+#-f "/att/gpfsfs/briskfs01/ppl/iluser/mmx/input/ebd_Cassins_2006.csv"
+#-i "/att/gpfsfs/briskfs01/ppl/iluser/mmx/input"
+#-o "/att/gpfsfs/briskfs01/ppl/iluser/mmx/output"
 #-s "Cassins Sparrow"
 #-sd "2006-01-01"
 #-ed "2007-01-01"
@@ -86,6 +86,7 @@ def chain_func(context):
 #-t "2"
 #-p "3"
 #-w "Rm"
+#-m "/att/gpfsfs/briskfs01/ppl/iluser/ext/libraries/maxent.jar"
 # -----------------------------------------------------------------------------
 if __name__ == "__main__":
     # Process command-line args.
@@ -144,6 +145,10 @@ if __name__ == "__main__":
                         default='Rm',
                         help='Workflow')
 
+    parser.add_argument('-m',
+                        default='/att/gpfsfs/briskfs01/ppl/iluser/ext/libraries/maxent.jar',
+                        help='Path to Maximum Entropy jar')
+
     args = parser.parse_args()
     print(args.s)
 
@@ -161,6 +166,7 @@ if __name__ == "__main__":
     numTrials = "\"numTrials\"" + ":\"" + args.t + "\""
     numPredictors = "\"numPredictors\"" + ":\"" + args.p + "\""
     workflow = "\"workflow\"" + ":\"" + args.w + "\""
+    maxEntPath = "\"maxEntPath\"" + ":\"" + args.m + "\""
 
     # create key/value pair string
     json_string = "{" + observation + "," + \
@@ -175,7 +181,8 @@ if __name__ == "__main__":
         edasWorldClim + "," + \
         numTrials + "," + \
         numPredictors + "," + \
-        workflow + "}"
+        workflow + "," + \
+        maxEntPath + "}"
 
     # convert string to JSON format (simulates AWS Lambda invocation)
     context = json.loads(json_string)

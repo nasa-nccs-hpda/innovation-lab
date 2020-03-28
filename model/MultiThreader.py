@@ -18,7 +18,7 @@ class MultiThreader(object):
         trialNum = 0
         threadCatalog = dict({})
         for trial in trials:
-            p = Process(target=process, args=(trial.obsFile, trial.images, trial.directory))
+            p = Process(target=process, args=(trial.obsFile, trial.images, trial.directory, trial.maxEntPath))
             p.start()
             trialNum += 1
             threadCatalog[trialNum] = p
