@@ -1,4 +1,4 @@
-## Generate container image using existing ilab MMX base image
+## Generate Jupyter container image using existing ilab applications suite
 Bootstrap: localimage
 FROM: ./ilab-apps-1.0.0.simg
 

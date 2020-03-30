@@ -1,4 +1,4 @@
-## Generate container image using singularity recipe
+## Generate Python ecosystem container image using singularity recipe
 Bootstrap: docker
 FROM: openjdk:8-jdk-stretch
 

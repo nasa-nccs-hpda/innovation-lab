@@ -1,4 +1,4 @@
-## Generate container image using singularity recipe
+## Generate core container with ilab-specific dependencies that builds on the Python ecosystem container
 Bootstrap: localimage
 FROM: ./cisto-data-science-1.0.0.simg
 
