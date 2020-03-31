@@ -28,8 +28,8 @@ https://internal.nccs.nasa.gov/confluence/download/attachments/34472835/Software
 
 # Run steps (as ilab user on dsg103)
 
-gtamkin@dsg103:~$ singularity run -B /att /att/nobackup/iluser/containers/ilab-mmx-1.0.0.simg 
 ```
+gtamkin@dsg103:~$ singularity run -B /att /att/nobackup/iluser/containers/ilab-mmx-1.0.0.simg 
 python3.7 /att/nobackup/iluser/projects/ilab/src/innovation-lab/view/MmxRequestCommandLineView.py 
 -f "/att/nobackup/iluser/projects/ilab/input/ebd_Cassins_2006.csv" 
 -i "/att/nobackup/iluser/projects/ilab/input" 
@@ -59,7 +59,7 @@ python3.7 /att/nobackup/iluser/projects/ilab/src/innovation-lab/view/MmxRequestC
 [iluser@dsg101 src]$ git checkout -b MmxRequestCeleryView origin/MmxRequestCeleryView
 
 [iluser@dsg101 innovation-lab]$ ls -alt view/
-
+```
 total 36
 drwxr-xr-x 3 iluser ilab 4096 Mar 28 07:29 .
 -rwxr-xr-x 1 iluser ilab 2233 Mar 28 07:29 MaxEntRequestCommandLineView.py
@@ -69,14 +69,13 @@ drwxr-xr-x 3 iluser ilab 4096 Mar 28 07:29 .
 drwxr-xr-x 3 iluser ilab 4096 Mar 28 07:29 tests
 drwxr-xr-x 7 iluser ilab 4096 Mar 28 07:29 ..
 -rw-r--r-- 1 iluser ilab    0 Mar 28 07:28 __init__.py
-
+```
 ## Configure dependencies
 
 [iluser@dsg101 ext]$ cd /att/gpfsfs/briskfs01/ppl/iluser/ext
 
 [iluser@dsg101 ext]$ ls -alRt | more
 ```
-
 .:
 total 0
 drwxr-xr-x 6 iluser ilab 4096 Mar 28 09:16 ..
@@ -98,8 +97,7 @@ drwxr-xr-x  6 iluser ilab 4096 Mar 28 07:48 jre1.8.0_221
 drwxr-xr-x 10 iluser ilab 4096 Mar 28 07:48 pycharm
 ```
 
-gtamkin@dsg101:/att/gpfsfs/briskfs01/ppl/gtamkin/mmx-singularity/mmx$ sh /att/gpfsfs/briskfs01/ppl/iluser/ext/bin/pycharm/bin/pycharm.sh&
-
+### Configure dependencies - prepare build directory
 [iluser@dsg101 containers]$ cd /att/gpfsfs/briskfs01/ppl/iluser/containers
 
 [iluser@dsg101 containers]$ ln -sf /att/gpfsfs/briskfs01/ppl/iluser/projects/ilab/src/innovation-lab/projects/container/singularity/*.def .
@@ -108,7 +106,6 @@ gtamkin@dsg101:/att/gpfsfs/briskfs01/ppl/gtamkin/mmx-singularity/mmx$ sh /att/gp
 
 [iluser@dsg101 containers]$ ls -alt
 ```
-
 total 0
 lrwxrwxrwx 1 iluser ilab  117 Mar 28 09:27 build-ilab-iluser.sh -> /att/gpfsfs/briskfs01/ppl/iluser/projects/ilab/src/innovation-lab/projects/container/singularity/build-ilab-iluser.sh
 drwxr-xr-x 2 iluser ilab 4096 Mar 28 09:27 .
@@ -140,13 +137,11 @@ echo /bin/time /usr/bin/sudo -E SINGULARITY_NOHTTPS=1 /usr/bin/singularity build
 SINGULARITY_TMPDIR=/att/gpfsfs/briskfs01/ppl/iluser/singularity-cache
 SINGULARITY_CACHEDIR=/att/gpfsfs/briskfs01/ppl/iluser/singularity-cache
 ```
-
 [iluser@dsg101 containers]$ pwd
 /att/gpfsfs/briskfs01/ppl/iluser/containers
 
 [iluser@dsg101 containers]$ time sh build-ilab-iluser.sh 2>&1 | tee -a build-ilab-iluser-03282020.out
 ```
-
 Build ilab container stack
 /bin/time /usr/bin/sudo -E SINGULARITY_NOHTTPS=1 /usr/bin/singularity build cisto-data-science-1.0.0.simg cisto-data-science-1.0.0.def
 INFO:    Starting build...
@@ -156,6 +151,7 @@ Copying blob sha256:3192219afd04f93d90f0af7f89cb527d1af2a16975ea391ea8517c602ad6
 ```
 
 [iluser@dsg101 containers]$ ls -alt
+```
 total 4751432
 -rw-r--r-- 1 iluser ilab     943499 Mar 28 11:46 build-ilab-iluser-03282020.out
 -rwxr-xr-x 1 iluser ilab 1562017792 Mar 28 11:39 cisto-jupyter-lab-1.0.0.simg
@@ -169,10 +165,9 @@ lrwxrwxrwx 1 iluser ilab        116 Mar 28 09:18 ilab-apps-1.0.0.def -> /att/gpf
 lrwxrwxrwx 1 iluser ilab        124 Mar 28 09:18 cisto-jupyter-lab-1.0.0.def -> /att/gpfsfs/briskfs01/ppl/iluser/projects/ilab/src/innovation-lab/projects/container/singularity/cisto-jupyter-lab-1.0.0.def
 lrwxrwxrwx 1 iluser ilab        125 Mar 28 09:18 cisto-data-science-1.0.0.def -> /att/gpfsfs/briskfs01/ppl/iluser/projects/ilab/src/innovation-lab/projects/container/singularity/cisto-data-science-1.0.0.def
 drwxr-xr-x 6 iluser ilab       4096 Mar 28 09:16 ..
+```
 
 ### Optionally run PyCharm IDE via container
-gtamkin@dsg101:/att/gpfsfs/briskfs01/ppl/gtamkin/mmx-singularity$ cd /att/gpfsfs/briskfs01/ppl/gtamkin/mmx-singularity
-
 gtamkin@dsg101:/att/gpfsfs/briskfs01/ppl/gtamkin/mmx-singularity$ singularity run -B /att /att/gpfsfs/briskfs01/ppl/iluser/containers/ilab-apps-1.0.0.simg sh /att/gpfsfs/briskfs01/ppl/gtamkin/bin/pycharm/bin/pycharm.sh&
 
 ## Shell into the container and examine dependencies
@@ -281,7 +276,7 @@ zict==2.0.0
 zipp==3.1.0
 Singularity> 
 ```
-## Examine MMX runtime script.  Note: 1) runs full MMX with static pre-processed data, 2) use Celery to run chained tasks, 3) hard-coded json parameters for now.
+## Examine MMX runtime script.  Note: 1) runs full MMX with static pre-processed data, 2) use Celery to run chained tasks, 3) dynamic CLI parameters.
 ```
 Singularity> more /usr/local/mmx/projects/ilab/src/innovation-lab/view/MmxRequestCommandLineView.py 
 from celery import Celery
