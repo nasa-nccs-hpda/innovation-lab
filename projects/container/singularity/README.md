@@ -23,7 +23,7 @@ This task formalizes an approach to container creation using Singularity on ADAP
 For an overview of the general ILAB container architecture, see:
 https://internal.nccs.nasa.gov/confluence/download/attachments/34472835/container-overview-03312020.pptx?api=v2
 
-For specific details of the MMX applocation design, see:
+For specific details of the MMX application design, see:
 https://internal.nccs.nasa.gov/confluence/download/attachments/34472835/Software-Task-Template-container-03312020.docx?api=v2
 
 # Run steps (as ilab user on dsg103)
@@ -32,8 +32,8 @@ gtamkin@dsg103:~$ singularity run -B /att /att/nobackup/iluser/containers/ilab-m
 # Build steps (requires 'sudo' as iluser on dsg101)
 
 # Checkout branch from git
-[iluser@dsg101 src]$ cd /att/gpfsfs/briskfs01/ppl/iluser/projects/ilab/src
-[iluser@dsg101 src]$ git clone https://github.com/nasa-nccs-hpda/innovation-lab.git
+$ cd /att/gpfsfs/briskfs01/ppl/iluser/projects/ilab/src
+$ git clone https://github.com/nasa-nccs-hpda/innovation-lab.git
 [iluser@dsg101 src]$ cd innovation-lab/
 [iluser@dsg101 src]$ git checkout -b MmxRequestCeleryView origin/MmxRequestCeleryView
 [iluser@dsg101 innovation-lab]$ ls -alt view/
