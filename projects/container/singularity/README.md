@@ -137,8 +137,7 @@ echo /bin/time /usr/bin/sudo -E SINGULARITY_NOHTTPS=1 /usr/bin/singularity build
 SINGULARITY_TMPDIR=/att/gpfsfs/briskfs01/ppl/iluser/singularity-cache
 SINGULARITY_CACHEDIR=/att/gpfsfs/briskfs01/ppl/iluser/singularity-cache
 ```
-[iluser@dsg101 containers]$ pwd
-/att/gpfsfs/briskfs01/ppl/iluser/containers
+[iluser@dsg101 containers]$ cd /att/gpfsfs/briskfs01/ppl/iluser/containers
 
 [iluser@dsg101 containers]$ time sh build-ilab-iluser.sh 2>&1 | tee -a build-ilab-iluser-03282020.out
 ```
