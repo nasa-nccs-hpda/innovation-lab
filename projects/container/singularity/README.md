@@ -34,7 +34,7 @@ gtamkin@dsg103:~$ singularity run -B /att /att/nobackup/iluser/containers/ilab-m
 # Checkout branch from git
 $ cd /att/gpfsfs/briskfs01/ppl/iluser/projects/ilab/src
 $ git clone https://github.com/nasa-nccs-hpda/innovation-lab.git
-[iluser@dsg101 src]$ cd innovation-lab/
+$ cd innovation-lab/
 [iluser@dsg101 src]$ git checkout -b MmxRequestCeleryView origin/MmxRequestCeleryView
 [iluser@dsg101 innovation-lab]$ ls -alt view/
 total 36
