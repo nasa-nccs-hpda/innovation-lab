@@ -17,9 +17,7 @@ logger.level = logging.DEBUG
 # -----------------------------------------------------------------------------
 # class ApplyAlgorithmTestCase
 #
-# gdal_translate -of ENVI -srcwin 41 96 5 5
-# /att/nobackup/rlgill/AVIRIS/ang20170709t224222_rfl_v2p9/
-# ang20170709t224222_corr_v2p9_img clip.img
+# gdal_translate -of ENVI -srcwin 41 96 5 5 /att/pubrepo/ABoVE/archived_data/ORNL/ABoVE_Airborne_AVIRIS_NG_CORRUPT/data/ang20180729t210144rfl/ang20180729t210144_rfl_v2r2/ang20180729t210144_corr_v2r2_img clip.img
 #
 # python -m unittest projects.aviris_regression_algorithms.model.tests.test_ApplyAlgorithm
 # -----------------------------------------------------------------------------
@@ -39,6 +37,6 @@ class ApplyAlgorithmTestCase(unittest.TestCase):
         testImage = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                  'clip.img')
 
-        aa = ApplyAlgorithm(coefFile, testImage, tempfile.gettempdir(), logger)
-        aa.applyAlgorithm('Avg Chl')
-        aa.applyAlgorithm('Avg Chl', True)
+        aa = ApplyAlgorithm(coefFile, testImage, logger)
+        aa.applyAlgorithm('Avg Chl', tempfile.gettempdir())
+        aa.applyAlgorithm('Avg Chl', tempfile.gettempdir(), True)

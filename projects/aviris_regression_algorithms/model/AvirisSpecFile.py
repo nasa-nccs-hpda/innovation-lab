@@ -117,7 +117,7 @@ class AvirisSpecFile(BaseFile):
 
         if key not in AvirisSpecFile.PARAMETER_KEYS and \
            key not in AvirisSpecFile.META_KEYS and \
-           key notin AvirisSpecFile.OTHER_KEYS:
+           key not in AvirisSpecFile.OTHER_KEYS:
 
             raise RuntimeError('Invalid key: ' + str(key))
 
@@ -225,9 +225,9 @@ class AvirisSpecFile(BaseFile):
             self._writeField(fp, AvirisSpecFile.WATER_MASK_KEY)
             self._writeField(fp, AvirisSpecFile.COEFS_FILE_KEY)
 
-            # self._writeField(fp, AvirisSpecFile.COEFS_KEY)
             sortedCoefs = collections.\
-                OrderedDict(sorted(self.getField(AvirisSpecFile.COEFS_KEY).
+                OrderedDict(sorted(json.loads( \
+                                   self.getField(AvirisSpecFile.COEFS_KEY)).
                                    items()))
 
             fp.write(AvirisSpecFile.COEFS_KEY +
