@@ -15,16 +15,6 @@ from model.BaseFile import BaseFile
 class BaseFileTestCase(unittest.TestCase):
 
     # -------------------------------------------------------------------------
-    # testExpectedExtension
-    # -------------------------------------------------------------------------
-    def testExpectedExtension(self):
-
-        BaseFile('model/tests/test_BaseFile.py', '.py')
-
-        with self.assertRaises(RuntimeError):
-            BaseFile('model/tests/test_BaseFile.py', '.yyz')
-
-    # -------------------------------------------------------------------------
     # testFileDoesNotExist
     # -------------------------------------------------------------------------
     def testFileDoesNotExist(self):

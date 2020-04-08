@@ -11,7 +11,7 @@ class BaseFile(object):
     # -------------------------------------------------------------------------
     # __init__
     # -------------------------------------------------------------------------
-    def __init__(self, pathToFile, expectedExtension=None):
+    def __init__(self, pathToFile):
 
         if not pathToFile:
             raise RuntimeError('A fully-qualified path to a file must be \
@@ -19,14 +19,6 @@ class BaseFile(object):
 
         if not os.path.exists(pathToFile):
             raise RuntimeError(str(pathToFile) + ' does not exist.')
-
-        if expectedExtension and \
-           os.path.splitext(pathToFile)[1].lower() != expectedExtension:
-
-            raise RuntimeError(str(pathToFile) +
-                               ' is not in ' +
-                               str(expectedExtension) +
-                               ' format.')
 
         self._filePath = pathToFile
 
