@@ -128,7 +128,8 @@ class AvirisSpecFile(BaseFile):
     # -------------------------------------------------------------------------
     def _imageHeaderName(self):
 
-        return self.getField(AvirisSpecFile.IMAGE_FILE_KEY) + '.hdr'
+        return os.path.splitext(self.getField(AvirisSpecFile.\
+                                              IMAGE_FILE_KEY))[0] + '.hdr'
 
     # -------------------------------------------------------------------------
     # _openImageHeader
@@ -225,10 +226,12 @@ class AvirisSpecFile(BaseFile):
             self._writeField(fp, AvirisSpecFile.WATER_MASK_KEY)
             self._writeField(fp, AvirisSpecFile.COEFS_FILE_KEY)
 
-            sortedCoefs = collections.\
-                OrderedDict(sorted(json.loads( \
-                                   self.getField(AvirisSpecFile.COEFS_KEY)).
-                                   items()))
+            coefs = self.getField(AvirisSpecFile.COEFS_KEY)
+            
+            if isinstance(coefs, basestring):
+                coefs = json.loads(coefs)
+            
+            sortedCoefs = collections.OrderedDict(sorted(coefs.items()))
 
             fp.write(AvirisSpecFile.COEFS_KEY +
                      AvirisSpecFile.SEPARATOR +

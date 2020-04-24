@@ -1,6 +1,8 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
+import struct
+
 import numpy as np
 
 from osgeo import gdal_array
@@ -25,39 +27,11 @@ class Chunker(object):
     def __init__(self, _imageFileName):
 
         self._imageFile = ImageFile(_imageFileName)
-        self._xSize = None
-        self._ySize = None
+        self._xSize = 1
+        self._ySize = 1
         self._curChunkLoc = (0, 0)
         self._complete = False
 
-        # ---
-        # The data type is for building a buffer into which chunks are read.
-        # Refer to the comment in getChunk() about a GDAL buf.  This code
-        # is from gdal_array.BandReadAsArray, where the error occurs.
-        # ---
-        dataType = \
-            self._imageFile._getDataset().GetRasterBand(1).DataType
-            
-        typeCode = gdal_array.GDALTypeCodeToNumericTypeCode(dataType)
-        dataType = gdal_array.NumericTypeCodeToGDALTypeCode(typeCode)
-        
-        if not typeCode:
-            
-            dataType = gdalconst.GDT_Float32
-            typeCode = np.float32
-
-        else:
-            dataType = gdal_array.NumericTypeCodeToGDALTypeCode(typeCode)
-
-        if dataType == gdalconst.GDT_Byte and \
-            self._imageFile._getDataset().\
-                GetMetadataItem('PIXELTYPE', 'IMAGE_STRUCTURE') == \
-             'SIGNEDBYTE':
-             
-            typecode = np.int8
-            
-        self._dataType = typeCode
-        
     # -------------------------------------------------------------------------
     # getChunk
     # -------------------------------------------------------------------------
@@ -86,10 +60,21 @@ class Chunker(object):
 
             # Limit the read in the X dimension.
             xLen = self._imageFile._getDataset().RasterXSize - xStart
+            
+            # If the length is 0, move to the next chunk row now.
+            if xLen == 0:
+                
+                xStart = 0
+                yStart = yStart + self._ySize
+                xLen = self._xSize
+                next_xStart = xStart + xLen
+                next_yStart = yStart
 
-            # Move to next chunk row.
-            next_xStart = 0
-            next_yStart = yStart + self._ySize
+            else:
+
+                # Move to next chunk row for the following chunk.
+                next_xStart = 0
+                next_yStart = yStart + self._ySize
             
             # When X and Y are exceeded, chunking is complete.
             xExceeded = True
@@ -100,35 +85,55 @@ class Chunker(object):
             # Limit the read in the Y dimension.
             yLen = self._imageFile._getDataset().RasterYSize - yStart
 
+            # ---
+            # When yLen is 0, the next read cannot happen.  If yLen is not 0,
+            # read the final portion of a chunk below.
+            # ---
+            if yLen == 0:
+                self._complete = True
+    
             # Last row, so Y start stays the same.
             next_yStart = yStart
-            
+        
             # When X and Y are exceeded, chunking is complete.
             yExceeded = True
 
-        # ---
-        # Read chunk as a two-dimensional Numpy array.  Deep in the GDAL code,
-        # where the final call is made, the X and Y length arguments of the 
-        # output buffer are backwards.  This causes the rectangle of return
-        # pixels to have incorrect dimensions.  To work around this, create the
-        # output buffer here.
-        # ---
-        buf = np.empty([xLen, yLen], dtype=self._dataType)
-        
-        chunk = self._imageFile._getDataset().ReadAsArray(xStart,
-                                                          yStart,
-                                                          xLen,
-                                                          yLen,
-                                                          buf)
+        if not self.isComplete():
+            
+            rcChunk = self._imageFile._getDataset().ReadAsArray(xStart,
+                                                                yStart,
+                                                                xLen,
+                                                                yLen)
+                                                              
+            # Load the chunk as (x, y), instead of (row, column).
+            chunk = rcChunk.transpose()
+            
+        else:
 
-        # Set position of next chunk.
-        self._curChunkLoc = (next_xStart, next_yStart)
-        
+            chunk = np.empty([0, 0])
+
         # When X and Y are exceeded, chunking is complete.
         if xExceeded and yExceeded:
             self._complete = True
-                                          
+                
+        # Set position of next chunk.
+        self._curChunkLoc = (next_xStart, next_yStart)
+        
         return ((xStart, yStart), chunk)
+        
+    # -------------------------------------------------------------------------
+    # isComplete
+    # -------------------------------------------------------------------------
+    def isComplete(self):
+        return self._complete
+        
+    # -------------------------------------------------------------------------
+    # reset
+    # -------------------------------------------------------------------------
+    def reset(self):
+        
+        self._curChunkLoc = (0, 0)
+        self._complete = False        
         
     # -------------------------------------------------------------------------
     # setChunkAsColumn
@@ -143,6 +148,14 @@ class Chunker(object):
     def setChunkAsRow(self):
         
         self.setChunkSize(self._imageFile._getDataset().RasterXSize, 1)
+        
+    # -------------------------------------------------------------------------
+    # setChunkToImage
+    # -------------------------------------------------------------------------
+    def setChunkToImage(self):
+        
+        self.setChunkSize(self._imageFile._getDataset().RasterXSize,
+                          self._imageFile._getDataset().RasterYSize)
         
     # -------------------------------------------------------------------------
     # setChunkSize

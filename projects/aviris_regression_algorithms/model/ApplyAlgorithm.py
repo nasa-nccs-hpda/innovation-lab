@@ -49,7 +49,7 @@ class ApplyAlgorithm(object):
         
         self.coefs = []
 
-        coefFile = BaseFile(csvFile, '.csv')
+        coefFile = BaseFile(csvFile)
 
         with open(coefFile.fileName()) as csvFile:
 
@@ -89,20 +89,26 @@ class ApplyAlgorithm(object):
         outDs, qa = self._createOutputImages(algorithmName, outDir)
 
         # Iterate through the raster.
+        self._chunker.reset()
+        curRow = -1
+        
         while True:
             
             loc, chunk = self._chunker.getChunk()
-            
-            if chunk == None:
+
+            if self._chunker.isComplete():
                 break
                 
             # Provide a hint of the progress.
-            if loc[0] % 100 == 0:
+            if curRow != loc[1] and loc[1] % 100 == 0:
 
-                print 'Row ' + str(row) + ' of ' + \
+                print 'Row ' + str(loc[1]) + ' of ' + \
                     str(self._chunker._imageFile._getDataset().RasterYSize)
 
-            self._processRow(loc, chunk, outDs, qa)
+            curRow = loc[1]
+
+            self._processRow(curRow, chunk, outDs, qa, algorithmName,
+                             normalizePixels)
 
         outDs = None
         qa = None
@@ -168,16 +174,18 @@ class ApplyAlgorithm(object):
 
         driver = gdal.GetDriverByName('GTiff')
 
-        outDs = driver.Create(outName,
-                              self.imageFile._getDataset().RasterXSize,
-                              self.imageFile._getDataset().RasterYSize,
-                              1,
-                              gdalconst.GDT_Float32)
+        outDs = \
+            driver.Create(outName,
+                          self._chunker._imageFile._getDataset().RasterXSize,
+                          self._chunker._imageFile._getDataset().RasterYSize,
+                          1,
+                          gdalconst.GDT_Float32)
 
         outDs.SetProjection(self._chunker._imageFile._getDataset().\
                             GetProjection())
         
-        outDs.SetGeoTransform(self.imageFile._getDataset().GetGeoTransform())
+        outDs.SetGeoTransform(self._chunker._imageFile._getDataset(). \
+                              GetGeoTransform())
 
         # ---
         # Create the quality assurance (QA) layer.  At each pixel location:
@@ -254,13 +262,13 @@ class ApplyAlgorithm(object):
     # -------------------------------------------------------------------------
     # processRow
     # -------------------------------------------------------------------------
-    def _processRow(self, loc, row, outDs, qa):
+    def _processRow(self, row, rowArray, outDs, qa, algorithmName, 
+                    normalizePixels):
         
-        for col in range(row.shape[0]):
-
+        for col in range(rowArray.shape[0]):
+            
             # Read the stack of pixels at this col, row location.
-            # pixelStack = self._readStack(col, row)
-            pixelStack = row[col]
+            pixelStack = rowArray[col][0]
 
             # Check for no-data in the first pixel of the stack.
             if self._isNoData(pixelStack[0]):
@@ -342,71 +350,79 @@ class ApplyAlgorithm(object):
     # -------------------------------------------------------------------------
     # screen
     # -------------------------------------------------------------------------
-    # def screen(self, pctThreshold=0.1):
-    #
-    #     rows = self._chunker._imageFile._getDataset().RasterYSize
-    #     cols = self._chunker._imageFile._getDataset().RasterXSize
-    #     numPixels = rows * cols
-    #
-    #     # ---
-    #     # Count both the valid and invalid pixels and compare their number
-    #     # against the threshold and its inverse, so this method can quit as
-    #     # soon as possible.  For example, if the validity threshold is 90% and
-    #     # the first 10% of the image contains invalid pixels, quit because the
-    #     # invalidity threshold is met.  Otherwise, the validity threshold
-    #     # would not be met until the entire image was scanned.
-    #     # ---
-    #     validityThreshold = numPixels * pctThreshold
-    #     invalidityThreshold = numPixels - validityThreshold
-    #     validPixels = 0
-    #     invalidPixels = 0
-    #
-    #     for row in range(rows):
-    #         for col in range(cols):
-    #
-    #             if row % 100 == 0 and col == 0:
-    #                 print 'Row ' + str(row) + ' of ' + str(rows)
-    #
-    #             # ---
-    #             # Every band will contain the no-data value, if the pixel
-    #             # is designated "no data".  To eliminated a read operation,
-    #             # read bands that will be used later to screen for masks.
-    #             # ---
-    #             bValues = self.imageFile._getDataset(). \
-    #                 ReadRaster(col,
-    #                            row,
-    #                            1,
-    #                            1,
-    #                            None,
-    #                            None,
-    #                            gdalconst.GDT_Float32,
-    #                            [9, 245])
-    #
-    #             b10Value = struct.unpack('f', bValues[0:4])[0]
-    #             b246Value = struct.unpack('f', bValues[4:8])[0]
-    #
-    #             if self._isNoData(b10Value) or \
-    #                self._isCloudMask(b10Value) or \
-    #                self._isWaterMask(b246Value):
-    #
-    #                 invalidPixels += 1
-    #
-    #                 if invalidPixels >= invalidityThreshold:
-    #
-    #                     print 'The invalidity threshold, ' + \
-    #                           str(invalidityThreshold) + \
-    #                           ' is met.'
-    #
-    #                     return
-    #
-    #             else:
-    #
-    #                 validPixels += 1
-    #
-    #                 if validPixels >= validityThreshold:
-    #
-    #                     print 'The validity threshold, ' + \
-    #                           str(validityThreshold) + \
-    #                           ' is met.'
-    #
-    #                     return
+    def screen(self, pctThreshold=0.1):
+
+        rows = self._chunker._imageFile._getDataset().RasterYSize
+        cols = self._chunker._imageFile._getDataset().RasterXSize
+        numPixels = rows * cols
+
+        # ---
+        # Count both the valid and invalid pixels and compare their number
+        # against the threshold and its inverse, so this method can quit as
+        # soon as possible.  For example, if the validity threshold is 90% and
+        # the first 10% of the image contains invalid pixels, quit because the
+        # invalidity threshold is met.  Otherwise, the validity threshold
+        # would not be met until the entire image was scanned.
+        # ---
+        validityThreshold = numPixels * pctThreshold
+        invalidityThreshold = numPixels - validityThreshold
+        validPixels = 0
+        invalidPixels = 0
+
+        for row in range(rows):
+            for col in range(cols):
+
+                if row % 100 == 0 and col == 0:
+                    print 'Row ' + str(row) + ' of ' + str(rows)
+
+                # ---
+                # Every band will contain the no-data value, if the pixel
+                # is designated "no data".  To eliminated a read operation,
+                # read bands that will be used later to screen for masks.
+                # ---
+                bValues = self._chunker._imageFile._getDataset(). \
+                    ReadRaster(col,
+                               row,
+                               1,
+                               1,
+                               None,
+                               None,
+                               gdalconst.GDT_Float32,
+                               [9, 245])
+
+                b10Value = struct.unpack('f', bValues[0:4])[0]
+                b246Value = struct.unpack('f', bValues[4:8])[0]
+
+                if self._isNoData(b10Value) or \
+                   self._isCloudMask(b10Value) or \
+                   self._isWaterMask(b246Value):
+
+                    invalidPixels += 1
+
+                    if invalidPixels >= invalidityThreshold:
+
+                        print 'The invalidity threshold, ' + \
+                              str(invalidityThreshold) + \
+                              ' is met.'
+
+                        return
+
+                else:
+
+                    if validPixels == 0:
+                        
+                        print 'First valid pixel is at row ' + \
+                              str(row) + \
+                              ', column ' + \
+                              str(col) + \
+                              '.'
+                              
+                    validPixels += 1
+
+                    if validPixels >= validityThreshold:
+
+                        print 'The validity threshold, ' + \
+                              str(validityThreshold) + \
+                              ', is met.'
+
+                        return

@@ -17,9 +17,9 @@ logger.level = logging.DEBUG
 # -----------------------------------------------------------------------------
 # class ApplyAlgorithmTestCase
 #
-# gdal_translate -of ENVI -srcwin 41 96 5 5 /att/pubrepo/ABoVE/archived_data/ORNL/ABoVE_Airborne_AVIRIS_NG_CORRUPT/data/ang20180729t210144rfl/ang20180729t210144_rfl_v2r2/ang20180729t210144_corr_v2r2_img clip.img
-#
 # python -m unittest projects.aviris_regression_algorithms.model.tests.test_ApplyAlgorithm
+#
+# /att/nobackup/rlgill/innovation-lab$ python -m unittest projects.aviris_regression_algorithms.model.tests.test_ApplyAlgorithm.ApplyAlgorithmTestCase.testScreen
 # -----------------------------------------------------------------------------
 class ApplyAlgorithmTestCase(unittest.TestCase):
 
@@ -32,11 +32,37 @@ class ApplyAlgorithmTestCase(unittest.TestCase):
         logger.addHandler(streamHandler)
 
         coefFile = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                'Chl_Coeff_input.csv')
+                                'PLSR_Coeff_NoVN_v2.csv')
 
-        testImage = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                 'clip.img')
+        # Image is 653 x 7074 x 425
+        testImage = '/att/pubrepo/ABoVE/archived_data/ORNL/' + \
+                    'ABoVE_Airborne_AVIRIS_NG_CORRUPT/data/' + \
+                    'ang20180729t210144rfl/ang20180729t210144_rfl_v2r2/' + \
+                    'ang20180729t210144_corr_v2r2_img'
 
         aa = ApplyAlgorithm(coefFile, testImage, logger)
-        aa.applyAlgorithm('Avg Chl', tempfile.gettempdir())
-        aa.applyAlgorithm('Avg Chl', tempfile.gettempdir(), True)
+        print 'Testing without normalization.'
+        aa.applyAlgorithm('AVG-CHL', tempfile.gettempdir())
+        print 'Testing with normalization.'
+        # aa.applyAlgorithm('AVG-CHL', tempfile.gettempdir(), True)
+
+    # -------------------------------------------------------------------------
+    # testScreen
+    # -------------------------------------------------------------------------
+    def testScreen(self):
+        
+        streamHandler = logging.StreamHandler(sys.stdout)
+        logger.addHandler(streamHandler)
+
+        coefFile = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                'PLSR_Coeff_NoVN_v2.csv')
+
+        # Image is 653 x 7074 x 425
+        testImage = '/att/pubrepo/ABoVE/archived_data/ORNL/' + \
+                    'ABoVE_Airborne_AVIRIS_NG_CORRUPT/data/' + \
+                    'ang20180729t210144rfl/ang20180729t210144_rfl_v2r2/' + \
+                    'ang20180729t210144_corr_v2r2_img'
+
+        aa = ApplyAlgorithm(coefFile, testImage, logger)
+        aa.screen()
+        

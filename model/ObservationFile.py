@@ -32,7 +32,7 @@ class ObservationFile(BaseFile):
             raise RuntimeError('A species must be specified.')
 
         # Initialize the base class.
-        super(ObservationFile, self).__init__(pathToFile, '.csv')
+        super(ObservationFile, self).__init__(pathToFile)
 
         # Initialize the data members.
         self._species = species
