@@ -228,9 +228,11 @@ class AvirisSpecFile(BaseFile):
 
             coefs = self.getField(AvirisSpecFile.COEFS_KEY)
             
-            if isinstance(coefs, basestring):
-                coefs = json.loads(coefs)
-            
+#            basestring is undefined: Python 2 ignored it, Python 3 abended
+#            Commenting out pending Roger review.....
+#            if isinstance(coefs, basestring):
+#                coefs = json.loads(coefs)
+
             sortedCoefs = collections.OrderedDict(sorted(coefs.items()))
 
             fp.write(AvirisSpecFile.COEFS_KEY +

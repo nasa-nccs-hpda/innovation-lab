@@ -102,8 +102,8 @@ class ApplyAlgorithm(object):
             # Provide a hint of the progress.
             if curRow != loc[1] and loc[1] % 100 == 0:
 
-                print 'Row ' + str(loc[1]) + ' of ' + \
-                    str(self._chunker._imageFile._getDataset().RasterYSize)
+                print ('Row ' + str(loc[1]) + ' of ' + \
+                    str(self._chunker._imageFile._getDataset().RasterYSize))
 
             curRow = loc[1]
 
@@ -152,7 +152,8 @@ class ApplyAlgorithm(object):
 
         tally = 0.0
 
-        for band in bandCoefValueDict.iterkeys():
+        for band in iter(bandCoefValueDict.keys()):
+        # for band in bandCoefValueDict.iterkeys(): - not supported in Python 3
             if band >= 5 and band <= 105:
                 tally += bandCoefValueDict[band][1]**2
 
@@ -315,7 +316,8 @@ class ApplyAlgorithm(object):
             # Compute the result, normalizing pixel values as we go.
             p = 0.0
 
-            for band in bandCoefValueDict.iterkeys():
+            for band in iter(bandCoefValueDict.keys()):
+#            for band in bandCoefValueDict.iterkeys(): - not supported in Python 3
 
                 coefValue = bandCoefValueDict[band]
                 coef = coefValue[0]
@@ -373,7 +375,7 @@ class ApplyAlgorithm(object):
             for col in range(cols):
 
                 if row % 100 == 0 and col == 0:
-                    print 'Row ' + str(row) + ' of ' + str(rows)
+                    print ('Row ' + str(row) + ' of ' + str(rows))
 
                 # ---
                 # Every band will contain the no-data value, if the pixel
@@ -401,9 +403,9 @@ class ApplyAlgorithm(object):
 
                     if invalidPixels >= invalidityThreshold:
 
-                        print 'The invalidity threshold, ' + \
+                        print ('The invalidity threshold, ' + \
                               str(invalidityThreshold) + \
-                              ' is met.'
+                              ' is met.')
 
                         return
 
@@ -411,18 +413,18 @@ class ApplyAlgorithm(object):
 
                     if validPixels == 0:
                         
-                        print 'First valid pixel is at row ' + \
+                        print ('First valid pixel is at row ' + \
                               str(row) + \
                               ', column ' + \
                               str(col) + \
-                              '.'
+                              '.')
                               
                     validPixels += 1
 
                     if validPixels >= validityThreshold:
 
-                        print 'The validity threshold, ' + \
+                        print ('The validity threshold, ' + \
                               str(validityThreshold) + \
-                              ', is met.'
+                              ', is met.')
 
                         return
