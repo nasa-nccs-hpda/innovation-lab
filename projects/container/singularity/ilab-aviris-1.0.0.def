@@ -1,6 +1,6 @@
 ## Generate AVIRIS container image applications using the existing ilab core image
 Bootstrap: localimage
-FROM: ./ilab-core-1.0.0.simg
+FROM: ./ilab-core-2.0.0.simg
 
 %labels
     Author gtamkin
@@ -17,16 +17,13 @@ FROM: ./ilab-core-1.0.0.simg
 
 %environment
     # set PYTHONPATH for access to AVIRIS application
-    export PYTHONPATH="/usr/local/aviris/src/innovation-lab:"
-
-%files 
-    # Insert aviris dependencies - TBD - replace with Git retrieval for ilab source branch
-    /att/gpfsfs/briskfs01/ppl/iluser/projects/aviris/src /usr/local/aviris/src
-
+    export PYTHONPATH="/usr/local/aviris:/usr/local/aviris/projects/aviris_regression_algorithms"
 
 %post
 
-    # open permissions
+    # retrieve AVIRIS source from git repository and open permissions
+    mkdir -p /usr/local/aviris
+    git clone --single-branch --branch aviris-celery https://github.com/nasa-nccs-hpda/innovation-lab.git /usr/local/aviris
     chmod a+rwx -R /usr/local/aviris
 
 ##############################
@@ -34,30 +31,5 @@ FROM: ./ilab-core-1.0.0.simg
 ##############################
 
 %apprun aviris
-    exec echo 'RUNNING aviris - python3.7  -f "/usr/local/aviris/projects/ilab/input/ebd_Cassins_2006.csv" -i "/usr/local/aviris/projects/ilab/input" -o "/usr/local/aviris/projects/ilab/output" -s "Cassins Sparrow" -sd "2006-01-01" -ed "2007-01-01" -c "merra2_t1nxslv" -v "U10M V10M" -op "ave" -ewc "True" -t "2" -p "3" -w "Rm" -m "/usr/local/aviris/ext/libraries/maxent.jar"'
-    python3.7  /usr/local/aviris/ilab/src/innovation-lab/view/MmxRequestCommandLineView.py -f "/usr/local/aviris/projects/ilab/input/ebd_Cassins_2006.csv" -i "/usr/local/aviris/projects/ilab/input" -o "/usr/local/aviris/projects/ilab/output" -s "Cassins Sparrow" -sd "2006-01-01" -ed "2007-01-01" -c "merra2_t1nxslv" -v "U10M V10M" -op "ave" -ewc "True" -t "2" -p "3" -w "Rm" -m "/usr/local/aviris/ext/libraries/maxent.jar"
-
-%applabels aviris 
-    Author gtamkin
-    Version v1.0.0
-
-%appinstall aviris 
-    # open permissions
-    # /att/nobackup/gtamkin/aviris-singularity/aviris/SystemTesting /usr/local/aviris
-    # chmod a+rwx -R /usr/local/aviris 
-
-%appenv aviris 
-    # set JAVA_HOME
-    #export JAVA_HOME=/usr/local/openjdk-8/bin
-
-%apphelp aviris
-===========================================================================
-	- ilab-aviris (extends -> ilab-core) – contains AVIRIS:
-    		To run:  $ python3.7  /usr/local/aviris/innovation-lab/view/tests/MmxRequestCeleryView-adapt-gpfsfs.py
-===========================================================================
-
-#%appfiles aviris
-    # Insert aviris dependencies
-    #/att/nobackup/gtamkin/aviris-singularity/aviris/SystemTesting /usr/local/aviris
-
+     python3.7 /usr/local/aviris/projects/aviris_regression_algorithms/view/AvirisCommandLineView.py -c /home/centos/projects/aviris/input/PLSR_Coeff_NoVN_v2.csv -a AVG-CHL -i /home/centos/projects/aviris/input/ang20180729t210144_corr_v2r2_img -o /home/centos/projects/aviris/output
 
