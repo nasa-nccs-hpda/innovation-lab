@@ -27,7 +27,7 @@ FROM: ./ilab-core-4.1.0.simg
     export JAVA_URL_VERSION=8u242b08
 
 
-    export PYTHONPATH="$PYTHONPATH:/usr/local/cb:/usr/local/cb/ocssw"
+    export PYTHONPATH="$PYTHONPATH:/usr/local/cb:/usr/local/cb/ocssw:/usr/local/cb/ocssw/scripts"
     export PATH="$PATH:/usr/local/cb:/usr/local/cb/ocssw:/usr/local/seadas-7.5.3/bin"
 
     export OCSSWROOT=/usr/local/cb/ocssw
