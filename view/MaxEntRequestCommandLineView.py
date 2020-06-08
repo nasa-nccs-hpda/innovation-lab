@@ -27,7 +27,7 @@ def main():
     desc = 'This application runs Maximum Entropy.'
     parser = argparse.ArgumentParser(description=desc)
 
-    parser.add_argument('-c',
+    parser.add_argument('--celery',
                         action='store_true',
                         help='Use Celery for distributed processing.')
 
@@ -63,7 +63,7 @@ def main():
     observationFile = ObservationFile(args.f, args.s)
     maxEntReq = None
 
-    if args.c:
+    if args.celery:
 
         maxEntReq = MaxEntRequestCelery(observationFile, geoImages, args.o)
 
