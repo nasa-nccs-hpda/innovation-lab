@@ -89,6 +89,24 @@ class ApplyAlgorithm(object):
 
         self._processRaster(outDs, qa, algorithmName, normalizePixels)
         
+        while True:
+            
+            loc, chunk = self._chunker.getChunk()
+
+            if self._chunker.isComplete():
+                break
+                
+            # Provide a hint of the progress.
+            if curRow != loc[1] and loc[1] % 100 == 0:
+
+                print('Row ' + str(loc[1]) + ' of ' + \
+                    str(self._chunker._imageFile._getDataset().RasterYSize))
+
+            curRow = loc[1]
+
+            self._processRow(curRow, chunk, outDs, qa, algorithmName,
+                             normalizePixels)
+
         outDs = None
         qa = None
 
@@ -431,9 +449,9 @@ class ApplyAlgorithm(object):
 
                     if invalidPixels >= invalidityThreshold:
 
-                        print ('The invalidity threshold, ',
-                               invalidityThreshold,
-                               ' is met.')
+                        print('The invalidity threshold, ',
+                              invalidityThreshold,
+                              ' is met.')
 
                         return
 

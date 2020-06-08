@@ -230,7 +230,7 @@ class AvirisSpecFile(BaseFile):
             
             if isinstance(coefs, str):
                 coefs = json.loads(coefs)
-            
+
             sortedCoefs = collections.OrderedDict(sorted(coefs.items()))
 
             fp.write(AvirisSpecFile.COEFS_KEY +
