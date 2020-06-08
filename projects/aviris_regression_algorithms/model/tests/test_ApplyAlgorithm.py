@@ -44,7 +44,7 @@ class ApplyAlgorithmTestCase(unittest.TestCase):
         print 'Testing without normalization.'
         aa.applyAlgorithm('AVG-CHL', tempfile.gettempdir())
         print 'Testing with normalization.'
-        # aa.applyAlgorithm('AVG-CHL', tempfile.gettempdir(), True)
+        aa.applyAlgorithm('AVG-CHL', tempfile.gettempdir(), True)
 
     # -------------------------------------------------------------------------
     # testScreen

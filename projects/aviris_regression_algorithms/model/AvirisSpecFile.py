@@ -228,7 +228,7 @@ class AvirisSpecFile(BaseFile):
 
             coefs = self.getField(AvirisSpecFile.COEFS_KEY)
             
-            if isinstance(coefs, basestring):
+            if isinstance(coefs, str):
                 coefs = json.loads(coefs)
             
             sortedCoefs = collections.OrderedDict(sorted(coefs.items()))

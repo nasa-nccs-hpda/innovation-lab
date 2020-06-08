@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 import argparse
@@ -7,6 +7,9 @@ import sys
 
 from projects.aviris_regression_algorithms.model.ApplyAlgorithm \
     import ApplyAlgorithm
+
+from projects.aviris_regression_algorithms.model.ApplyAlgorithmCelery \
+    import ApplyAlgorithmCelery
 
 from projects.aviris_regression_algorithms.model.AvirisSpecFile \
     import AvirisSpecFile
@@ -24,7 +27,7 @@ from projects.aviris_regression_algorithms.model.AvirisSpecFile \
 #
 # -----
 # Run from command-line parameters
-# projects/aviris_regression_algorithms/view/AvirisCommandLineView.py -a 'Avg Chl' -c /att/nobackup/rlgill/AVIRIS/PLSR_Coeff_NoVN.csv -i /att/pubrepo/ABoVE/archived_data/ORNL/ABoVE_Airborne_AVIRIS_NG_CORRUPT/data/ang20170714t213741rfl/ang20170714t213741_rfl_v2p9/ang20170714t213741_corr_v2p9_img -o /att/nobackup/rlgill/AVIRIS/test/output
+# projects/aviris_regression_algorithms/view/AvirisCommandLineView.py -c /att/nobackup/rlgill/AVIRIS/PLSR_Coeff_NoVN_v2.csv -o /att/nobackup/rlgill/AVIRIS/test -a AVG-CHL -i /att/pubrepo/ABoVE/archived_data/ORNL/ABoVE_Airborne_AVIRIS_NG_CORRUPT/data/ang20180729t210144rfl/ang20180729t210144_rfl_v2r2/ang20180729t210144_corr_v2r2_img
 #
 # -----
 # Run from spec. file
@@ -37,6 +40,9 @@ from projects.aviris_regression_algorithms.model.AvirisSpecFile \
 # Screen from spec. file
 # projects/aviris_regression_algorithms/view/AvirisCommandLineView.py -s --spec /att/nobackup/rlgill/AVIRIS/sample.spec
 #
+# -----
+# Docker
+# projects/aviris_regression_algorithms/view/AvirisCommandLineView.py -c ~/SystemTesting/aviris/PLSR_Coeff_NoVN_v2.csv -o ~/SystemTesting/aviris/output -a AVG-CHL -i ~/SystemTesting/aviris/ang20180729t210144_corr_v2r2_img --celery
 # -----------------------------------------------------------------------------
 def main():
 
@@ -49,6 +55,10 @@ def main():
 
     parser.add_argument('-c',
                         help='Path to coefficient CSV file')
+
+    # parser.add_argument('--celery',
+    #                     action='store_true',
+    #                     help='Use Celery for distributed processing.')
 
     parser.add_argument('-i',
                         default='.',
@@ -102,7 +112,13 @@ def main():
 
     else:
 
-        aa = ApplyAlgorithm(csvFile, imageFile)
+        if args.celery:
+            
+            aa = ApplyAlgorithmCelery(csvFile, imageFile)
+
+        else:
+            aa = ApplyAlgorithm(csvFile, imageFile)
+        
         aa.applyAlgorithm(algorithm, args.o, normalize)
 
 
