@@ -28,6 +28,34 @@ class ChunkerTestCase(unittest.TestCase):
         c = Chunker(testFile)
 
     # -------------------------------------------------------------------------
+    # testNoRead
+    # -------------------------------------------------------------------------
+    def testNoRead(self):
+        
+        testFile = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                'gsenm_250m_eucl_dist_streams.tif')
+        
+        c = Chunker(testFile)
+        c.setChunkAsColumn()
+        loc, chunk = c.getChunk(None, None, False)
+        self.assertEqual(loc, (0, 0))
+        self.assertEqual(chunk.size, 0)
+        
+    # -------------------------------------------------------------------------
+    # testReadSingleChunk
+    # -------------------------------------------------------------------------
+    def testReadSingleChunk(self):
+        
+        testFile = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                'gsenm_250m_eucl_dist_streams.tif')
+        
+        c = Chunker(testFile)
+        c.setChunkSize(1, 1)
+        loc, chunk = c.getChunk(2, 98)
+        self.assertEqual(loc, (2, 98))
+        self.assertEqual(chunk[0], 26)
+        
+    # -------------------------------------------------------------------------
     # testIsComplete
     # -------------------------------------------------------------------------
     def testIsComplete(self):

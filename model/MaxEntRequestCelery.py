@@ -1,4 +1,3 @@
-#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
 from osgeo.osr import SpatialReference
@@ -51,6 +50,7 @@ class MaxEntRequestCelery(MaxEntRequest):
     # -------------------------------------------------------------------------
     def prepareImages(self):
 
+        print ('In prepareImages ...')
         wpi = group(MaxEntRequestCelery.prepareImage.s(
                                     image,
                                     self._imageSRS.ExportToProj4(),
@@ -61,3 +61,12 @@ class MaxEntRequestCelery(MaxEntRequest):
         result.get()    # Waits for wpi to finish.
 
         return result
+
+    # -------------------------------------------------------------------------
+    # run
+    # -------------------------------------------------------------------------
+    def run(self):
+
+        self.prepareImages()
+        self.runMaxEntJar()
+

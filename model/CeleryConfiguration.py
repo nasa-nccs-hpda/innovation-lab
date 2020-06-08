@@ -1,4 +1,3 @@
-#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
 # ---
@@ -25,16 +24,26 @@
 #     docker exec -it [container ID] bash
 #     check terminal 1 for debugger port
 #     telnet localhost [port]
+#
+# To run Flower:
+# celery flower -A model.CeleryConfiguration -port 5555
 # ---
 
 from celery import Celery
 
 
+# app = Celery('innovation-lab',
+#              backend='redis://localhost:6379/0',
+#              broker='redis://localhost:6379/0',
+#              track_started=True,
+#              include=['model.MaxEntRequestCelery',
+#         'projects.aviris_regression_algorithms.model.ApplyAlgorithmCelery'])
+
 app = Celery('innovation-lab',
              backend='redis://localhost:6379/0',
              broker='redis://localhost:6379/0',
              track_started=True,
-             include=['model.MaxEntRequestCelery'])
+             include=['projects.aviris_regression_algorithms.model.ApplyAlgorithmCelery'])
 
 app.conf.accept_content = ['application/json',
                            'json',

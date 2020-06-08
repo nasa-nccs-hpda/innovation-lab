@@ -24,9 +24,9 @@ class Chunker(object):
     # -------------------------------------------------------------------------
     # __init__
     # -------------------------------------------------------------------------
-    def __init__(self, _imageFileName):
+    def __init__(self, imageFileName):
 
-        self._imageFile = ImageFile(_imageFileName)
+        self._imageFile = ImageFile(imageFileName)
         self._xSize = 1
         self._ySize = 1
         self._curChunkLoc = (0, 0)
@@ -34,8 +34,23 @@ class Chunker(object):
 
     # -------------------------------------------------------------------------
     # getChunk
+    #
+    # The parameters xStart and yStart allow users to override the chunking
+    # process.  This can be helpful when distributing image reads via Celery
+    # because GDAL datasets cannot be serialized with Pickle.  In these cases,
+    # the controlling process can use chunker to step through the image without
+    # reading, just returning the location of each chunk.  These chunk 
+    # locations can be passed to a distributed process, along with the image
+    # path, to create another chunker.  That chunker can pass the chunk
+    # location to getChunk(), instead of calling GDAL directly.  The benefit is
+    # that getChunk() manages the ends of rows and columns, and transposes the
+    # buffer so that it is in (x, y) orientation.
+    #
+    # This might be easier to understand as a specialized Chunker class because
+    # this version crams two slightly different uses into one.  Trying to keep
+    # it simple, with one class.
     # -------------------------------------------------------------------------
-    def getChunk(self):
+    def getChunk(self, xStart=None, yStart=None, read=True):
 
         if self._complete:
             return (None, None)
@@ -46,8 +61,8 @@ class Chunker(object):
         if not self._ySize:
             raise RuntimeError('The chunk y size must be set.')
             
-        xStart = self._curChunkLoc[0]
-        yStart = self._curChunkLoc[1]
+        xStart = xStart or self._curChunkLoc[0]
+        yStart = yStart or self._curChunkLoc[1]
         xLen = self._xSize
         yLen = self._ySize
         next_xStart = xStart + xLen
@@ -98,7 +113,7 @@ class Chunker(object):
             # When X and Y are exceeded, chunking is complete.
             yExceeded = True
 
-        if not self.isComplete():
+        if not self.isComplete() and read:
             
             rcChunk = self._imageFile._getDataset().ReadAsArray(xStart,
                                                                 yStart,
