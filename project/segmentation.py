@@ -81,7 +81,7 @@ class Segmentation(object):
         df_sort['spatial_radius']=(df_sort['ws']-1)/2 
         roc=df_sort.loc[df_sort['ROC'] < 0.01]
         scroc=roc.loc[roc['SCROC'] < 0.001]
-        if not sroc.empty:
+        if not scroc.empty:
             hs=scroc['spatial_radius'].iloc[0]
             hs=int(hs)
         #df_sort.to_csv("LV_"+name+".csv")
