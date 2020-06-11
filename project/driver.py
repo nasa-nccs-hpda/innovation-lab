@@ -1,4 +1,5 @@
 import sys
+import os
 
 from preprocessing import PreProcessing
 from segmentation import Segmentation
