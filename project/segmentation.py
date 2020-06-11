@@ -65,8 +65,10 @@ class Segmentation(object):
         red =self.readRasterBand(imageFile, band)
                 
         data = []
+        hs = 5
+        
         for size in range(start, end, step):
-            red_pad = self.padImage(red,size)
+            red_pad = self.padImage(red, size)
             red_var = np.zeros_like(red)
             out = self.mw_var_numba(red_pad, red_var, size)
             data.append((size, out))
@@ -79,8 +81,9 @@ class Segmentation(object):
         df_sort['spatial_radius']=(df_sort['ws']-1)/2 
         roc=df_sort.loc[df_sort['ROC'] < 0.01]
         scroc=roc.loc[roc['SCROC'] < 0.001]
-        hs=scroc['spatial_radius'].iloc[0]
-        hs=int(hs)
+        if not sroc.empty:
+            hs=scroc['spatial_radius'].iloc[0]
+            hs=int(hs)
         #df_sort.to_csv("LV_"+name+".csv")
 
         var_image= ndimage.generic_filter(red, np.var, size=hs)
@@ -114,12 +117,18 @@ class Segmentation(object):
         
         segOut = os.path.join(self._outPath, "merg_"+self._fileName+".tif")
         shapeOut = os.path.join(self._outPath, "seg_"+self._fileName+".shp")
+        
+        print("Computing Radius")
         hs, hr = self.getRadius(self._img, band=3)
         
+        print("Running OTB LSMS")
         otbApp.runLSMS(self._img,segOut,
                 spatialr=hs, ranger=hr,
                 tilesizex=500, tilesizey=500, 
                 sm_thres=0.1, sm_maxiter=100,
                 seg_minsize=0, merg_minsize=10)
         
+        print("Writing Segmentation Result")
         self.rasterToShape(segOut, shapeOut)
+        
+        

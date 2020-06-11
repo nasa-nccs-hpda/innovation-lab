@@ -123,8 +123,8 @@ class PreProcessing(object):
             arr = band.ReadAsArray()
             homog_stack[x,:] = arr
                                
-        glcm_mean = np.mean(self.mean_stack, axis=0)
-        glcm_homog = np.mean(self.homog_stack, axis=0)
+        glcm_mean = np.mean(mean_stack, axis=0)
+        glcm_homog = np.mean(homog_stack, axis=0)
         
         name = "mean_"+self._fileName+".tif"
         mean_outfile = os.path.join(self._outPath, name)
@@ -194,8 +194,11 @@ class PreProcessing(object):
       
     # run    
     def run(self):
+        print("Computing Textural Features")
         self.generateGLCM()
+        print("Computing Slope")
         self.generateSlope()
+        print("Computing NDVI and Brightness")
         self.generateIndex()
         
 

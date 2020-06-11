@@ -20,7 +20,7 @@ def zonal_stats_wrapper(feats, tif, stats):
 
 # compute zonal_stats in parallel
 def zonal_stats_parallel(features, cores, raster, opr):
-    p = multiprocessing.pool(cores)
+    p = multiprocessing.Pool(cores)
     func = partial(zonal_stats_wrapper, tif=raster, stats=opr)
     stats_lists = p.map(func, chunks(features, cores))
     stat = list(itertools.chain(*stats_lists))
@@ -39,34 +39,34 @@ class Detection(object):
         if not os.path.exists(pathToFile):
             raise RuntimeError(str(pathToFile) + 'does no exist.')
         
-        if not os.path.isfile(self.training):
-            raise RuntimeError('A training shape file must be specified')
         self.trainfile = os.path.join(pathToFile, training)
-        
-        if not os.path.isfile(self.segFile):
-            raise RuntimeError('A segmented shape file must be specified')
-        self.segfile = os.path.join(pathToFile, segFile) 
-        
-        if not os.path.isfile(self.brightFile):
-            raise RuntimeError('A brightness file must be specified')
-        self.brightfile = os.path.join(pathToFile, brightFile)
- 
-        if not os.path.isfile(self.ndviFile):
-            raise RuntimeError('A NDVI file must be specified')
-        self.ndvifile = os.path.join(pathToFile, ndviFile)       
+        if not os.path.isfile(self.trainfile):
+            raise RuntimeError('A training shape file must be specified')
 
-        if not os.path.isfile(self.slopeFile):
-            raise RuntimeError('A slope file must be specified')
-        self.slopefile = os.path.join(pathToFile, slopeFile) 
+        self.segfile = os.path.join(pathToFile, segFile)        
+        if not os.path.isfile(self.segfile):
+            raise RuntimeError('A segmented shape file must be specified')
  
-        if not os.path.isfile(self.homogFile):
-            raise RuntimeError('A GLCM Homogeneity file must be specified')
+        self.brightfile = os.path.join(pathToFile, brightFile)      
+        if not os.path.isfile(self.brightfile):
+            raise RuntimeError('A brightness file must be specified')
+
+        self.ndvifile = os.path.join(pathToFile, ndviFile) 
+        if not os.path.isfile(self.ndvifile):
+            raise RuntimeError('A NDVI file must be specified')
+      
+        self.slopefile = os.path.join(pathToFile, slopeFile) 
+        if not os.path.isfile(self.slopefile):
+            raise RuntimeError('A slope file must be specified')
+ 
         self.homogfile = os.path.join(pathToFile, homogFile)
-        
-        if not os.path.isfile(self.meanFile):
+        if not os.path.isfile(self.homogfile):
+            raise RuntimeError('A GLCM Homogeneity file must be specified')
+
+        self.meanfile = os.path.join(pathToFile, meanFile)        
+        if not os.path.isfile(self.meanfile):
             raise RuntimeError('A GLCM Mean file must be specified')
-        self.meanfile = os.path.join(pathToFile, meanFile)
-        
+       
         self.outfile = os.path.join(outPath, outFile)
     
     # run
@@ -89,7 +89,8 @@ class Detection(object):
             features = list(src)
     
         cores = os.cpu_count()
-
+        
+        print("Running zonal_stats with "+str(cores)+" CPUs")
         # loop through rasters for zonal stats
         for k in rasters.keys():
             tif = rasters[k]
@@ -107,11 +108,13 @@ class Detection(object):
         df_final=df_final.fillna(0)
 
         # read training file
+        print("Training RF model")
         df_train = gpd.read_file(self.trainfile)
         predictor_vars = ["Meanbright","Meanndvi","Meanslope","glcmhomog","glcmmean"]
         x,y = df_train[predictor_vars],df_train.landslide
 
         # fit random forest model
+        print("Fitting RF model")
         modelRandom = RandomForestClassifier(n_estimators=5000)
         modelRandom.fit(x,y)
         
@@ -120,8 +123,10 @@ class Detection(object):
         df_final["outcomes"]= predictions
         
         # write out
+        print("Writing outcomes")
         crs=df.crs
         df_land=df_final[df_final['outcomes']>0]
         df_land_dissolve = gpd.geoseries.GeoSeries([geom for geom in df_land.unary_union.geoms])
         df_land_dissolve.crs=crs
         df_land_dissolve.to_file(self.outfile)
+        
