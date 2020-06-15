@@ -10,8 +10,6 @@ from model.ImageFile import ImageFile
 # -----------------------------------------------------------------------------
 # class ImageFileTestCase
 #
-# docker run -it -v /Users/rlgill/Desktop/Source/innovation-lab:/home/ilUser/hostFiles -v /Users/rlgill/Desktop/SystemTesting:/home/ilUser/SystemTesting innovation-lab:1.0
-# cd ~/hostFiles
 # export PYTHONPATH=`pwd`
 #
 # python -m unittest discover model/tests/
@@ -32,14 +30,3 @@ class ImageFileTestCase(unittest.TestCase):
 
         # Test _getDataset.
         self.assertIsNotNone(imageFile._getDataset())
-
-    # -------------------------------------------------------------------------
-    # testInvalidImageType
-    # -------------------------------------------------------------------------
-    def testInvalidImageType(self):
-
-        testFile = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                'invalid.tif')
-
-        with self.assertRaisesRegexp(RuntimeError, 'is not in .nc'):
-            ImageFile(testFile)

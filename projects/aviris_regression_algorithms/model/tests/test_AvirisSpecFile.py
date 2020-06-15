@@ -39,7 +39,7 @@ class AvirisSpecFileTestCase(unittest.TestCase):
         asf = AvirisSpecFile()
         asf.setField(AvirisSpecFile.CLOUD_MASK_KEY, (1, '<', 2))
 
-        coefs = {'Intercept': 66.11285, 381.87: 0}
+        coefs = {"0": "66.11285", "381.87": "0"}
         asf.setField(AvirisSpecFile.COEFS_KEY, coefs)
 
         csvFile = os.path.join(os.path.dirname(os.path.abspath(__file__)),

@@ -24,14 +24,10 @@ class GeospatialImageFile(ImageFile):
     # -------------------------------------------------------------------------
     # __init__
     # -------------------------------------------------------------------------
-    def __init__(self,
-                 pathToFile,
-                 spatialReference=None,
-                 extension=ImageFile.EXTENSION,
-                 logger=None):
+    def __init__(self, pathToFile, spatialReference=None):
 
         # Initialize the base class.
-        super(GeospatialImageFile, self).__init__(pathToFile, extension)
+        super(GeospatialImageFile, self).__init__(pathToFile)
 
         # Initialize the spatial reference.
         if not spatialReference:

@@ -14,15 +14,13 @@ from model.BaseFile import BaseFile
 # -----------------------------------------------------------------------------
 class ImageFile(BaseFile):
 
-    EXTENSION = '.nc'
-
     # -------------------------------------------------------------------------
     # __init__
     # -------------------------------------------------------------------------
-    def __init__(self, pathToFile, extension=EXTENSION):
+    def __init__(self, pathToFile):
 
         # Initialize the base class.
-        super(ImageFile, self).__init__(pathToFile, extension)
+        super(ImageFile, self).__init__(pathToFile)
 
         self._dataset = None
 

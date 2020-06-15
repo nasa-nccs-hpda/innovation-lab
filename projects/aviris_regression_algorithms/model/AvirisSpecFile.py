@@ -117,7 +117,7 @@ class AvirisSpecFile(BaseFile):
 
         if key not in AvirisSpecFile.PARAMETER_KEYS and \
            key not in AvirisSpecFile.META_KEYS and \
-           key notin AvirisSpecFile.OTHER_KEYS:
+           key not in AvirisSpecFile.OTHER_KEYS:
 
             raise RuntimeError('Invalid key: ' + str(key))
 
@@ -128,7 +128,8 @@ class AvirisSpecFile(BaseFile):
     # -------------------------------------------------------------------------
     def _imageHeaderName(self):
 
-        return self.getField(AvirisSpecFile.IMAGE_FILE_KEY) + '.hdr'
+        return os.path.splitext(self.getField(AvirisSpecFile.\
+                                              IMAGE_FILE_KEY))[0] + '.hdr'
 
     # -------------------------------------------------------------------------
     # _openImageHeader
@@ -225,10 +226,12 @@ class AvirisSpecFile(BaseFile):
             self._writeField(fp, AvirisSpecFile.WATER_MASK_KEY)
             self._writeField(fp, AvirisSpecFile.COEFS_FILE_KEY)
 
-            # self._writeField(fp, AvirisSpecFile.COEFS_KEY)
-            sortedCoefs = collections.\
-                OrderedDict(sorted(self.getField(AvirisSpecFile.COEFS_KEY).
-                                   items()))
+            coefs = self.getField(AvirisSpecFile.COEFS_KEY)
+            
+            if isinstance(coefs, str):
+                coefs = json.loads(coefs)
+
+            sortedCoefs = collections.OrderedDict(sorted(coefs.items()))
 
             fp.write(AvirisSpecFile.COEFS_KEY +
                      AvirisSpecFile.SEPARATOR +
