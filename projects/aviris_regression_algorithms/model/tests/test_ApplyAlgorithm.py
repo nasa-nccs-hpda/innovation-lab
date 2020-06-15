@@ -41,9 +41,9 @@ class ApplyAlgorithmTestCase(unittest.TestCase):
                     'ang20180729t210144_corr_v2r2_img'
 
         aa = ApplyAlgorithm(coefFile, testImage, logger)
-        print 'Testing without normalization.'
+        print('Testing without normalization.')
         aa.applyAlgorithm('AVG-CHL', tempfile.gettempdir())
-        print 'Testing with normalization.'
+        print('Testing with normalization.')
         aa.applyAlgorithm('AVG-CHL', tempfile.gettempdir(), True)
 
     # -------------------------------------------------------------------------
