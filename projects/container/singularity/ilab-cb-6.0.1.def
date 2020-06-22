@@ -1,0 +1,58 @@
+ ## Generate CB container image applications using the existing ilab core image
+Bootstrap: localimage
+FROM: ./ilab-cb-6.0.0.simg
+
+%labels
+    Author gtamkin
+    Version v1.0.0
+
+%help
+===========================================================================
+	- ilab-apps (extends -> ilab-infrastructure) – contains shared IL code and IL apps:
+		a.	Model
+		b.	View
+		c.	Controller
+		d.	Projects
+===========================================================================
+%files
+    jre-8u251-linux-x64.tar /usr/local/seadas-7.5.3/bin
+
+%environment
+    export JAVA_HOME=/usr/local/seadas-7.5.3/bin/jre1.8.0_251
+    export PATH=$JAVA_HOME/bin:$PATH
+
+%post
+
+    # install ncdump
+#    deb http://deb.debian.org/debian stretch-backports main contrib non-free
+    apt-get install -y software-properties-common
+    add-apt-repository 'deb http://ftp.debian.org/debian stretch-backports main contrib non-free'    
+#    apt-get update
+    apt update
+    apt-get remove nvidia*
+    apt install -t stretch-backports nvidia-driver 
+
+#find /usr -iname "*libGL.so*" -exec ls -l -- {} + 
+#    apt-get install -y software-properties-common
+#    add-apt-repository ppa:graphics-drivers
+#    add-apt-repository ppa:xorg-edgers/ppa
+#    apt-get update
+#    apt-get install nvidia-370
+#    apt-get install nvidia-driver-390
+    #apt-get install -f nvidia-349 nvidia-settings
+    #add-apt-repository -r ppa:xorg-edgers/ppa
+
+#    ln -sf /usr/lib/x86_64-linux-gnu/libGL.so.1.2.0 /usr/lib/x86_64-linux-gnu/libGL.so.1.0.0
+
+        # retrieve customized innovation lab config files
+#    mkdir -p /usr/local/il4
+#	git clone --single-branch --branch MmxRequestCeleryView https://github.com/nasa-nccs-hpda/innovation-lab.git /usr/local/il4
+
+    # install extended JAVA options for SeaDAS reprojection
+#	cp /usr/local/il4/projects/container/jre-8u251-linux-x64.tar /usr/local/seadas-7.5.3/bin
+    chmod a+rx /usr/local/seadas-7.5.3/bin/jre-8u251-linux-x64.tar
+    cd /usr/local/seadas-7.5.3/bin
+    tar xvf jre-8u251-linux-x64.tar
+
+    export JAVA_HOME=/usr/local/seadas-7.5.3/bin/jre1.8.0_251
+    export PATH=$JAVA_HOME/bin:$PATH
