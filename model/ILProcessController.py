@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-from celery import Celery
+from redis import exceptions
 import subprocess
 import sys
 from socket import socket
@@ -67,6 +67,15 @@ class ILProcessController():
             shutdownServer = str("/bin/kill -9 " + str(self.backendProcessId))
             os.system(shutdownServer)
 
+            return True
+#            sys.exit()
+
+        except exceptions.ConnectionError as inst:
+            print("Connection Error ignore")
         except OSError as e:
             print("Execution failed:", e, file=sys.stderr)
+        except Exception as inst:
+            print(type(inst))  # the exception instance
+            print(inst.args)  # arguments stored in .args
+            print(inst)  # __str__ allows args to be printed directly,
 
