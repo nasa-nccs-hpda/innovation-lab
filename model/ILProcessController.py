@@ -4,47 +4,54 @@
 from redis import exceptions
 import subprocess
 import sys
-from socket import socket
-import os
 
+import os
+from model.CeleryConfiguration import app
 # -----------------------------------------------------------------------------
 # class MultiThreader
 # -----------------------------------------------------------------------------
-#class ILProcessController(object):
 class ILProcessController():
-    backendProcessId = 0
+    _backendProcessId = 0
+    _celeryConfig = None
 
     # -------------------------------------------------------------------------
     # runTrials - run trials concurrently (convenience method with knowledge of trial parms)
     # -------------------------------------------------------------------------
     def __enter__(self):
 
-    # Start the Celery Server
-    # Start the Celery Workers
         print('In ILProcessController.__enter__()')
 
         try:
-            with socket() as s:
-                s.bind(('', 0))
-                backendPort = s.getsockname()[1]
 
-            #redis-server --protected-mode no --port 6380
-            backendPort = 6380
-            self.backendProcessId = (subprocess.Popen(["/usr/local/bin/redis-server", "--protected-mode", "no", "--port", str(backendPort)], stdout=subprocess.PIPE)).pid
-            print ("backendProcessId = ", self.backendProcessId, backendPort)
+            # Start the Celery Server
+            _backendPort = app.conf.get("_IL_port")
+            self._backendProcessId = (subprocess.Popen(["/usr/local/bin/redis-server",
+                                                        "--protected-mode",
+                                                        "no",
+                                                        "--port",
+                                                        str(_backendPort)],
+                                                        stdout=subprocess.PIPE)).pid
 
-#            workerProcessId = (
-#                subprocess.Popen(["/usr/local/bin/celery", "-A", "model.tests.test_Tasks", "--config=model.tests.celeryconfig", "--loglevel=info", "--concurrency=3"],
-#                     stdout=subprocess.PIPE)).pid
-#            print("workerProcessId = ", workerProcessId)
+            print ("backendProcessId = ", self._backendProcessId, _backendPort)
 
-#            retcode = subprocess.run("/usr/local/bin/redis-server --protected-mode no --port 6380 &", shell=True, check=True)
-#            if retcode.returncode < 0:
-#                print("Child was terminated by signal", -retcode, file=sys.stderr)
-#            else:
-#                print("Child returned", retcode, file=sys.stderr)
-            retcode = subprocess.run("/usr/local/bin/celery -A model.Tasks worker --config=model.tests.celeryconfig --loglevel=info --concurrency=3 &", shell=True,
-                                         check=True)
+            # Start the Celery Workers - defaults to max available [add --concurrency=X to throttle threads]
+            self._celeryConfig = app.conf.get("_IL_celeryConfig")
+            _concurrency = app.conf.get("_IL_concurrency")
+            if _concurrency != None:
+                _concurrencyStr = " --concurrency=" + _concurrency
+            else:
+                _concurrencyStr = ""
+
+            _logLevel = app.conf.get("_IL_loglevel")
+            _worker = "/usr/local/bin/celery -A " + \
+                                     self._celeryConfig + " worker " + \
+                                     _concurrencyStr + \
+                                     " --loglevel=" + _logLevel + \
+                                     " &"
+
+            retcode = subprocess.run(_worker,
+                                     shell=True,
+                                     check=True)
             print (retcode)
 
         except OSError as e:
@@ -57,18 +64,17 @@ class ILProcessController():
     def __exit__(self, type, value, traceback):
 
         try:
-            print('In ILProcessController.__exit__()', self.backendProcessId)
+            print('In ILProcessController.__exit__()', self._backendProcessId)
 
             # Shutdown the Celery workers
-            shutdownWorkers = "/usr/bin/pkill -9 -f \'model.Tasks worker\' "
+            shutdownWorkers = "/usr/bin/pkill -9 -f  " + self._celeryConfig
             os.system(shutdownWorkers)
 
-            # Shutdown the Celery Server
-            shutdownServer = str("/bin/kill -9 " + str(self.backendProcessId))
-            os.system(shutdownServer)
+            # Shutdown the Celery Server - TODO - Shutdown Redis cleanly - works now with uncaught exception
+#            shutdownServer = str("/bin/kill -9 " + str(self._backendProcessId))
+#            os.system(shutdownServer)
 
             return True
-#            sys.exit()
 
         except exceptions.ConnectionError as inst:
             print("Connection Error ignore")

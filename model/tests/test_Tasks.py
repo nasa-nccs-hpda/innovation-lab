@@ -1,52 +1,44 @@
+# Import Celery-specific packages
 from celery import group
 from celery import Celery
-from celery import result
-from redis import exceptions
+
+# Import tasks to be distributes via Celery
 from model.Tasks import add
+
+# Celery client instructions:
+# 0)  Add project root to PYTHONPATH (e.g., export PYTHONPATH=/home/gtamkin/innovation-lab:$PYTHONPATH)
+# 1)  Modify default values in model.CeleryConfiguration.py (if necessary)
+# 2)  Modify application source code:
+# 3)  	Import Celery-specific packages
+# 4)	Import tasks to be distributes via Celery
+# 5)	Import ILProcessController from model.ILProcessController
+# 6)    Invoke ILProcessController using 'with' (8 PEP 343: The 'with' statement clarifies code that previously would
+# 	use try...finally blocks to ensure that clean-up code is executed)
+# 7)    Invoke application-specific Celery-based business logic
+
+# Import ILProcessController from model.ILProcessController
 from model.ILProcessController import ILProcessController
-from contextlib import suppress
 
 # -----------------------------------------------------------------------------
 def main():
 
+	# Invoke ILProcessController using 'with' statement
 	with ILProcessController() as processController:
-		try:
-			Celery.GroupResult.wpi = group(add.s(i, i) for i in range(10))()
-			result = Celery.GroupResult.wpi.get()
-			print ('result.get() = ', result)
-#			result.delete()
-			Celery.GroupResult.wpi.forget()
-#			del result
-#			del processController
-#			wpi.forget()
-#			wpi.backend.remove_pending_result(wpi)
-#			del wpi
-			Celery.GroupResult.wpi.delete()
-#			print ('wpi.get() = ', wpi.get)
-#			sys.exit(0)
-		except exceptions.ConnectionError as inst:
-			print("Connection Error ignore")
-		except Exception as inst:
-			print(type(inst))  # the exception instance
-			print(inst.args)  # arguments stored in .args
-			print(inst)  # __str__ allows args to be printed directly,
 
-		finally:
-#			del processController
-			print ("leaving..")
+		# Perform application-specific Celery-based business logic
+		print("\nBegin application-specific business logic...")
+
+		Celery.GroupResult.wpi = group(add.s(i, i) for i in range(10))()
+		result = Celery.GroupResult.wpi.get()
+
+		# Consume output
+		print ('\nResult:  model.Tasks.add(): ', result)
+
 # ------------------------------------------------------------------------------
 # Invoke the main
 # ------------------------------------------------------------------------------
 if __name__ == "__main__":
-#	try:
 		main()
-		print("adsf")
-#		print("adsf2")
-#	except exceptions.ConnectionError as inst:
-#		print("Connection Error ignore")
-#	except Exception as inst:
-#		print(type(inst))  # the exception instance
-#		print(inst.args)  # arguments stored in .args
-#		print(inst)  # __str__ allows args to be printed directly,
+		print("\nCompleted application-specific business logic.  Exiting...")
 
 

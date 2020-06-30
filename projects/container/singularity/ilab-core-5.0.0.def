@@ -13,6 +13,10 @@ FROM: ./cisto-data-science-3.0.0.simg
 		c.  	Redis (Celery server)
 ===========================================================================
 
+%environment
+    # set PYTHONPATH for access to ILProcessController
+    export PYTHONPATH="/usr/local/celery:$PYTHONPATH"
+
 %post
 
     # install GDAL
@@ -38,3 +42,8 @@ FROM: ./cisto-data-science-3.0.0.simg
     python -m pip install --upgrade flower==0.9.4
     cd /usr/local/bin
     ln -sf /usr/local/lib/python3.7/site-packages/redis_server/bin/redis-server .
+
+    # retrieve IL Celery automation source from git repository and open permissions
+    mkdir -p /usr/local/celery
+    git clone --single-branch --branch MmxRequestCeleryView https://github.com/nasa-nccs-hpda/innovation-lab.git /usr/local/celery
+    chmod a+rwx -R /usr/local/celery
