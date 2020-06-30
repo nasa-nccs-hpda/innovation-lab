@@ -15,7 +15,7 @@ FROM: ./cisto-data-science-3.0.0.simg
 
 %environment
     # set PYTHONPATH for access to ILProcessController
-    export PYTHONPATH="/usr/local/celery:$PYTHONPATH"
+    export PYTHONPATH="$PYTHONPATH:/usr/local/celery"
 
 %post
 
