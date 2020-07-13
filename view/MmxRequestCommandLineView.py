@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 import argparse
@@ -6,6 +6,7 @@ import sys
 import pandas
 
 from model.MmxRequest import MmxRequest
+from model.MmxRequestCelery import MmxRequestCelery
 from model.ObservationFile import ObservationFile
 
 # -----------------------------------------------------------------------------
@@ -13,18 +14,17 @@ from model.ObservationFile import ObservationFile
 #
 # cd innovation-lab
 # export PYTHONPATH=`pwd`
-# mkdir ~/SystemTesting/testMmx
-# mkdir ~/SystemTesting/testMaxEnt/merra
-# view/MmxRequestCommandLineView.py
-# -f ~/SystemTesting/MaxEntData/GSENM_cheat_pres_abs_2001.csv
-# -s "Cheat Grass" --start_date 2013-02-03 --end_date 2013-03-12
-# -o ~/SystemTesting/testMaxEnt/
+# view/MmxRequestCommandLineView.py -f /att/nobackup/rlgill/maxEntData/ebd_Cassins_1989.csv -s "Cassin's Sparrow" --start_date 2013-02-03 --end_date 2013-12-31 -c m2t1nxslv --vars QV2M TS --opr avg -o /att/nobackup/rlgill/testMmx --celery
 # -----------------------------------------------------------------------------
 def main():
 
     # Process command-line args.
     desc = 'This application runs MMX.'
     parser = argparse.ArgumentParser(description=desc)
+
+    parser.add_argument('--celery',
+                        action='store_true',
+                        help='Use Celery for distributed processing.')
 
     parser.add_argument('-f',
                         required=True,
@@ -68,11 +68,16 @@ def main():
     observationFile = ObservationFile(args.f, args.s)
     dateRange = pandas.date_range(args.start_date, args.end_date)
 
-    mmxr = MmxRequest(observationFile, dateRange,
-                      args.c, args.vars, args.opr, args.n, args.o)
-#    mmxr.runBatch()
-#    mmxr.runSimple()
-#    mmxr.runEdas()
+    if args.celery:
+        
+        mmxr = MmxRequestCelery(observationFile, dateRange, args.c, args.vars,
+                                args.opr, args.n, args.o)
+
+    else:
+
+        mmxr = MmxRequest(observationFile, dateRange, args.c, args.vars,
+                          args.opr, args.n, args.o)
+
     mmxr.run()
 
 # ------------------------------------------------------------------------------

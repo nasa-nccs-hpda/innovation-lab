@@ -8,24 +8,23 @@ import shutil
 import random
 from osgeo.osr import SpatialReference
 
-from model.MasRequest import MasRequest
+from model.MerraRequest import MerraRequest
 from model.MaxEntRequest import MaxEntRequest
 from model.ObservationFile import ObservationFile
 from model.GeospatialImageFile import GeospatialImageFile
+
+# Trial must be declared here, so Pickle can find the definition.
+Trial = namedtuple('Trial', ['directory', 'obsFile', 'images'])
 
 
 # -----------------------------------------------------------------------------
 # class MmxRequest
 # -----------------------------------------------------------------------------
 class MmxRequest(object):
-    Trial = namedtuple('Trial', ['directory', 'obsFile', 'images'])
-
+    
     # -------------------------------------------------------------------------
     # __init__
     # -------------------------------------------------------------------------
-    #    def __init__(self, observationFile, dateRange, numTrials=10,
-    #                 outputDirectory):
-
     def __init__(self, observationFile, dateRange, collection, variables,
                  operation, numTrials, outputDirectory):
 
@@ -43,6 +42,7 @@ class MmxRequest(object):
         #   - trials: contains trial-n directories, one for each trial.
         # ---
         self._outputDirectory = outputDirectory
+        self._ascDir = os.path.join(self._outputDirectory, 'asc')
         self._merraDir = os.path.join(self._outputDirectory, 'merra')
         self._trialsDir = os.path.join(self._outputDirectory, 'trials')
         self._numTrials = numTrials
@@ -52,8 +52,12 @@ class MmxRequest(object):
         self._variables = variables
         self._operation = operation
 
+        if not os.path.exists(self._ascDir):
+            os.mkdir(self._ascDir)
+            
         if not os.path.exists(self._merraDir):
             os.mkdir(self._merraDir)
+            
         if not os.path.exists(self._trialsDir):
             os.mkdir(self._trialsDir)
 
@@ -78,7 +82,7 @@ class MmxRequest(object):
             results = csv.reader(open(resultsFile))
 
             try:
-                header = results.next()
+                header = results.__next__()
 
             except:
                 raise RuntimeError('Error reading ' + str(resultsFile))
@@ -87,7 +91,7 @@ class MmxRequest(object):
 
                 rowDict = dict(zip(header, row))
 
-                for key in rowDict.iterkeys():
+                for key in rowDict.keys():
 
                     if CONTRIB_KWD in key:
 
@@ -101,18 +105,26 @@ class MmxRequest(object):
             return contributions
 
     # -------------------------------------------------------------------------
-    # getListofMerraImages
+    # _getMerra
     # -------------------------------------------------------------------------
-    def getListofMerraImages(self, files):
+    def _getMerra(self):
 
-        # Convert the list of NetCDF files to GeospatialImageFiles
-        list = []
-        tgt_srs = SpatialReference()
-        tgt_srs.ImportFromEPSG(4326)
-        for file in files:
-            list.append(GeospatialImageFile
-                        (os.path.join(self._merraDir, file), tgt_srs))
-        return list
+        # ---
+        # Copy clipped merra variable files to the merra directory.  
+        # MerraRequest does not process files already in this merra directory.
+        # ---
+        merraFiles = MerraRequest.run(self._observationFile.envelope(),
+                                      self._dateRange,
+                                      MerraRequest.MONTHLY,
+                                      [self._collection],
+                                      self._variables,
+                                      [self._operation],
+                                      self._merraDir)
+                                      
+        # Instantiate GeospatialImageFiles from the paths.
+        merraGifs = [GeospatialImageFile(f) for f in merraFiles]
+        
+        return merraGifs
 
     # -------------------------------------------------------------------------
     # getTopTen
@@ -125,7 +137,7 @@ class MmxRequest(object):
         # Compute the average contribution of each predictor over all trials.
         averages = {}
 
-        for key in contributions.iterkeys():
+        for key in contributions.keys():
             samples = contributions[key]
             averages[key] = float(sum(samples) / max(len(samples), 1))
 
@@ -140,11 +152,11 @@ class MmxRequest(object):
         topTen = []
 
         for k, v in sortedAvgs:
-            pred = k + '.nc'
-            topTen.append(pred)
+            
+            pred = os.path.join(self._merraDir, k + '.nc')
+            topTen.append(GeospatialImageFile(pred))
 
-        list = self.getListofMerraImages(topTen)
-        return list
+        return topTen
 
     # -------------------------------------------------------------------------
     # getTrialImageIndexes
@@ -159,6 +171,19 @@ class MmxRequest(object):
         # Generate lists of random indexes in the files.
         indexesInEachTrial = []
         PREDICTORS_PER_TRIAL = 10
+        
+        if len(images) <= PREDICTORS_PER_TRIAL:
+            
+            msg = 'There are ' + \
+                  str(len(images)) + \
+                  ' images and ' + \
+                  str(PREDICTORS_PER_TRIAL) + \
+                  ' predictors required for each trial.  ' + \
+                  'This is insufficient to generate random sets of ' + \
+                  'predictors for the trials.  Consider broadening the ' + \
+                  'image request.'
+                  
+            raise RuntimeError(msg)
 
         for i in range(1, int(self._numTrials) + 1):
             indexesInEachTrial.append(random.sample(range(0, len(images) - 1),
@@ -166,6 +191,20 @@ class MmxRequest(object):
 
         return indexesInEachTrial
 
+    # -------------------------------------------------------------------------
+    # prepareImages
+    #
+    # Prepare the images once, to be copied to trial directories.  Consider
+    # implementing this to run in parallel in MmxRequestCelery.
+    # -------------------------------------------------------------------------
+    def _prepareImages(self, merraGifs):
+                
+        # Perform the MaxEnt image preparation on this master set of images.
+        mer = MaxEntRequest(self._observationFile, merraGifs, self._ascDir)
+        preparedImageFiles = mer.prepareImages()
+        preparedGifs = [GeospatialImageFile(f) for f in preparedImageFiles]        
+        return preparedGifs
+        
     # -------------------------------------------------------------------------
     # prepareOneTrial
     # -------------------------------------------------------------------------
@@ -178,9 +217,6 @@ class MmxRequest(object):
         if not os.path.exists(TRIAL_DIR):
             os.mkdir(TRIAL_DIR)
 
-        # Get this trial's constituents.
-        trialPredictors = [images[i] for i in trialImageIndexes]
-
         # Copy the samples file to the trial.
         obsBaseName = os.path.basename(self._observationFile._filePath)
         trialObsPath = os.path.join(TRIAL_DIR, obsBaseName)
@@ -189,50 +225,43 @@ class MmxRequest(object):
         trialObs = ObservationFile(trialObsPath,
                                    self._observationFile.species())
 
+        # Get this trial's predictors.
+        trialPredictors = [images[i] for i in trialImageIndexes]
+
         # Copy the images to the trial.
-        trailAscDir = os.path.join(TRIAL_DIR, 'asc')
-        if not os.path.exists(trailAscDir):
-            os.mkdir(trailAscDir)
+        trialAscDir = os.path.join(TRIAL_DIR, 'asc')
+        
+        if not os.path.exists(trialAscDir):
+            os.mkdir(trialAscDir)
+            
+        for ascGif in trialPredictors:
+            
+            trialAscGif = os.path.join(trialAscDir,
+                                       os.path.basename(ascGif.fileName()))
+                                       
+            if not os.path.exists(trialAscGif):
+                shutil.copyfile(ascGif.fileName(), trialAscGif)
 
         # Build the Trial structure to use later.
-        trial = MmxRequest.Trial(directory=TRIAL_DIR,
-                                 images=trialPredictors,
-                                 obsFile=trialObs)
+        trial = Trial(directory=TRIAL_DIR,
+                      images=trialPredictors,
+                      obsFile=trialObs)
 
         return trial
-
-    # -------------------------------------------------------------------------
-    # requestMerra
-    # -------------------------------------------------------------------------
-    def requestMerra(self):
-
-        masRequest = MasRequest(self._observationFile.envelope(),
-                                self._dateRange,
-                                self._collection,
-                                self._variables,
-                                self._operation,
-                                self._merraDir)
-
-        masRequest.run()
 
     # -------------------------------------------------------------------------
     # run
     # -------------------------------------------------------------------------
     def run(self):
+        
         # ---
-        # Get MERRA images.
-        #
-        # - outputDirectory
-        #   - merra
+        # Get MERRA images.  This returns GeospatialImageFile objects of the
+        # .nc files.
         # ---
-        # Check if required NetCDFs already existing,
-        #       then skip data preparation
-        existedVars = os.listdir(self._merraDir)
-        requiredVars = [v + '.nc' for v in self._variables]
-        if not all(elem in existedVars for elem in requiredVars):
-            self.requestMerra()
-
-        images = self.getListofMerraImages(requiredVars)
+        merraImages = self._getMerra()
+        
+        # Prepare the images for MaxEnt.
+        images = self._prepareImages(merraImages)
 
         # Get the random lists of indexes into Images for each trial.
         listOfIndexesInEachTrial = self.getTrialImagesIndexes(images)
@@ -255,15 +284,14 @@ class MmxRequest(object):
         trials = []
 
         for trialImageIndexes in listOfIndexesInEachTrial:
+            
             trials.append(self.prepareOneTrial(images,
                                                trialImageIndexes,
                                                trialNum + 1))
             trialNum += 1
 
         # Run the trials.
-        for trial in trials:
-            mer = MaxEntRequest(trial.obsFile, trial.images, trial.directory)
-            mer.run()
+        self.runTrials(trials)
 
         # Compile trial statistics and select the top-ten predictors.
         topTen = self.getTopTen(trials)
@@ -271,5 +299,21 @@ class MmxRequest(object):
         # Run the final model.
         final = self.prepareOneTrial(topTen, range(0, len(topTen) - 1),
                                      'final')
+                                     
         finalMer = MaxEntRequest(final.obsFile, final.images, final.directory)
         finalMer.run()
+
+    # -------------------------------------------------------------------------
+    # runTrials
+    # -------------------------------------------------------------------------
+    def runTrials(self, trials):
+        
+        numTrials = len(trials)
+        curTrialNum = 0
+        
+        for trial in trials:
+            
+            curTrialNum += 1
+            print('Running trial', curTrialNum, 'of', numTrials)
+            mer = MaxEntRequest(trial.obsFile, trial.images, trial.directory)
+            mer.run()

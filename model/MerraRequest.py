@@ -11,7 +11,7 @@ from osgeo.osr import SpatialReference
 import pandas
 from pandas.tseries.offsets import MonthEnd
 
-from GeospatialImageFile import GeospatialImageFile
+from model.GeospatialImageFile import GeospatialImageFile
 
 
 # -----------------------------------------------------------------------------
@@ -102,18 +102,28 @@ class MerraRequest(object):
 
                     foundVariables.append(var)
 
-                    # Copy the original file before operating on it.
+                    # ---
+                    # Copy the original file before operating on it, unless
+                    # it already exists in the output directory.
+                    # ---
                     name = os.path.basename(os.path.splitext(f)[0]) + \
                         '_' + \
                         var + \
                         '.nc'
 
                     workingCopy = os.path.join(outDir, name)
-                    shutil.copyfile(f, workingCopy)
+                    
+                    if not os.path.exists(workingCopy):
+                        
+                        shutil.copyfile(f, workingCopy)
 
-                    # Extract and clip the subdataset.
-                    copyGeoFile = GeospatialImageFile(workingCopy, srs)
-                    copyGeoFile.clipReproject(envelope, None, sub[0])
+                        # Extract and clip the subdataset.
+                        copyGeoFile = GeospatialImageFile(workingCopy, srs)
+                        copyGeoFile.clipReproject(envelope, None, sub[0])
+
+                    else:
+                        copyGeoFile = GeospatialImageFile(workingCopy, srs)
+
                     subFiles.append(copyGeoFile.fileName())
 
                     # Stop, when all variables are found.
