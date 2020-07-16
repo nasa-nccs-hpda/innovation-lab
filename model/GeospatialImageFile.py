@@ -49,7 +49,7 @@ class GeospatialImageFile(ImageFile):
                               ' -of netCDF' + \
                               ' -s_srs "' + self.srs().ExportToProj4() + '"'
 
-        self.logger = logger
+#        self.logger = logger
 
     # -------------------------------------------------------------------------
     # clipReproject
@@ -99,7 +99,8 @@ class GeospatialImageFile(ImageFile):
         # Finish the command.
         outFile = tempfile.mkstemp()[1]
         cmd += ' ' + dataset + ' ' + outFile
-        SystemCommand(cmd, self.logger, True)
+        SystemCommand(cmd, None, True)
+#        SystemCommand(cmd, self.logger, True)
 
         shutil.move(outFile, self._filePath)
 
