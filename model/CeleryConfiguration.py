@@ -1,51 +1,66 @@
-# -*- coding: utf-8 -*-
-
-# ---
-# /etc/redis/redis.conf
-# /var/log/redis/redis-server.log
-# /var/lib/redis (working directory)
-#
-# In terminal 1:
-#     docker run -it -v /Users/rlgill/Desktop/Source/innovation-lab:/home/ilUser/hostFiles -v /Users/rlgill/Desktop/SystemTesting:/home/ilUser/SystemTesting innovation-lab:1.0
-#     redis-server&
-#     cd ~/hostFiles
-#     celery -A model.CeleryConfiguration worker --loglevel=info
-#
-# In terminal 2:
-#     docker ps
-#     docker exec -it [container ID] bash
-#     cd ~/hostFiles
-#     export PYTHONPATH=`pwd`
-#     ???
-#     check terminal 1
-#
-# In terminal 3, for debugging:
-#     docker ps
-#     docker exec -it [container ID] bash
-#     check terminal 1 for debugger port
-#     telnet localhost [port]
-#
-# To run Flower:
-# celery flower -A model.CeleryConfiguration -port 5555
-# ---
-
 from celery import Celery
+from socket import socket
+import os
 
+# -----------------------------------------------------------------------------
+#  CeleryConfiguration
+#
+# Contains Celery/Redis server configuration
+# -----------------------------------------------------------------------------
 
-# app = Celery('innovation-lab',
-#              backend='redis://localhost:6379/0',
-#              broker='redis://localhost:6379/0',
-#              track_started=True,
-#              include=['model.MaxEntRequestCelery',
-#         'projects.aviris_regression_algorithms.model.ApplyAlgorithmCelery'])
+# Configuration keys:
+IL_BACKEND = "_IL_backend"
+IL_BROKER = "_IL_broker"
+IL_CONCURRENCY = "_IL_concurrency"
+IL_CONFIG = "_IL_celeryConfig"
+IL_HOST = "_IL_host"
+IL_LOGLEVEL = "_IL_loglevel"
+IL_PORT = "_IL_port"
 
-app = Celery('innovation-lab',
-             backend='redis://localhost:6379/0',
-             broker='redis://localhost:6379/0',
-             track_started=True,
-             include=['projects.aviris_regression_algorithms.model.ApplyAlgorithmCelery'])
+# -----------------------------------------------------------------------------
+# REQUIRED:  Modify the next statement to include your distributed tasks.
+# Note that PYTHONPATH must resolve this.
+#
+_IL_include ='model.Tasks'
+
+# -----------------------------------------------------------------------------
+#OPTIONAL:  Modify the following defaults as desired
+
+# Initialize defaults and add to context
+_IL_port = '6388'
+
+with socket() as s:
+    s.bind(('', 0))
+    # To automatically find a free port, uncomment the next line:
+    #_IL_port = str(s.getsockname()[1]) + '/0'
+
+_IL_broker = 'redis://'
+_IL_host = 'localhost'
+_IL_broker = _IL_broker + _IL_host + ':' + _IL_port + '/0'
+_IL_backend =_IL_broker
+_IL_pythonpath = './innovation-lab'
+
+# Concatenate existing PYTHONPATH to allow runtime extenstion
+if os.environ["PYTHONPATH"] != None:
+    _IL_pythonpath + ':$' + os.environ["PYTHONPATH"]
+
+# Create context map of key value pairs called 'app'
+app = Celery(_IL_pythonpath,
+             broker=_IL_broker,
+             backend=_IL_backend,
+             include=[_IL_include])
 
 app.conf.accept_content = ['application/json',
                            'json',
                            'pickle',
                            'application/x-python-serialize']
+
+app.conf.setdefault(IL_BACKEND, _IL_backend)
+app.conf.setdefault(IL_BROKER, _IL_broker)
+# Uncomment and set next line to specify number of threads (defaults to max)
+# app.conf.setdefault(IL_CONCURRERNCY, '8')
+app.conf.setdefault(IL_CONFIG, 'model.CeleryConfiguration')
+app.conf.setdefault(IL_HOST, _IL_host)
+app.conf.setdefault(IL_LOGLEVEL, 'info')
+app.conf.setdefault(IL_PORT, _IL_port)
+
