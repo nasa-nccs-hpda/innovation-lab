@@ -4,9 +4,8 @@ from osgeo.osr import SpatialReference
 
 from celery import group
 
-from CeleryConfiguration import app
+from model.CeleryConfiguration import app
 from model.MaxEntRequest import MaxEntRequest
-
 
 # -----------------------------------------------------------------------------
 # class MaxEntRequestCelery
