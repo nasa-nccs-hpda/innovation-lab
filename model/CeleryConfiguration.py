@@ -21,8 +21,7 @@ IL_PORT = "_IL_port"
 # REQUIRED:  Modify the next statement to include your distributed tasks.
 # Note that PYTHONPATH must resolve this.
 #
-#_IL_include = "'model.MaxEntRequestCelery', 'model.MmxRequestCelery'"
-_IL_include ='model.Tasks'
+#_IL_include ='model.Tasks'
 
 # -----------------------------------------------------------------------------
 #OPTIONAL:  Modify the following defaults as desired
