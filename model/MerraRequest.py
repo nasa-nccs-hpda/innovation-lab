@@ -1,7 +1,5 @@
-#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-import glob
 import os
 import shutil
 import warnings
@@ -112,9 +110,9 @@ class MerraRequest(object):
                         '.nc'
 
                     workingCopy = os.path.join(outDir, name)
-                    
+
                     if not os.path.exists(workingCopy):
-                        
+
                         shutil.copyfile(f, workingCopy)
 
                         # Extract and clip the subdataset.

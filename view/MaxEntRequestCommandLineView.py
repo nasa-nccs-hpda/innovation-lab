@@ -61,7 +61,6 @@ def main():
     imageFiles = glob.glob(args.i + '/*.nc')
     geoImages = [GeospatialImageFile(i, srs) for i in imageFiles]
     observationFile = ObservationFile(args.f, args.s)
-    maxEntReq = None
 
     if args.celery:
 

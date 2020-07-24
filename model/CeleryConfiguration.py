@@ -32,22 +32,14 @@
 from celery import Celery
 
 
-# app = Celery('innovation-lab',
-#              backend='redis://localhost:6379/0',
-#              broker='redis://localhost:6379/0',
-#              track_started=True,
-#              include=['model.MaxEntRequestCelery',
-#         'projects.aviris_regression_algorithms.model.ApplyAlgorithmCelery'])
-
 inclModules = \
     ['model.MaxEntRequestCelery',
      'model.MmxRequestCelery',
      'projects.aviris_regression_algorithms.model.ApplyAlgorithmCelery']
-            
+
 app = Celery('innovation-lab',
              backend='redis://localhost:6379/0',
              broker='redis://localhost:6379/0',
-             track_started=True,
              include=inclModules)
 
 app.conf.accept_content = ['application/json',

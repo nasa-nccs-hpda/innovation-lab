@@ -8,9 +8,6 @@ import pickle
 import shutil
 import sys
 
-from osgeo.osr import SpatialReference
-
-from model.Envelope import Envelope
 from model.GeospatialImageFile import GeospatialImageFile
 from model.SystemCommand import SystemCommand
 
@@ -150,8 +147,8 @@ class MaxEntRequest(object):
         numLeft = len(self._imagesToProcess)
 
         for gif in self._imagesToProcess:
-            
-            ascGifs.append(MaxEntRequest.prepareImage( \
+
+            ascGifs.append(MaxEntRequest.prepareImage(
                 gif,
                 self._imageSRS,
                 self._observationFile.envelope(),
@@ -159,14 +156,14 @@ class MaxEntRequest(object):
 
             numLeft -= 1
             print(numLeft, ' images remaining to process.')
-            
+
         return ascGifs
 
     # -------------------------------------------------------------------------
     # run
     # -------------------------------------------------------------------------
     def run(self, jarFile=MAX_ENT_JAR):
-        
+
         self.prepareImages()
         self.runMaxEntJar(jarFile)
 
