@@ -8,9 +8,6 @@ import pickle
 import shutil
 import sys
 
-from osgeo.osr import SpatialReference
-
-from model.Envelope import Envelope
 from model.GeospatialImageFile import GeospatialImageFile
 from model.SystemCommand import SystemCommand
 
@@ -19,6 +16,10 @@ from model.SystemCommand import SystemCommand
 # class MaxEntRequest
 # -----------------------------------------------------------------------------
 class MaxEntRequest(object):
+
+    MAX_ENT_JAR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                               'libraries',
+                               'maxent.jar')
 
     # -------------------------------------------------------------------------
     # __init__
@@ -90,26 +91,6 @@ class MaxEntRequest(object):
         return samplesFile
 
     # -------------------------------------------------------------------------
-    # prepareNextImage
-    #
-    # This method is used to prepare all images in this request.
-    # -------------------------------------------------------------------------
-    def prepareNextImage(self):
-
-        try:
-            image = self._imagesToProcess.pop()
-
-            MaxEntRequest.prepareImage(image,
-                                       self._imageSRS,
-                                       self._observationFile.envelope(),
-                                       self._ascDir)
-
-        except IndexError:
-            return 0
-
-        return len(self._imagesToProcess)
-
-    # -------------------------------------------------------------------------
     # prepareImage
     #
     # This method prepares one image for use with maxent.jar.  Clients can use
@@ -118,67 +99,84 @@ class MaxEntRequest(object):
     # instead of preparing a new set for each trial.
     # -------------------------------------------------------------------------
     @staticmethod
-    def prepareImage(imageFile, srs, envelope, ascDir):
+    def prepareImage(image, srs, envelope, ascDir):
 
         # ---
         # First, to preserve the original files, copy the input file to the
         # output directory.
         # ---
-        baseName = os.path.basename(imageFile.fileName())
-        copyPath = os.path.join(ascDir, baseName)
-        print ('Processing ' + copyPath)
-        shutil.copy(imageFile.fileName(), copyPath)
-        imageCopy = GeospatialImageFile(copyPath, srs)
-        imageCopy.clipReproject(envelope)
-
-        squareScale = imageCopy.getSquareScale()
-        imageCopy.resample(squareScale, squareScale)
-
-        # Convert to ASCII Grid.
+        baseName = os.path.basename(image.fileName())
         nameNoExtension = os.path.splitext(baseName)[0]
         ascImagePath = os.path.join(ascDir, nameNoExtension + '.asc')
 
-        cmd = 'gdal_translate -ot Float32 -of AAIGrid -a_nodata -9999.0' +\
-              ' "' + imageCopy.fileName() + '"' + \
-              ' "' + ascImagePath + '"'
+        if not os.path.exists(ascImagePath):
 
-        SystemCommand(cmd, None, True)
+            copyPath = os.path.join(ascDir, baseName)
+            print ('Processing ' + copyPath)
+            shutil.copy(image.fileName(), copyPath)
+            imageCopy = GeospatialImageFile(copyPath, srs)
+            imageCopy.clipReproject(envelope)
 
-        # Fix NaNs.
-        for line in fileinput.FileInput(ascImagePath, inplace=1):
+            squareScale = imageCopy.getSquareScale()
+            imageCopy.resample(squareScale, squareScale)
 
-            line = line.replace('nan', '-9999')
-            sys.stdout.write(line)
+            # Convert to ASCII Grid.
+            cmd = 'gdal_translate -ot Float32 -of AAIGrid -a_nodata -9999.0' +\
+                  ' "' + imageCopy.fileName() + '"' + \
+                  ' "' + ascImagePath + '"'
+
+            SystemCommand(cmd, None, True)
+
+            # Fix NaNs.
+            for line in fileinput.FileInput(ascImagePath, inplace=1):
+
+                line = line.replace('nan', '-9999')
+                sys.stdout.write(line)
+
+        else:
+            print(baseName, 'was previously prepared.')
 
         return ascImagePath
 
     # -------------------------------------------------------------------------
+    # prepareImages
+    # -------------------------------------------------------------------------
+    def prepareImages(self):
+
+        ascGifs = []
+        numLeft = len(self._imagesToProcess)
+
+        for gif in self._imagesToProcess:
+
+            ascGifs.append(MaxEntRequest.prepareImage(
+                gif,
+                self._imageSRS,
+                self._observationFile.envelope(),
+                self._ascDir))
+
+            numLeft -= 1
+            print(numLeft, ' images remaining to process.')
+
+        return ascGifs
+
+    # -------------------------------------------------------------------------
     # run
     # -------------------------------------------------------------------------
-    def run(self):
+    def run(self, jarFile=MAX_ENT_JAR):
 
-        imagesLeft = sys.maxsize
-        while imagesLeft > 0:
-
-            imagesLeft = self.prepareNextImage()
-            print (str(imagesLeft) + ' images remaining to process.')
-
-        self.runMaxEntJar()
+        self.prepareImages()
+        self.runMaxEntJar(jarFile)
 
     # -------------------------------------------------------------------------
     # runMaxEntJar
     # -------------------------------------------------------------------------
-    def runMaxEntJar(self):
+    def runMaxEntJar(self, jarFile=MAX_ENT_JAR):
 
         print ('Running MaxEnt.')
 
         # Invoke maxent.jar.
-        MAX_ENT_JAR = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                   'libraries',
-                                   'maxent.jar')
-
         baseCmd = 'java -Xmx1024m -jar ' + \
-                  MAX_ENT_JAR + \
+                  jarFile + \
                   ' visible=false autorun -P -J writeplotdata ' + \
                   '"applythresholdrule=Equal training sensitivity and ' + \
                   'specificity" removeduplicates=false '

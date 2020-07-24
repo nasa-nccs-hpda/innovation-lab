@@ -56,9 +56,9 @@ def main():
     parser.add_argument('-c',
                         help='Path to coefficient CSV file')
 
-    # parser.add_argument('--celery',
-    #                     action='store_true',
-    #                     help='Use Celery for distributed processing.')
+    parser.add_argument('--celery',
+                        action='store_true',
+                        help='Use Celery for distributed processing.')
 
     parser.add_argument('-i',
                         default='.',

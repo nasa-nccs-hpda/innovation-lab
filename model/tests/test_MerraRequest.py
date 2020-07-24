@@ -31,7 +31,7 @@ class MerraRequestTestCase(unittest.TestCase):
             MerraRequest.queryFiles(
                 pandas.date_range('2010-10-10', '2011-02-12'),
                 MerraRequest.MONTHLY,
-                MerraRequest.COLLECTIONS,
+                ['m2t1nxflx', 'm2t1nxslv'],
                 MerraRequest.OPERATIONS)
 
         expectedExisting = [

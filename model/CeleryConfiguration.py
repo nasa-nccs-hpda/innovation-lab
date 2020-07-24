@@ -2,8 +2,9 @@ from celery import Celery
 from socket import socket
 import os
 
+
 # -----------------------------------------------------------------------------
-#  CeleryConfiguration
+# CeleryConfiguration
 #
 # Contains Celery/Redis server configuration
 # -----------------------------------------------------------------------------
@@ -21,10 +22,9 @@ IL_PORT = "_IL_port"
 # REQUIRED:  Modify the next statement to include your distributed tasks.
 # Note that PYTHONPATH must resolve this.
 #
-#_IL_include ='model.Tasks'
-
+# _IL_include ='model.Tasks'
+# OPTIONAL:  Modify the following defaults as desired
 # -----------------------------------------------------------------------------
-#OPTIONAL:  Modify the following defaults as desired
 
 # Initialize defaults and add to context
 _IL_port = '6388'
@@ -32,7 +32,7 @@ _IL_port = '6388'
 with socket() as s:
     s.bind(('', 0))
     # To automatically find a free port, uncomment the next line:
-    #_IL_port = str(s.getsockname()[1]) + '/0'
+    # _IL_port = str(s.getsockname()[1]) + '/0'
 
 _IL_broker = 'redis://'
 _IL_host = 'localhost'
@@ -45,11 +45,15 @@ if os.environ["PYTHONPATH"] != None:
     _IL_pythonpath + ':$' + os.environ["PYTHONPATH"]
 
 # Create context map of key value pairs called 'app'
-app = Celery(_IL_pythonpath,
-             broker=_IL_broker,
-             backend=_IL_backend,
-             include=['model.MaxEntRequestCelery', 'model.MmxRequestCelery'])
-#             include=[_IL_include])
+inclModules = \
+    ['model.MaxEntRequestCelery',
+     'model.MmxRequestCelery',
+     'projects.aviris_regression_algorithms.model.ApplyAlgorithmCelery']
+
+app = Celery('innovation-lab',
+             backend='redis://localhost:6379/0',
+             broker='redis://localhost:6379/0',
+             include=inclModules)
 
 app.conf.accept_content = ['application/json',
                            'json',

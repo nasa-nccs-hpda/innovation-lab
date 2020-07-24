@@ -32,15 +32,15 @@ class SystemCommandTestCase(unittest.TestCase):
         scmd = SystemCommand('ls abc.txt')
 
         self.assertEqual(scmd.msg,
-                         'ls: cannot access abc.txt: ' +
-                         'No such file or directory\n')
+                         b"ls: cannot access 'abc.txt': " +
+                         b"No such file or directory\n")
 
-        scmd = SystemCommand('gdal_merge.py abc.txt', logging.getLogger())
-        self.assertTrue("ERROR 4: `abc.txt\' does not exist" in scmd.msg)
+        scmd = SystemCommand('gdalinfo abc.txt', logging.getLogger())
+        self.assertTrue(b'ERROR 4: abc.txt: No such file or' in scmd.msg)
 
         with self.assertRaisesRegexp(RuntimeError, 'A system command error'):
 
-            scmd = SystemCommand('gdal_merge.py abc.txt',
+            scmd = SystemCommand('gdalinfo abc.txt',
                                  logging.getLogger(),
                                  True)
 

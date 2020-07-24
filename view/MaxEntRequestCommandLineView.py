@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 import argparse
@@ -18,8 +18,8 @@ from model.ObservationFile import ObservationFile
 #
 # cd innovation-lab
 # export PYTHONPATH=`pwd`
-# mkdir ~/SystemTesting/testMaxEnt
-# view/MaxEntRequestCommandLineView.py -e 4326 -f ~/SystemTesting/maxEntData/ebd_Cassins_1989.csv -s "Cheat Grass" -i ~/SystemTesting/maxEntData/images/ -o ~/SystemTesting/testMaxEnt/
+# view/MerraRequestCLV.py -e -125 50 -66 24 --epsg 4326 --start_date 2013-02-03 --end_date 2013-03-12 -c m2t1nxslv --vars QV2M TS --op avg -o /att/nobackup/rlgill/testMaxEnt/merra
+# view/MaxEntRequestCommandLineView.py -e 4326 -f /att/nobackup/rlgill/maxEntData/ebd_Cassins_1989.csv -s "Cassin's Sparrow" -i /att/nobackup/rlgill/testMaxEnt/merra -o /att/nobackup/rlgill/testMaxEnt
 # -----------------------------------------------------------------------------
 def main():
 
@@ -61,7 +61,6 @@ def main():
     imageFiles = glob.glob(args.i + '/*.nc')
     geoImages = [GeospatialImageFile(i, srs) for i in imageFiles]
     observationFile = ObservationFile(args.f, args.s)
-    maxEntReq = None
 
     if args.celery:
 

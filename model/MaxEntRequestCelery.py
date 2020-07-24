@@ -37,12 +37,11 @@ class MaxEntRequestCelery(MaxEntRequest):
     # -------------------------------------------------------------------------
     @staticmethod
     @app.task(serializer='pickle')
-    def prepareImage(imageFile, srsProj4, envelope, ascDir):
+    def prepareImage(image, srsProj4, envelope, ascDir):
 
         srs = SpatialReference()
         srs.ImportFromProj4(srsProj4)
-
-        MaxEntRequest.prepareImage(imageFile, srs, envelope, ascDir)
+        MaxEntRequest.prepareImage(image, srs, envelope, ascDir)
 
     # -------------------------------------------------------------------------
     # prepareImages
