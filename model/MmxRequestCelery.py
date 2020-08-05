@@ -1,3 +1,4 @@
+import os
 import shutil
 
 from celery import group
@@ -36,13 +37,15 @@ class MmxRequestCelery(MmxRequest):
     # -------------------------------------------------------------------------
     def _prepareImages(self, merraGifs):
 
+        print('In MmxRequestCelery.prepareImages ...')
+
         # Perform the MaxEnt image preparation on this master set of images.
         mer = MaxEntRequestCelery(self._observationFile,
                                   merraGifs,
                                   self._ascDir)
 
         preparedImageFiles = mer.prepareImages()
-        preparedGifs = [GeospatialImageFile(f) for f in preparedImageFiles]
+        preparedGifs = [GeospatialImageFile(f.get()) for f in preparedImageFiles]
         return preparedGifs
 
     # -------------------------------------------------------------------------
@@ -69,6 +72,7 @@ class MmxRequestCelery(MmxRequest):
     # -------------------------------------------------------------------------
     def runTrials(self, trials):
 
+        print('In MmxRequestCelery.runTrials ...')
         wpi = group(MmxRequestCelery._runOneTrial.s(trial) for trial in trials)
         asyncResults = wpi.apply_async()  # This initiates the processes.
         asyncResults.get()    # Waits for wpi to finish.
@@ -80,5 +84,6 @@ class MmxRequestCelery(MmxRequest):
     @app.task(serializer='pickle')
     def _runOneTrial(trial):
 
+        print('In MmxRequestCelery._runOneTrial ...')
         mer = MaxEntRequestCelery(trial.obsFile, trial.images, trial.directory)
-        mer.run(trial.directory + '/maxent.jar')
+        mer.run(os.path.join(trial.directory, 'maxent.jar'))

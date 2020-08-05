@@ -15,6 +15,10 @@ from model.ObservationFile import ObservationFile
 # cd innovation-lab
 # export PYTHONPATH=`pwd`
 # view/MmxRequestCommandLineView.py -f /att/nobackup/rlgill/maxEntData/ebd_Cassins_1989.csv -s "Cassin's Sparrow" --start_date 2013-02-03 --end_date 2013-12-31 -c m2t1nxslv --vars QV2M TS --opr avg -o /att/nobackup/rlgill/testMmx --celery
+#
+# Container execution:
+# cd innovation-lab
+# singularity run -B /att /att/nobackup/iluser/containers/ilab-core-5.0.0.simg python view/MmxRequestCommandLineView.py -f /att/nobackup/rlgill/maxEntData/ebd_Cassins_1989.csv -s "Cassin's Sparrow" --start_date 2013-02-03 --end_date 2013-12-31 -c m2t1nxslv --vars QV2M TS --opr avg -o /att/nobackup/rlgill/testMmx --celery
 # -----------------------------------------------------------------------------
 def main():
 

@@ -7,6 +7,7 @@ from celery import group
 from model.CeleryConfiguration import app
 from model.MaxEntRequest import MaxEntRequest
 
+
 # -----------------------------------------------------------------------------
 # class MaxEntRequestCelery
 # -----------------------------------------------------------------------------
@@ -39,16 +40,18 @@ class MaxEntRequestCelery(MaxEntRequest):
     @app.task(serializer='pickle')
     def prepareImage(image, srsProj4, envelope, ascDir):
 
+        print('In MaxEntRequestCelery.prepareImage ...')
         srs = SpatialReference()
         srs.ImportFromProj4(srsProj4)
-        MaxEntRequest.prepareImage(image, srs, envelope, ascDir)
+        ascImagePath = MaxEntRequest.prepareImage(image, srs, envelope, ascDir)
+        return ascImagePath
 
     # -------------------------------------------------------------------------
     # prepareImages
     # -------------------------------------------------------------------------
     def prepareImages(self):
 
-        print ('In prepareImages ...')
+        print('In MaxEntRequestCelery.prepareImages ...')
         wpi = group(MaxEntRequestCelery.prepareImage.s(
                                     image,
                                     self._imageSRS.ExportToProj4(),
@@ -63,8 +66,8 @@ class MaxEntRequestCelery(MaxEntRequest):
     # -------------------------------------------------------------------------
     # run
     # -------------------------------------------------------------------------
-    def run(self):
+    def run(self, jarFile):
 
-        self.prepareImages()
-        self.runMaxEntJar()
+        # self.prepareImages()
+        self.runMaxEntJar(jarFile)
 
