@@ -5,6 +5,7 @@ from osgeo.osr import SpatialReference
 from celery import group
 
 from model.CeleryConfiguration import app
+from model.ILProcessController import ILProcessController
 from model.MaxEntRequest import MaxEntRequest
 
 
@@ -52,14 +53,17 @@ class MaxEntRequestCelery(MaxEntRequest):
     def prepareImages(self):
 
         print('In MaxEntRequestCelery.prepareImages ...')
-        wpi = group(MaxEntRequestCelery.prepareImage.s(
+
+        with ILProcessController() as processController:
+
+            wpi = group(MaxEntRequestCelery.prepareImage.s(
                                     image,
                                     self._imageSRS.ExportToProj4(),
                                     self._observationFile.envelope(),
                                     self._ascDir) for image in self._images)
 
-        result = wpi.apply_async()
-        result.get()    # Waits for wpi to finish.
+            result = wpi.apply_async()
+            result.get()    # Waits for wpi to finish.
 
         return result
 

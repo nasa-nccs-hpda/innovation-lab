@@ -5,6 +5,7 @@ import argparse
 import sys
 import pandas
 
+from model.ILProcessController import ILProcessController
 from model.MmxRequest import MmxRequest
 from model.MmxRequestCelery import MmxRequestCelery
 from model.ObservationFile import ObservationFile
@@ -76,8 +77,10 @@ def main():
 
     if args.celery:
         
-        mmxr = MmxRequestCelery(observationFile, dateRange, args.c, args.vars,
-                                args.opr, args.n, args.o)
+        with ILProcessController() as processController:
+
+            mmxr = MmxRequestCelery(observationFile, dateRange, args.c, args.vars,
+                                    args.opr, args.n, args.o)
 
     else:
 
