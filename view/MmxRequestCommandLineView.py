@@ -14,6 +14,8 @@ from model.ObservationFile import ObservationFile
 #
 # cd innovation-lab
 # export PYTHONPATH=`pwd`
+# redis-server&
+# celery -A model.CeleryConfiguration worker --loglevel=info&
 # view/MmxRequestCommandLineView.py -f /att/nobackup/rlgill/maxEntData/ebd_Cassins_1989.csv -s "Cassin's Sparrow" --start_date 2013-02-03 --end_date 2013-12-31 -c m2t1nxslv --vars QV2M TS --opr avg -o /att/nobackup/rlgill/testMmx --celery
 #
 # Container execution:
