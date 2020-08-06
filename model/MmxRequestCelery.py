@@ -5,6 +5,7 @@ from celery import group
 
 from model.CeleryConfiguration import app
 from model.GeospatialImageFile import GeospatialImageFile
+from model.ILProcessController import ILProcessController
 from model.MaxEntRequestCelery import MaxEntRequestCelery
 from model.MmxRequest import MmxRequest
 
@@ -73,9 +74,14 @@ class MmxRequestCelery(MmxRequest):
     def runTrials(self, trials):
 
         print('In MmxRequestCelery.runTrials ...')
-        wpi = group(MmxRequestCelery._runOneTrial.s(trial) for trial in trials)
-        asyncResults = wpi.apply_async()  # This initiates the processes.
-        asyncResults.get()    # Waits for wpi to finish.
+
+        with ILProcessController() as processController:
+
+            wpi = group(MmxRequestCelery._runOneTrial.s(trial) \
+                    for trial in trials)
+
+            asyncResults = wpi.apply_async()  # This initiates the processes.
+            asyncResults.get()    # Waits for wpi to finish.
 
     # -------------------------------------------------------------------------
     # runOneTrial
