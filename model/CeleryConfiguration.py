@@ -51,8 +51,8 @@ inclModules = \
      'projects.aviris_regression_algorithms.model.ApplyAlgorithmCelery']
 
 app = Celery('innovation-lab',
-             backend='redis://localhost:6379/0',
-             broker='redis://localhost:6379/0',
+             backend=_IL_backend,
+             broker=_IL_broker,
              include=inclModules)
 
 app.conf.accept_content = ['application/json',

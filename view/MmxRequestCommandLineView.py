@@ -79,15 +79,17 @@ def main():
         
         with ILProcessController() as processController:
 
-            mmxr = MmxRequestCelery(observationFile, dateRange, args.c, args.vars,
-                                    args.opr, args.n, args.o)
+            mmxr = MmxRequestCelery(observationFile, dateRange, args.c,
+                                    args.vars, args.opr, args.n, args.o)
+
+            mmxr.run()
 
     else:
 
         mmxr = MmxRequest(observationFile, dateRange, args.c, args.vars,
                           args.opr, args.n, args.o)
 
-    mmxr.run()
+        mmxr.run()
 
 # ------------------------------------------------------------------------------
 # Invoke the main
