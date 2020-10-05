@@ -45,5 +45,5 @@ FROM: ./cisto-data-science-3.0.0.simg
 
     # retrieve IL Celery automation source from git repository and open permissions (include server shutdown version)
     mkdir -p /usr/local/celery
-    git clone --single-branch --branch MmxRequestCeleryView https://github.com/nasa-nccs-hpda/innovation-lab.git /usr/local/celery
+    git clone --single-branch --branch MmxRequestCeleryView-4.0.0 https://github.com/nasa-nccs-hpda/innovation-lab.git /usr/local/celery
     chmod a+rwx -R /usr/local/celery
