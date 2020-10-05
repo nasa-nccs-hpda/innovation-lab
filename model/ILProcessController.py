@@ -71,8 +71,8 @@ class ILProcessController():
             os.system(shutdownWorkers)
 
             # Shutdown the Celery Server - TODO - Shutdown Redis cleanly - works now with uncaught exception
-#            shutdownServer = str("/bin/kill -9 " + str(self._backendProcessId))
-#            os.system(shutdownServer)
+            shutdownServer = str("/bin/kill -9 " + str(self._backendProcessId))
+            os.system(shutdownServer)
 
             return True
 
